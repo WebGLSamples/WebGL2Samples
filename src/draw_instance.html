@@ -55,6 +55,7 @@
 
 
 	<script>
+		
 		function createShader(str, type) {
 			var shader = gl.createShader(type);
 			gl.shaderSource(shader, str);
@@ -80,7 +81,13 @@
 		canvas.width = window.innerWidth;
 		canvas.height = window.innerHeight;
 		document.body.appendChild(canvas);
-		gl = canvas.getContext("experimental-webgl");
+		
+		gl = canvas.getContext( 'webgl2', { antialias: false } );
+		if (!gl) {
+			gl = canvas.getContext( 'experimental-webgl2', { antialias: false } );
+		}
+		
+		//
 		
 		gl.clearColor(0,0,0.0,1);
 		gl.clear(gl.COLOR_BUFFER_BIT);
@@ -102,7 +109,8 @@
 		gl.enableVertexAttribArray(program.vertexPosAttrib);
 		
 		gl.vertexAttribPointer(program.vertexPosAttrib, 2, gl.FLOAT, false, 0, 0);
-		gl.drawArrays(gl.TRIANGLES, 0, 3);
+		gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 2);
+		//gl.drawArrays(gl.TRIANGLES, 0, 3);
 		
 		
 	</script>
