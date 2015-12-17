@@ -8,3 +8,4 @@ Samples demonstrating WebGL 2 features by [Shuai Shao (Shrek)](https://shrekshao
 ## Credits
 * [three.js example page framework](https://github.com/mrdoob/three.js)
 * [opengl sample pack](https://github.com/g-truc/ogl-samples)
+* [webgl2-particles](https://github.com/toji/webgl2-particles)
