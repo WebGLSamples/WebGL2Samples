@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>webgl 2 samples - draw instances</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			color: #cccccc;
+			font-family: Monospace;
+			font-size: 13px;
+			text-align: center;
+			background-color: #050505;
+			margin: 0px;
+			overflow: hidden;
+		}
+		
+		#info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+		}
+		
+		a {
+			color: #0080ff;
+		}
+	</style>
+</head>
+
+<body>
+
+	<!--
+		<canvas id="c" width=window.innerWidth height=window.innerWidth></canvas>
+	-->
+	<div id="info">webgl 2 samples - draw instances</div>
+
+	<!-- WebGL 2 shaders -->
+    <script id="vs" type="x-shader/x-vertex">
+		attribute vec2 pos;
+		void main()
+		{
+			gl_Position = vec4(pos, 0, 1); 
+		}
+    </script>
+
+    <script id="fs" type="x-shader/x-fragment">
+		void main()
+		{
+			gl_FragColor = vec4(1.0, 0.5, 0, 1);
+		}
+    </script>
+
+
+
+	<script>
+		function createShader(str, type) {
+			var shader = gl.createShader(type);
+			gl.shaderSource(shader, str);
+			gl.compileShader(shader);
+			return shader;
+		}
+		function createProgram(vstr, fstr) {
+			var program = gl.createProgram();
+			var vshader = createShader(vstr, gl.VERTEX_SHADER);
+			var fshader = createShader(fstr, gl.FRAGMENT_SHADER);
+			gl.attachShader(program, vshader);
+			gl.attachShader(program, fshader);
+			gl.linkProgram(program);
+			return program;
+		}
+		
+		//
+		
+		var canvas;
+		var gl;
+		
+		canvas = document.createElement('canvas');
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+		document.body.appendChild(canvas);
+		gl = canvas.getContext("experimental-webgl");
+		
+		gl.clearColor(0,0,0.0,1);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+		
+		var vertexPosBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+		var vertices = [-0.5, -0.5,
+						0.5, -0.5,
+						0.0, 0.5
+						];
+		gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.STATIC_DRAW);
+		
+		var vertexShader = document.getElementById( 'vs' ).textContent;
+		var fragmentShader = document.getElementById( 'fs' ).textContent;
+		var program = createProgram(vertexShader,fragmentShader);
+		gl.useProgram(program);
+		
+		program.vertexPosAttrib = gl.getAttribLocation(program, 'pos');
+		gl.enableVertexAttribArray(program.vertexPosAttrib);
+		
+		gl.vertexAttribPointer(program.vertexPosAttrib, 2, gl.FLOAT, false, 0, 0);
+		gl.drawArrays(gl.TRIANGLES, 0, 3);
+		
+		
+	</script>
+
+</body>
+
+</html>
