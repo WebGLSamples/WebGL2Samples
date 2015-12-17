@@ -202,6 +202,9 @@
 
 
 		var files = {
+			"Instances": [
+				"draw_instanced"
+			],
 			"Transform Feedback": [
 				"webgl_animation_cloth",
 				"webgl_animation_scene"
@@ -226,10 +229,6 @@
 				"webgl_custom_attributes_points2",
 				"webgl_custom_attributes_points3"
 			],
-			"Instances": [
-				"vr_cubes",
-				"vr_video"
-			],
 			"Textures": [
 				"css3d_molecules",
 				"css3d_panorama",
@@ -238,73 +237,8 @@
 				"css3d_sandbox",
 				"css3d_sprites",
 				"css3d_youtube"
-			],
-			"css3d stereo": [
-				"css3dstereo_periodictable",
-			],
-			"misc": [
-				"misc_animation_keys",
-				"misc_controls_deviceorientation",
-				"misc_controls_fly",
-				"misc_controls_orbit",
-				"misc_controls_pointerlock",
-				"misc_controls_trackball",
-				"misc_controls_transform",
-				"misc_fps",
-				"misc_lights_test",
-				"misc_lookat",
-				"misc_sound",
-				"misc_ubiquity_test",
-				"misc_ubiquity_test2",
-				"misc_uv_tests"
-			],
-			"canvas": [
-				"canvas_ascii_effect",
-				"canvas_camera_orthographic",
-				"canvas_camera_orthographic2",
-				"canvas_effects_stereo",
-				"canvas_geometry_birds",
-				"canvas_geometry_cube",
-				"canvas_geometry_earth",
-				"canvas_geometry_hierarchy",
-				"canvas_geometry_nurbs",
-				"canvas_geometry_panorama",
-				"canvas_geometry_panorama_fisheye",
-				"canvas_geometry_shapes",
-				"canvas_geometry_terrain",
-				"canvas_geometry_text",
-				"canvas_interactive_cubes",
-				"canvas_interactive_cubes_tween",
-				"canvas_interactive_particles",
-				"canvas_interactive_voxelpainter",
-				"canvas_lights_pointlights",
-				"canvas_lines",
-				"canvas_lines_colors",
-				"canvas_lines_colors_2d",
-				"canvas_lines_dashed",
-				"canvas_lines_sphere",
-				"canvas_materials",
-				"canvas_materials_normal",
-				"canvas_materials_reflection",
-				"canvas_materials_video",
-				"canvas_morphtargets_horse",
-				"canvas_particles_floor",
-				"canvas_particles_random",
-				"canvas_particles_sprites",
-				"canvas_particles_waves",
-				"canvas_performance",
-				"canvas_sandbox"
-			],
-			"raytracing": [
-				"raytracing_sandbox"
-			],
-			"software": [
-				"software_geometry_earth",
-				"software_sandbox"
-			],
-			"svg": [
-				"svg_sandbox"
 			]
+			
 		};
 		//
 
@@ -360,16 +294,12 @@
 			container.appendChild( div );
 
 			for ( var i = 0; i < section.length; i ++ ) {
-
+				
 				( function ( file ) {
-
-					var name = file.split( '_' );
-					name.shift();
-					name = name.join( ' / ' );
 
 					var div = document.createElement( 'div' );
 					div.className = 'link';
-					div.textContent = name;
+					div.textContent = file;
 					div.addEventListener( 'click', function () {
 
 						panel.classList.toggle( 'collapsed' );
@@ -381,6 +311,8 @@
 					divs[ file ] = div;
 
 				} )( section[ i ] );
+				
+				
 
 			}
 
@@ -393,7 +325,7 @@
 			divs[ file ].className = 'link selected';
 
 			window.location.hash = file;
-			viewer.src = file + '.html';
+			viewer.src = 'src/' + file + '.html';
 			viewer.focus();
 
 			button.style.display = '';
