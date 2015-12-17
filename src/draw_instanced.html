@@ -37,18 +37,23 @@
 	<div id="info">webgl 2 samples - draw instances</div>
 
 	<!-- WebGL 2 shaders -->
-    <script id="vs" type="x-shader/x-vertex">
-		attribute vec2 pos;
+    <script id="vs" type="x-shader/x-vertex">#version 300 es
+		precision highp float;
+		precision highp int;
+		layout(location=0) in vec2 pos;
 		void main()
 		{
-			gl_Position = vec4(pos, 0, 1);
+			gl_Position = vec4(pos + vec2(float(gl_InstanceID)-0.5,0), 0, 1);
 		}
     </script>
 
-    <script id="fs" type="x-shader/x-fragment">
+    <script id="fs" type="x-shader/x-fragment">#version 300 es
+		precision highp float;
+		precision highp int;
+		out vec4 Color;
 		void main()
 		{
-			gl_FragColor = vec4(1.0, 0.5, 0, 1);
+			Color = vec4(1.0, 0.5, 0.0, 1.0);
 		}
     </script>
 
@@ -69,6 +74,13 @@
 			gl.attachShader(program, vshader);
 			gl.attachShader(program, fshader);
 			gl.linkProgram(program);
+			
+			//check program
+			var compilationLog = gl.getShaderInfoLog(vshader); 
+			console.log(compilationLog);
+			compilationLog = gl.getShaderInfoLog(fshader); 
+			console.log(compilationLog);
+			
 			return program;
 		}
 		
@@ -107,6 +119,7 @@
 		
 		program.vertexPosAttrib = gl.getAttribLocation(program, 'pos');
 		gl.enableVertexAttribArray(program.vertexPosAttrib);
+		
 		
 		gl.vertexAttribPointer(program.vertexPosAttrib, 2, gl.FLOAT, false, 0, 0);
 		gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 2);
