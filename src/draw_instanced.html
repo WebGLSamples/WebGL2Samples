@@ -41,8 +41,10 @@
 		precision highp float;
 		precision highp int;
 		layout(location=0) in vec2 pos;
+		flat out int Instance;
 		void main()
 		{
+			Instance = gl_InstanceID;
 			gl_Position = vec4(pos + vec2(float(gl_InstanceID)-0.5,0), 0, 1);
 		}
     </script>
@@ -50,10 +52,13 @@
     <script id="fs" type="x-shader/x-fragment">#version 300 es
 		precision highp float;
 		precision highp int;
+		
+		flat in int Instance;
 		out vec4 Color;
+		
 		void main()
 		{
-			Color = vec4(1.0, 0.5, 0.0, 1.0);
+			Color = vec4(1.0 - float(Instance), 0.5, 0.0 + float(Instance), 1.0);
 		}
     </script>
 
