@@ -103,31 +103,39 @@
 		if (!gl) {
 			gl = canvas.getContext( 'experimental-webgl2', { antialias: false } );
 		}
-		
-		//
-		
-		gl.clearColor(0,0,0.0,1);
-		gl.clear(gl.COLOR_BUFFER_BIT);
-		
-		var vertexPosBuffer = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-		var vertices = [-0.5, -0.5,
-						0.5, -0.5,
-						0.0, 0.5
-						];
-		gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.STATIC_DRAW);
-		
-		var vertexShader = document.getElementById( 'vs' ).textContent;
-		var fragmentShader = document.getElementById( 'fs' ).textContent;
-		var program = createProgram(vertexShader,fragmentShader);
-		gl.useProgram(program);
-		
-		program.vertexPosAttrib = gl.getAttribLocation(program, 'pos');
-		gl.enableVertexAttribArray(program.vertexPosAttrib);
-		
-		
-		gl.vertexAttribPointer(program.vertexPosAttrib, 2, gl.FLOAT, false, 0, 0);
-		gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 2);
+		var isWebGL2 = !!gl;
+		if(!isWebGL2)
+		{
+			console.log("webgl2 is not available.");
+			document.getElementById("info").innerHTML = "webgl2 is not available.";
+		}
+		else
+		{
+			//
+			
+			gl.clearColor(0,0,0.0,1);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			
+			var vertexPosBuffer = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+			var vertices = [-0.3, -0.5,
+							0.3, -0.5,
+							0.0, 0.5
+							];
+			gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.STATIC_DRAW);
+			
+			var vertexShader = document.getElementById( 'vs' ).textContent;
+			var fragmentShader = document.getElementById( 'fs' ).textContent;
+			var program = createProgram(vertexShader,fragmentShader);
+			gl.useProgram(program);
+			
+			program.vertexPosAttrib = gl.getAttribLocation(program, 'pos');
+			gl.enableVertexAttribArray(program.vertexPosAttrib);
+			
+			
+			gl.vertexAttribPointer(program.vertexPosAttrib, 2, gl.FLOAT, false, 0, 0);
+			gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 2);
+		}
 		
 		
 	</script>
