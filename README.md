@@ -9,7 +9,7 @@ Samples demonstrating WebGL 2 features by [Shuai Shao (Shrek)](https://shrekshao
 
 |              | Chrome 47 Win | Firefox 42 Win|
 |--------------|---------------|---------------|
-|draw instanced|   ✓    |  crash        |
+|draw instanced|   :o:    |  :x: crash        |
 
 
 ## Credits
