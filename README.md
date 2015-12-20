@@ -3,7 +3,7 @@ WebGL 2 Samples Pack
 
 GH-Page: http://webglsamples.org/WebGL2Samples/
 
-Samples demonstrating WebGL 2 features by [Shuai Shao (Shrek)](https://shrekshao.github.io) and [Trung Le](http://www.trungtuanle.com/). Advised by [Patrick Cozzi](http://www.seas.upenn.edu/~pcozzi/), University of Pennsylvania. 
+Samples demonstrating WebGL 2 features by [Shuai Shao (Shrek)](https://shrekshao.github.io) and [Trung Le](http://www.trungtuanle.com/). Advised by [Patrick Cozzi](http://www.seas.upenn.edu/~pcozzi/), University of Pennsylvania.
 
 ## Samples list
 
@@ -15,12 +15,7 @@ Samples demonstrating WebGL 2 features by [Shuai Shao (Shrek)](https://shrekshao
 ## Local Test Instructions
 
 * clone the repo
-* run
-``` 
-python server.py
-```
-* type `localhost:10565` into the address bar in a browser which supports webgl 2.0. 
-* If there is no webgl 2.0 support for your browser, there will be a text line at the top of the sample page.   
+* If there is no webgl 2.0 support for your browser, there will be a text line at the top of the sample page.
 * Ways to enable the browsers' webgl 2.0 support can be found [here](https://github.com/WebGLSamples/WebGL2Samples/issues/2)
 
 ## Credits
