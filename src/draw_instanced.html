@@ -6,6 +6,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<style>
+
 		body {
 			color: #cccccc;
 			font-family: Monospace;
@@ -15,29 +16,27 @@
 			margin: 0px;
 			overflow: hidden;
 		}
-		
+
 		#info {
 			position: absolute;
 			top: 0px;
 			width: 100%;
 			padding: 5px;
 		}
-		
+
 		a {
 			color: #0080ff;
 		}
+
 	</style>
 </head>
 
 <body>
 
-	<!--
-		<canvas id="c" width=window.innerWidth height=window.innerWidth></canvas>
-	-->
 	<div id="info">webgl 2 samples - draw instances</div>
 
 	<!-- WebGL 2 shaders -->
-    <script id="vs" type="x-shader/x-vertex">#version 300 es
+	<script id="vs" type="x-shader/x-vertex">#version 300 es
 		precision highp float;
 		precision highp int;
 		layout(location=0) in vec2 pos;
@@ -47,25 +46,23 @@
 			Instance = gl_InstanceID;
 			gl_Position = vec4(pos + vec2(float(gl_InstanceID)-0.5,0), 0, 1);
 		}
-    </script>
+	</script>
 
-    <script id="fs" type="x-shader/x-fragment">#version 300 es
+	<script id="fs" type="x-shader/x-fragment">#version 300 es
 		precision highp float;
 		precision highp int;
-		
+
 		flat in int Instance;
 		out vec4 Color;
-		
+
 		void main()
 		{
 			Color = vec4(1.0 - float(Instance), 0.5, 0.0 + float(Instance), 1.0);
 		}
-    </script>
-
-
+	</script>
 
 	<script>
-		
+
 		function createShader(str, type) {
 			var shader = gl.createShader(type);
 			gl.shaderSource(shader, str);
@@ -79,26 +76,28 @@
 			gl.attachShader(program, vshader);
 			gl.attachShader(program, fshader);
 			gl.linkProgram(program);
-			
+
 			//check program
-			var compilationLog = gl.getShaderInfoLog(vshader); 
+			var compilationLog = gl.getShaderInfoLog(vshader);
 			console.log(compilationLog);
-			compilationLog = gl.getShaderInfoLog(fshader); 
+			compilationLog = gl.getShaderInfoLog(fshader);
 			console.log(compilationLog);
-			
+
 			return program;
 		}
-		
-		//
-		
+
+		// -- INITIALIZE CANVAS
+
 		var canvas;
 		var gl;
-		
+
 		canvas = document.createElement('canvas');
 		canvas.width = window.innerWidth;
 		canvas.height = window.innerHeight;
 		document.body.appendChild(canvas);
-		
+
+		// -- INITIALIZE WEBGL CONTEXT
+
 		gl = canvas.getContext( 'webgl2', { antialias: false } );
 		if (!gl) {
 			gl = canvas.getContext( 'experimental-webgl2', { antialias: false } );
@@ -111,11 +110,11 @@
 		}
 		else
 		{
-			//
-			
+			// -- LINK VERTEX SHADER AND FRAGMENT SHADER
+
 			gl.clearColor(0,0,0.0,1);
 			gl.clear(gl.COLOR_BUFFER_BIT);
-			
+
 			var vertexPosBuffer = gl.createBuffer();
 			gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
 			var vertices = [-0.3, -0.5,
@@ -123,21 +122,19 @@
 							0.0, 0.5
 							];
 			gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.STATIC_DRAW);
-			
+
 			var vertexShader = document.getElementById( 'vs' ).textContent;
 			var fragmentShader = document.getElementById( 'fs' ).textContent;
 			var program = createProgram(vertexShader,fragmentShader);
 			gl.useProgram(program);
-			
+
 			program.vertexPosAttrib = gl.getAttribLocation(program, 'pos');
 			gl.enableVertexAttribArray(program.vertexPosAttrib);
-			
-			
+
 			gl.vertexAttribPointer(program.vertexPosAttrib, 2, gl.FLOAT, false, 0, 0);
 			gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 2);
 		}
-		
-		
+
 	</script>
 
 </body>
