@@ -243,7 +243,7 @@
 			var array = location.href.split( '/' );
 			array.pop();
 
-			window.open( 'view-source:' +array.join( '/' ) + '/src/' + selected + '.html' );
+			window.open( 'view-source:' +array.join( '/' ) + '/samples/' + selected + '.html' );
 
 		}, false );
 		button.style.display = 'none';
@@ -292,7 +292,7 @@
 			divs[ file ].className = 'link selected';
 
 			window.location.hash = file;
-			viewer.src = 'src/' + file + '.html';
+			viewer.src = 'samples/' + file + '.html';
 			viewer.focus();
 
 			button.style.display = '';

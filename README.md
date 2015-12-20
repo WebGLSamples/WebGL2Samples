@@ -7,10 +7,21 @@ Samples demonstrating WebGL 2 features by [Shuai Shao (Shrek)](https://shrekshao
 
 ## Samples list
 
-|              | Chrome 47 Win | Firefox 42 Win|
-|--------------|---------------|---------------|
-|draw instanced|   ✓    |  crash        |
+|name          |  port from | Chrome 47 Win | Firefox 42 Win|
+|--------------|------------|:---------------:|:---------------:|
+|draw instanced|  [gl-320-draw-instanced](https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-draw-instanced.cpp)|   :o:    |  :x: crash        |
 
+
+## Local Test Instructions
+
+* clone the repo
+* run
+``` 
+python server.py
+```
+* type `localhost:10565` into the address bar in a browser which supports webgl 2.0. 
+* If there is no webgl 2.0 support for your browser, there will be a text line at the top of the sample page.   
+* Ways to enable the browsers' webgl 2.0 support can be found [here](https://github.com/WebGLSamples/WebGL2Samples/issues/2)
 
 ## Credits
 * [three.js example page framework](https://github.com/mrdoob/three.js)
