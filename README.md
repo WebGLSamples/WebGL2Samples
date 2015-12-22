@@ -15,6 +15,7 @@ Samples demonstrating WebGL 2 features by [Shuai Shao (Shrek)](https://shrekshao
 ## Local Test Instructions
 
 * clone the repo
+* You can launch a simple http server by using ```python -m SimpleHTTPServer``` that starts a server at port 8000.
 * If there is no webgl 2.0 support for your browser, there will be a text line at the top of the sample page.
 * Ways to enable the browsers' webgl 2.0 support can be found [here](https://github.com/WebGLSamples/WebGL2Samples/issues/2)
 
