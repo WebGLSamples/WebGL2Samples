@@ -11,7 +11,7 @@ MIT license.  See [LICENSE.md](LICENSE.md).
 
 |              | Chrome 47 Windows | Firefox 42 Windows|
 |--------------|:---------------:|:---------------:|
-|draw instanced|   :o:    |  :x: crash        |
+|draw instanced|   :white_check_mark:    |  :x: crash        |
 
 
 ## Running the Samples Locally
