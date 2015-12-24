@@ -9,9 +9,9 @@ MIT license.  See [LICENSE.md](LICENSE.md).
 
 ## Samples
 
-|name          |  port from | Chrome 47 Win | Firefox 42 Win|
-|--------------|------------|:---------------:|:---------------:|
-|draw instanced|  [gl-320-draw-instanced](https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-draw-instanced.cpp)|   :o:    |  :x: crash        |
+|              | Chrome 47 Windows | Firefox 42 Windows|
+|--------------|:---------------:|:---------------:|
+|draw instanced|   :o:    |  :x: crash        |
 
 
 ## Running the Samples Locally
@@ -19,11 +19,11 @@ MIT license.  See [LICENSE.md](LICENSE.md).
 Clone this repo:
 ```
 git@github.com:WebGLSamples/WebGL2Samples.git
-cd WebGL2Samples
 ```
 
-Run a local web server.  for example, if you have [Python](https://www.python.org/) installed, run
+Then run a local web server from the repo's root directory.  for example, if you have [Python](https://www.python.org/) installed, run
 ```
+cd WebGL2Samples
 python -m SimpleHTTPServer
 ```
 Then browse to
