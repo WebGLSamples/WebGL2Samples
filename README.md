@@ -7,10 +7,10 @@ Samples demonstrating WebGL 2 features by [Shuai Shao (Shrek)](https://shrekshao
 
 ## Samples list
 
-|name          |  port from | Chrome 47 Win | Firefox 42 Win|
-|--------------|------------|:---------------:|:---------------:|
-|draw instanced|  [gl-320-draw-instanced](https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-draw-instanced.cpp)|   :o:    |  :x: crash        |
-
+|name          | Chrome 47 Win | Firefox 42 Win | port from |
+|--------------|:-------------:|:--------------:|-----------|
+|draw instanced|    :o:        |  :x: crash     |[gl-320-draw-instanced](https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-draw-instanced.cpp)|
+|glsl discard  |    :o:        |  :o:           |[gl-320-glsl-discard](https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-glsl-discard.cpp)    |
 
 ## Local Test Instructions
 
