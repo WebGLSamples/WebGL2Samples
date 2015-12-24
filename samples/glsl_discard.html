@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples -->
+<html lang="en">
+
+<head>
+    <title>webgl 2 samples - glsl discard</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+
+        body {
+            color: #cccccc;
+            font-family: Monospace;
+            font-size: 13px;
+            text-align: center;
+            background-color: #050505;
+            margin: 0px;
+            overflow: hidden;
+        }
+
+        #info {
+            position: absolute;
+            top: 0px;
+            width: 100%;
+            padding: 5px;
+        }
+
+        a {
+            color: #0080ff;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div id="info">webgl 2 samples - glsl discard</div>
+
+    <!-- WebGL 2 shaders -->
+    <script id="vs" type="x-shader/x-vertex">#version 300 es
+        precision highp float;
+        precision highp int;
+        layout(std140,column_major) uniform;
+        
+        uniform mat4 MVP;
+        
+        in vec2 Position;
+        in vec2 Texcoord;
+        
+        out vec2 UV;
+        
+        void main()
+        {
+            UV = Texcoord;
+            gl_Position = MVP * vec4(Position, 0.0, 1.0);
+        }
+    </script>
+
+    <script id="fs" type="x-shader/x-fragment">#version 300 es
+        precision highp float;
+        precision highp int;
+        layout(std140,column_major) uniform;
+
+        uniform sampler2D Diffuse;
+        
+        in vec2 UV;
+        
+        out vec4 Color;
+        
+        void main()
+        {
+            if(length(UV - 0.5) > 0.5)
+            {
+                discard;
+            }
+            Color = texture(Diffuse, UV);
+        }
+    </script>
+
+    <script>
+
+        function createShader(str, type) {
+            var shader = gl.createShader(type);
+            gl.shaderSource(shader, str);
+            gl.compileShader(shader);
+            return shader;
+        }
+        function createProgram(vstr, fstr) {
+            var program = gl.createProgram();
+            var vshader = createShader(vstr, gl.VERTEX_SHADER);
+            var fshader = createShader(fstr, gl.FRAGMENT_SHADER);
+            gl.attachShader(program, vshader);
+            gl.attachShader(program, fshader);
+            gl.linkProgram(program);
+
+            //check program
+            var compilationLog = gl.getShaderInfoLog(vshader);
+            console.log(compilationLog);
+            compilationLog = gl.getShaderInfoLog(fshader);
+            console.log(compilationLog);
+
+            return program;
+        }
+
+        // -- INITIALIZE CANVAS
+
+        var canvas;
+        var gl;
+
+        canvas = document.createElement('canvas');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        document.body.appendChild(canvas);
+
+        // -- INITIALIZE WEBGL CONTEXT
+
+        gl = canvas.getContext( 'webgl2', { antialias: false } );
+        if (!gl) {
+            gl = canvas.getContext( 'experimental-webgl2', { antialias: false } );
+        }
+        var isWebGL2 = !!gl;
+        if(!isWebGL2)
+        {
+            console.log("webgl2 is not available.");
+            document.getElementById("info").innerHTML = "webgl2 is not available.";
+        }
+        else
+        {
+            // -- Init program
+            var vertexShader = document.getElementById( 'vs' ).textContent;
+            var fragmentShader = document.getElementById( 'fs' ).textContent;
+            var program = createProgram(vertexShader,fragmentShader);
+            gl.useProgram(program);
+            
+            program.Position = gl.getAttribLocation(program, 'Position');
+            gl.enableVertexAttribArray(program.Position);
+            program.Texcoord = gl.getAttribLocation(program, 'Texcoord');
+            gl.enableVertexAttribArray(program.Texcoord);
+            
+            program.UniformMVP = gl.getUniformLocation(program,"MVP");
+            program.UniformDiffuse = gl.getUniformLocation(program,"Diffuse");
+            
+            
+            
+            
+            // -- Init buffer
+            var vertexPosBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+            // vec2 Position, vec2 Texcoord
+            var vertices = [-1.0, -1.0, 
+                            1.0, -1.0, 
+                            1.0, 1.0, 
+                            1.0, 1.0, 
+                            -1.0, 1.0, 
+                            -1.0, -1.0
+                            ];
+            gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.STATIC_DRAW);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            
+            
+            
+            var texcoords = [0.0,1.0,
+                1.0,1.0,
+                1.0,0.0,
+                1.0,0.0,
+                0.0,0.0,
+                0.0,1.0
+            ];
+            var vertexTexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords),gl.STATIC_DRAW);
+            gl.bindBuffer(gl.ARRAY_BUFFER,null);
+            
+            
+            // -- Init VertexArray
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+            gl.vertexAttribPointer(program.Position, 2, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
+            gl.vertexAttribPointer(program.Texcoord, 2, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            
+            
+            // -- Init Texture
+            var texture = gl.createTexture();
+            var img = new Image();
+            img.src = '../assets/img/Di-3d.png';
+            img.onload = function() {
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,img);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                
+                //gl.bindTexture(gl.TEXTURE_2D, null);
+                
+                gl.uniform1i(program.UniformDiffuse,0);
+            
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+            }
+            
+            
+            
+            // -- Render
+            
+            
+
+            gl.clearColor(0,0,0.0,1);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            
+            var matrix = [
+                0.5,0,0,0,
+                0,0.5,0,0,
+                0,0,0.5,0,
+                0,0,0,1
+            ];
+            gl.uniformMatrix4fv(program.UniformMVP,false,new Float32Array(matrix));
+            
+            
+            
+            
+        }
+
+    </script>
+
+</body>
+
+</html>
