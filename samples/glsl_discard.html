@@ -6,30 +6,7 @@
     <title>WebGL 2 samples - glsl discard</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <style>
-
-        body {
-            color: #cccccc;
-            font-family: Monospace;
-            font-size: 13px;
-            text-align: center;
-            background-color: #050505;
-            margin: 0px;
-            overflow: hidden;
-        }
-
-        #info {
-            position: absolute;
-            top: 0px;
-            width: 100%;
-            padding: 5px;
-        }
-
-        a {
-            color: #0080ff;
-        }
-
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -77,31 +54,11 @@
         }
     </script>
 
+    <script src="utility.js"></script>
     <script>
-
-        function createShader(str, type) {
-            var shader = gl.createShader(type);
-            gl.shaderSource(shader, str);
-            gl.compileShader(shader);
-            return shader;
-        }
-        function createProgram(vstr, fstr) {
-            var program = gl.createProgram();
-            var vshader = createShader(vstr, gl.VERTEX_SHADER);
-            var fshader = createShader(fstr, gl.FRAGMENT_SHADER);
-            gl.attachShader(program, vshader);
-            gl.attachShader(program, fshader);
-            gl.linkProgram(program);
-
-            //check program
-            var compilationLog = gl.getShaderInfoLog(vshader);
-            console.log(compilationLog);
-            compilationLog = gl.getShaderInfoLog(fshader);
-            console.log(compilationLog);
-
-            return program;
-        }
-
+        
+    (function () {
+        'use strict';
         // -- INITIALIZE CANVAS
 
         var canvas;
@@ -127,9 +84,8 @@
         else
         {
             // -- Init program
-            var vertexShader = document.getElementById( 'vs' ).textContent;
-            var fragmentShader = document.getElementById( 'fs' ).textContent;
-            var program = createProgram(vertexShader,fragmentShader);
+
+            var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
             gl.useProgram(program);
             
             program.Position = gl.getAttribLocation(program, 'Position');
@@ -218,7 +174,7 @@
             
             
         }
-
+    })();
     </script>
 
 </body>
