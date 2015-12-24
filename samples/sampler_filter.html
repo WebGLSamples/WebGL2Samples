@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples -->
+<html lang="en">
+
+<head>
+    <title>webgl 2 samples - draw instances</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+
+        body {
+            color: #cccccc;
+            font-family: Monospace;
+            font-size: 13px;
+            text-align: center;
+            background-color: #050505;
+            margin: 0px;
+            overflow: hidden;
+        }
+
+        #info {
+            position: absolute;
+            top: 0px;
+            width: 100%;
+            padding: 5px;
+        }
+
+        a {
+            color: #0080ff;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div id="info">webgl 2 samples - sampler filter</div>
+
+    <!-- WebGL 2 shaders -->
+    <script id="vs" type="x-shader/x-vertex">#version 300 es
+        #define POSITION     0
+        #define TEXCOORD     4
+
+        precision highp float;
+        precision highp int;
+        layout(std140, column_major) uniform;
+
+        uniform mat4 MVP;
+
+        layout(location = POSITION) in vec2 Position;
+        layout(location = TEXCOORD) in vec2 Texcoord;
+
+        out vec2 UV;
+
+        void main()
+        {
+            UV = Texcoord;
+            gl_Position = MVP * vec4(Position, 0.0, 1.0) ;
+        }
+    </script>
+
+    <script id="fs" type="x-shader/x-fragment">#version 300 es
+        #define FRAG_COLOR      0
+
+        precision highp float;
+        precision highp int;
+        layout(std140, column_major) uniform;
+
+        uniform sampler2D Diffuse;
+
+        in vec2 UV;
+
+        layout(location = FRAG_COLOR) out vec4 Color;
+
+        void main()
+        {
+            Color = texture(Diffuse, UV);
+        }
+    </script>
+
+    <script>
+
+        var viewport = {
+            V00: 0,
+            V10: 1,
+            V11: 2,
+            V01: 3,
+            MAX: 4
+        };
+
+
+        function createShader(str, type) {
+            var shader = gl.createShader(type);
+            gl.shaderSource(shader, str);
+            gl.compileShader(shader);
+            return shader;
+        }
+
+        function createProgram(vstr, fstr) {
+            var program = gl.createProgram();
+            var vshader = createShader(vstr, gl.VERTEX_SHADER);
+            var fshader = createShader(fstr, gl.FRAGMENT_SHADER);
+            gl.attachShader(program, vshader);
+            gl.attachShader(program, fshader);
+            gl.linkProgram(program);
+
+            //check program
+            var log = gl.getShaderInfoLog(vshader);
+            console.log('vs info: ' + log);
+            log = gl.getShaderInfoLog(fshader);
+            console.log('fs info: ' + log);
+            log = gl.getProgramInfoLog(program);
+            console.log('program: ' + log);
+
+            return program;
+        }
+
+        var program;
+        var vertexBuffer;
+        var textureBuffer;
+        var texture;
+        var vertexArray;
+        var samplers = [];
+        var Viewport = [];
+
+        function initContext() {
+            gl = canvas.getContext( 'webgl2', { antialias: false } );
+            if (!gl) {
+                gl = canvas.getContext( 'experimental-webgl2', { antialias: false } );
+            }
+            var isWebGL2 = !!gl;
+            return isWebGL2;
+        }
+
+        function initQuery() {
+            timeQuery = gl.createQuery();
+        }
+
+        function initProgram() {
+            var vertexShader = document.getElementById( 'vs' ).textContent;
+            var fragmentShader = document.getElementById( 'fs' ).textContent;
+            program = createProgram(vertexShader,fragmentShader);
+
+            program.Position = gl.getAttribLocation(program, 'Position');
+            gl.enableVertexAttribArray(program.Position);
+            program.Texcoord = gl.getAttribLocation(program, 'Texcoord');
+            gl.enableVertexAttribArray(program.Texcoord);
+
+            program.UniformMVP = gl.getUniformLocation(program,"MVP");
+            program.UniformDiffuse = gl.getUniformLocation(program,"Diffuse");
+        }
+
+        function initBuffer() {
+            vertexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            var vertices = [-1.0, -1.0,
+                            1.0, -1.0,
+                            1.0, 1.0,
+                            1.0, 1.0,
+                            -1.0, 1.0,
+                            -1.0, -1.0
+                            ];
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Float32Array(vertices),
+                gl.STATIC_DRAW
+                );
+
+            // Unbind buffer
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+            var texcoords = [0.0,1.0,
+                1.0,1.0,
+                1.0,0.0,
+                1.0,0.0,
+                0.0,0.0,
+                0.0,1.0
+            ];
+
+            textureBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords),gl.STATIC_DRAW);
+            gl.bindBuffer(gl.ARRAY_BUFFER,null);
+        }
+
+        function initVertexArray() {
+            vertexArray = gl.createVertexArray();
+            gl.bindVertexArray(vertexArray);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.vertexAttribPointer(program.Position, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(program.Position);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
+            gl.vertexAttribPointer(program.Texcoord, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(program.Texcoord);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+            gl.bindVertexArray(null);
+        }
+
+        function initTexture() {
+            texture = gl.createTexture();
+            texture.image = new Image();
+            texture.image.onload = function() {
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                gl.texImage2D(
+                    gl.TEXTURE_2D,
+                    0, // Level of details
+                    gl.RGBA, // Format
+                    gl.RGBA,
+                    gl.UNSIGNED_BYTE, // Size of each channel
+                    texture.image
+                    );
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+
+                console.log('Image loaded');
+                render();
+
+            }
+            texture.image.src = "../assets/img/red.jpg";
+        }
+
+        function initSampler() {
+
+            for (var i = 0; i < viewport.MAX; ++i) {
+                var sampler = gl.createSampler();
+                samplers.push(sampler);
+                gl.samplerParameteri(
+                    samplers[i],
+                    gl.TEXTURE_WRAP_S,
+                    gl.CLAMP_TO_EDGE
+                    );
+                gl.samplerParameteri(
+                    samplers[i],
+                    gl.TEXTURE_WRAP_T,
+                    gl.CLAMP_TO_EDGE
+                    );
+                gl.samplerParameteri(
+                    samplers[i],
+                    gl.TEXTURE_WRAP_R,
+                    gl.CLAMP_TO_EDGE
+                    );
+            }
+
+            // Min filter
+            gl.samplerParameteri(
+                samplers[viewport.V00],
+                gl.TEXTURE_MIN_FILTER,
+                gl.NEAREST
+                );
+
+            gl.samplerParameteri(
+                samplers[viewport.V10],
+                gl.TEXTURE_MIN_FILTER,
+                gl.LINEAR
+                );
+
+            gl.samplerParameteri(
+                samplers[viewport.V11],
+                gl.TEXTURE_MIN_FILTER,
+                gl.LINEAR_MIPMAP_NEAREST
+                );
+
+            gl.samplerParameteri(
+                samplers[viewport.V01],
+                gl.TEXTURE_MIN_FILTER,
+                gl.LINEAR_MIPMAP_LINEAR
+                );
+
+            // Mag filter
+            gl.samplerParameteri(
+                samplers[viewport.V00],
+                gl.TEXTURE_MAG_FILTER,
+                gl.NEAREST
+                );
+
+            gl.samplerParameteri(
+                samplers[viewport.V10],
+                gl.TEXTURE_MAG_FILTER,
+                gl.LINEAR
+                );
+
+            gl.samplerParameteri(
+                samplers[viewport.V11],
+                gl.TEXTURE_MAG_FILTER,
+                gl.LINEAR
+                );
+
+            gl.samplerParameteri(
+                samplers[viewport.V01],
+                gl.TEXTURE_MAG_FILTER,
+                gl.LINEAR
+                );
+
+        }
+
+        function render() {
+
+            // Clear color buffer
+            gl.clearColor(0,0,0.0,1);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            console.log(window.innerWidth + ' ' + window.innerHeight);
+            gl.viewport(0, 0, window.innerWidth, window.innerHeight);
+            gl.scissor(0, 0, window.innerWidth, window.innerHeight);
+
+            // Bind program
+            gl.useProgram(program);
+
+            var matrix = [
+                0.5,0,0,0,
+                0,0.5,0,0,
+                0,0,0.5,0,
+                0,0,0,1
+            ];
+            gl.uniformMatrix4fv(program.UniformMVP,false,new Float32Array(matrix));
+
+            // Bind samplers
+            for (var i = 0; i < viewport.MAX; ++i) {
+                gl.bindSampler(i, samplers[i]);
+            }
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.activeTexture(gl.TEXTURE2);
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.activeTexture(gl.TEXTURE3);
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+
+            gl.bindVertexArray(vertexArray);
+
+            for (var i = 0; i < viewport.MAX; ++i) {
+
+                gl.uniform1i(program.UniformDiffuse, 0);
+                // gl.scissor(Viewport[i].x, Viewport[i].y, Viewport[i].z, Viewport[i].w);
+                gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
+            }
+
+
+            // Unbind program
+            gl.useProgram(null);
+
+        }
+
+        // -- INITIALIZE CANVAS
+
+        var canvas;
+        var gl;
+
+        canvas = document.createElement('canvas');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        document.body.appendChild(canvas);
+
+        // -- INITIALIZE WEBGL CONTEXT
+
+        var isWebGL2 = initContext();
+        if(!isWebGL2)
+        {
+            console.log("webgl2 is not available.");
+            document.getElementById("info").innerHTML = "webgl2 is not available.";
+        }
+        else
+        {
+            var WindowSize = {x: window.innerWidth, y: window.innerHeight};
+            Viewport[viewport.V00] = {x: 1, y: 1, z: WindowSize / 2 - 1, w: 0};
+            Viewport[viewport.V10] = {x: WindowSize.x / 2 + 1, y: 1, z: WindowSize / 2 - 1, w: 0};
+            Viewport[viewport.V11] = {x: WindowSize.x / 2 + 1, y: WindowSize.y / 2 + 1, z: WindowSize / 2 - 1, w: 0};
+            Viewport[viewport.V01] = {x: 1, y: WindowSize.y / 2 + 1, z: WindowSize / 2 - 1, w: 0};
+
+            gl.enable(gl.SCISSOR_TEST);
+
+            initProgram();
+            initBuffer();
+            initVertexArray();
+            initSampler();
+            initTexture();
+            // render();
+
+        }
+
+    </script>
+
+</body>
+
+</html>
