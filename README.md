@@ -1,24 +1,39 @@
 WebGL 2 Samples Pack
 =====================
 
-GH-Page: http://webglsamples.org/WebGL2Samples/
+Run the live **[WebGL 2 Samples Pack](http://webglsamples.org/WebGL2Samples/)**.
 
-Samples demonstrating WebGL 2 features by [Shuai Shao (Shrek)](https://shrekshao.github.io) and [Trung Le](http://www.trungtuanle.com/). Advised by [Patrick Cozzi](http://www.seas.upenn.edu/~pcozzi/), University of Pennsylvania.
+Short and easy to understand samples demonstrating WebGL 2 features by [Shuai Shao (Shrek)](https://shrekshao.github.io) and [Trung Le](http://www.trungtuanle.com/). Advised by [Patrick Cozzi](http://www.seas.upenn.edu/~pcozzi/), University of Pennsylvania.
 
-## Samples list
+MIT license.  See [LICENSE.md](LICENSE.md).
 
-|name          | Chrome 47 Win | Firefox 42 Win | port from |
-|--------------|:-------------:|:--------------:|-----------|
-|draw instanced|    :o:        |  :x: crash     |[gl-320-draw-instanced](https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-draw-instanced.cpp)|
-|glsl discard  |    :o:        |  :o:           |[gl-320-glsl-discard](https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-glsl-discard.cpp)    |
+## Samples
 
-## Local Test Instructions
+|              | Chrome 47 Windows | Firefox 42 Windows|
+|--------------|:-----------------:|:-----------------:|
+|draw instanced|:white_check_mark: | :x: crash         |
+|glsl discard  |:white_check_mark: | :white_check_mark:|          
 
-* clone the repo
-* If there is no webgl 2.0 support for your browser, there will be a text line at the top of the sample page.
-* Ways to enable the browsers' webgl 2.0 support can be found [here](https://github.com/WebGLSamples/WebGL2Samples/issues/2)
+
+## Running the Samples Locally
+
+Clone this repo:
+```
+git@github.com:WebGLSamples/WebGL2Samples.git
+```
+
+Then run a local web server from the repo's root directory.  for example, if you have [Python](https://www.python.org/) installed, run
+```
+cd WebGL2Samples
+python -m SimpleHTTPServer
+```
+Then browse to
+```
+http://localhost:8000/
+```
 
 ## Credits
-* [three.js example page framework](https://github.com/mrdoob/three.js)
-* [opengl sample pack](https://github.com/g-truc/ogl-samples)
-* [webgl2-particles](https://github.com/toji/webgl2-particles)
+
+* [three.js example page framework](https://github.com/mrdoob/three.js) by Mr.doob ([@mrdoob](https://github.com/mrdoob)) and contributors
+* [OpenGL Samples Pack](https://github.com/g-truc/ogl-samples) by Christophe Riccio ([@Groovounet](https://github.com/Groovounet)) and contributors
+* [webgl2-particles](https://github.com/toji/webgl2-particles) by Brandon Jones ([@toji](https://github.com/toji)) and Mr.doob ([@mrdoob](https://github.com/mrdoob))
