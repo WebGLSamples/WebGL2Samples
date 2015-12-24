@@ -3,7 +3,7 @@ WebGL 2 Samples Pack
 
 Run the live **[WebGL 2 Samples Pack](http://webglsamples.org/WebGL2Samples/)**.
 
-Samples demonstrating WebGL 2 features by [Shuai Shao (Shrek)](https://shrekshao.github.io) and [Trung Le](http://www.trungtuanle.com/). Advised by [Patrick Cozzi](http://www.seas.upenn.edu/~pcozzi/), University of Pennsylvania.
+Short and easy to understand samples demonstrating WebGL 2 features by [Shuai Shao (Shrek)](https://shrekshao.github.io) and [Trung Le](http://www.trungtuanle.com/). Advised by [Patrick Cozzi](http://www.seas.upenn.edu/~pcozzi/), University of Pennsylvania.
 
 MIT license.  See [LICENSE.md](LICENSE.md).
 
