@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples -->
+<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-glsl-discard.cpp -->
 <html lang="en">
 
 <head>
-    <title>WebGL 2 samples - glsl discard</title>
+    <title>WebGL 2 Samples - glsl_discard</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
@@ -11,46 +11,48 @@
 
 <body>
 
-    <div id="info">WebGL 2 samples - glsl discard</div>
+    <div id="info">WebGL 2 Samples - glsl_discard</div>
 
     <!-- WebGL 2 shaders -->
-    <script id="vs" type="x-shader/x-vertex">#version 300 es
+    <script id="vs" type="x-shader/x-vertex">
+        #version 300 es
         precision highp float;
         precision highp int;
         layout(std140,column_major) uniform;
         
         uniform mat4 MVP;
         
-        in vec2 Position;
-        in vec2 Texcoord;
+        in vec2 position;
+        in vec2 texcoord;
         
-        out vec2 UV;
+        out vec2 uv;
         
         void main()
         {
-            UV = Texcoord;
-            gl_Position = MVP * vec4(Position, 0.0, 1.0);
+            uv = texcoord;
+            gl_Position = MVP * vec4(position, 0.0, 1.0);
         }
     </script>
 
-    <script id="fs" type="x-shader/x-fragment">#version 300 es
+    <script id="fs" type="x-shader/x-fragment">
+        #version 300 es
         precision highp float;
         precision highp int;
         layout(std140,column_major) uniform;
 
-        uniform sampler2D Diffuse;
+        uniform sampler2D diffuse;
         
-        in vec2 UV;
+        in vec2 uv;
         
-        out vec4 Color;
+        out vec4 color;
         
         void main()
         {
-            if(length(UV - 0.5) > 0.5)
+            if(length(uv - 0.5) > 0.5)
             {
                 discard;
             }
-            Color = texture(Diffuse, UV);
+            color = texture(diffuse, uv);
         }
     </script>
 
@@ -78,8 +80,8 @@
         var isWebGL2 = !!gl;
         if(!isWebGL2)
         {
-            console.log("WebGL 2 is not available.");
-            document.getElementById("info").innerHTML = "WebGL 2 is not available.";
+            document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
+            return;
         }
         else
         {
@@ -88,15 +90,13 @@
             var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
             gl.useProgram(program);
             
-            program.Position = gl.getAttribLocation(program, 'Position');
+            program.Position = gl.getAttribLocation(program, 'position');
             gl.enableVertexAttribArray(program.Position);
-            program.Texcoord = gl.getAttribLocation(program, 'Texcoord');
+            program.Texcoord = gl.getAttribLocation(program, 'texcoord');
             gl.enableVertexAttribArray(program.Texcoord);
             
             program.UniformMVP = gl.getUniformLocation(program,"MVP");
-            program.UniformDiffuse = gl.getUniformLocation(program,"Diffuse");
-            
-            
+            program.UniformDiffuse = gl.getUniformLocation(program,"diffuse");
             
             
             // -- Init buffer
@@ -151,26 +151,28 @@
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
                 
                 gl.uniform1i(program.UniformDiffuse,0);
+                
+                // -- Render
             
+                gl.clearColor(0,0,0.0,1);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+            
+                var matrix = [
+                    0.5,0,0,0,
+                    0,0.5,0,0,
+                    0,0,0.5,0,
+                    0,0,0,1
+                ];
+                gl.uniformMatrix4fv(program.UniformMVP,false,new Float32Array(matrix));
+                                                         
                 gl.drawArrays(gl.TRIANGLES, 0, 6);
+                
+                // Delete WebGL resources
+                gl.deleteBuffer(vertexPosBuffer);
+                gl.deleteBuffer(vertexTexBuffer);
+                gl.deleteTexture(texture);
+                gl.deleteProgram(program);
             };
-            
-            
-            
-            // -- Render
-            
-            gl.clearColor(0,0,0.0,1);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            
-            var matrix = [
-                0.5,0,0,0,
-                0,0.5,0,0,
-                0,0,0.5,0,
-                0,0,0,1
-            ];
-            gl.uniformMatrix4fv(program.UniformMVP,false,new Float32Array(matrix));
-            
-            
             
             
         }
