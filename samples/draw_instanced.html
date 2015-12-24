@@ -1,13 +1,12 @@
 <!DOCTYPE html>
-<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples -->
+<!-- Ported from the OpenGL Samples Pack: github.com/g-truc/ogl-samples/blob/master/tests/gl-320-draw-instanced.cpp -->
 <html lang="en">
 
 <head>
-    <title>webgl 2 samples - draw instances</title>
+    <title>WebGL 2 Samples - draw_instanced</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <style>
-
         body {
             color: #cccccc;
             font-family: Monospace;
@@ -28,113 +27,110 @@
         a {
             color: #0080ff;
         }
-
     </style>
 </head>
 
 <body>
+    <div id="info">WebGL 2 Samples - draw_instanced</div>
 
-    <div id="info">webgl 2 samples - draw instances</div>
-
-    <!-- WebGL 2 shaders -->
-    <script id="vs" type="x-shader/x-vertex">#version 300 es
+    <script id="vs" type="x-shader/x-vertex">
+        #version 300 es
         precision highp float;
         precision highp int;
-        layout(location=0) in vec2 pos;
-        flat out int Instance;
+
+        layout(location = 0) in vec2 pos;
+        flat out int instance;
+
         void main()
         {
-            Instance = gl_InstanceID;
-            gl_Position = vec4(pos + vec2(float(gl_InstanceID)-0.5,0), 0, 1);
+            instance = gl_InstanceID;
+            gl_Position = vec4(pos + vec2(float(gl_InstanceID) - 0.5, 0.0), 0.0, 1.0);
         }
     </script>
 
-    <script id="fs" type="x-shader/x-fragment">#version 300 es
+    <script id="fs" type="x-shader/x-fragment">
+        #version 300 es
         precision highp float;
         precision highp int;
 
-        flat in int Instance;
-        out vec4 Color;
+        flat in int instance;
+        out vec4 color;
 
         void main()
         {
-            Color = vec4(1.0 - float(Instance), 0.5, 0.0 + float(Instance), 1.0);
+            color = vec4(1.0 - float(instance), 0.5, 0.0 + float(instance), 1.0);
         }
     </script>
 
     <script>
+        function getShaderSource(id) {
+            return document.getElementById(id).textContent.replace(/^\s+|\s+$/g, '');
+        }
 
-        function createShader(str, type) {
+        function createShader(source, type) {
             var shader = gl.createShader(type);
-            gl.shaderSource(shader, str);
+            gl.shaderSource(shader, source);
             gl.compileShader(shader);
             return shader;
         }
-        function createProgram(vstr, fstr) {
+
+        function createProgram(vertexShaderSource, fragmentShaderSource) {
             var program = gl.createProgram();
-            var vshader = createShader(vstr, gl.VERTEX_SHADER);
-            var fshader = createShader(fstr, gl.FRAGMENT_SHADER);
+            var vshader = createShader(vertexShaderSource, gl.VERTEX_SHADER);
+            var fshader = createShader(fragmentShaderSource, gl.FRAGMENT_SHADER);
             gl.attachShader(program, vshader);
+            gl.deleteShader(vshader);
             gl.attachShader(program, fshader);
+            gl.deleteShader(fshader);
             gl.linkProgram(program);
 
-            //check program
-            var compilationLog = gl.getShaderInfoLog(vshader);
-            console.log(compilationLog);
-            compilationLog = gl.getShaderInfoLog(fshader);
-            console.log(compilationLog);
+            console.log(gl.getProgramInfoLog(program));
+            console.log(gl.getShaderInfoLog(vshader));
+            console.log(gl.getShaderInfoLog(fshader));
 
             return program;
         }
 
-        // -- INITIALIZE CANVAS
-
-        var canvas;
-        var gl;
-
-        canvas = document.createElement('canvas');
+        var canvas = document.createElement('canvas');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         document.body.appendChild(canvas);
 
-        // -- INITIALIZE WEBGL CONTEXT
-
-        gl = canvas.getContext( 'webgl2', { antialias: false } );
+        var gl = canvas.getContext('webgl2', { antialias: false });
         if (!gl) {
-            gl = canvas.getContext( 'experimental-webgl2', { antialias: false } );
+            gl = canvas.getContext( 'experimental-webgl2', { antialias: false });
         }
         var isWebGL2 = !!gl;
         if(!isWebGL2)
         {
-            console.log("webgl2 is not available.");
-            document.getElementById("info").innerHTML = "webgl2 is not available.";
-        }
-        else
-        {
-
-            gl.clearColor(0,0,0.0,1);
+            document.getElementById("info").innerHTML = "WebGL 2 is not available.  See <a href='https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation'>How to get a WebGL 2 implementation</a>";
+        } else {
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
+
+            var vertices = new Float32Array([
+                -0.3, -0.5,
+                 0.3, -0.5,
+                 0.0,  0.5
+            ]);
 
             var vertexPosBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-            var vertices = [-0.3, -0.5,
-                            0.3, -0.5,
-                            0.0, 0.5
-                            ];
-            gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
-            var vertexShader = document.getElementById( 'vs' ).textContent;
-            var fragmentShader = document.getElementById( 'fs' ).textContent;
-            var program = createProgram(vertexShader,fragmentShader);
+            var program = createProgram(getShaderSource('vs'), getShaderSource('fs'));
             gl.useProgram(program);
 
-            program.vertexPosAttrib = gl.getAttribLocation(program, 'pos');
-            gl.enableVertexAttribArray(program.vertexPosAttrib);
+            var vertexPosAttrib = gl.getAttribLocation(program, 'pos');
+            gl.enableVertexAttribArray(vertexPosAttrib);
+            gl.vertexAttribPointer(vertexPosAttrib, 2, gl.FLOAT, false, 0, 0);
 
-            gl.vertexAttribPointer(program.vertexPosAttrib, 2, gl.FLOAT, false, 0, 0);
             gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 2);
-        }
 
+            // Delete WebGL resources
+            gl.deleteBuffer(vertexPosBuffer);
+            gl.deleteProgram(program);
+        }
     </script>
 
 </body>
