@@ -47,7 +47,6 @@
         struct material
         {
             sampler2D Diffuse[2];
-            vec4 Color;
         };
 
         uniform material Material;
@@ -58,14 +57,11 @@
 
         void main()
         {
-            vec4 Temp = Material.Color * .33;
-
-            if ((1.0 - UV.y) / UV.x < 1.0) {
-                Temp += texture(Material.Diffuse[0], UV) * .66;
+            if (UV.y / UV.x < 1.0) {
+                Color = texture(Material.Diffuse[0], UV);
             } else {
-                Temp += texture(Material.Diffuse[1], UV) * .66;
+                Color = texture(Material.Diffuse[1], UV) * .77;
             }
-            Color = Temp;
         }
     </script>
 
@@ -105,7 +101,6 @@
             program.UniformMVP = gl.getUniformLocation(program,"MVP");
             program.UniformDiffuse1 = gl.getUniformLocation(program,"Material.Diffuse[0]");
             program.UniformDiffuse2 = gl.getUniformLocation(program, "Material.Diffuse[1]");
-            program.UniformColor = gl.getUniformLocation(program, "Material.Color");
         }
 
         function initBuffer() {
@@ -164,6 +159,7 @@
             image.onload = function() {
                 initSampler();
 
+                gl.activeTexture(gl.TEXTURE0);
                 gl.bindTexture(gl.TEXTURE_2D, texture);
                 gl.texImage2D(
                     gl.TEXTURE_2D,
@@ -188,20 +184,28 @@
             // Sampler A
             samplerA = gl.createSampler();
 
-            gl.samplerParameteri(samplerA, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.samplerParameteri(samplerA, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_NEAREST);
             gl.samplerParameteri(samplerA, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.samplerParameteri(samplerA, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             gl.samplerParameteri(samplerA, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             gl.samplerParameteri(samplerA, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+            gl.samplerParameterf(samplerA, gl.TEXTURE_MIN_LOD, -1000.0);
+            gl.samplerParameterf(samplerA, gl.TEXTURE_MAX_LOD, 1000.0);
+            gl.samplerParameteri(samplerA, gl.TEXTURE_COMPARE_MODE, gl.NONE);
+            gl.samplerParameteri(samplerA, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL);
 
             // Sampler B
 
             samplerB = gl.createSampler();
-            gl.samplerParameteri(samplerB, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.samplerParameteri(samplerB, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
             gl.samplerParameteri(samplerB, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
             gl.samplerParameteri(samplerB, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             gl.samplerParameteri(samplerB, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             gl.samplerParameteri(samplerB, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+            gl.samplerParameterf(samplerB, gl.TEXTURE_MIN_LOD, -1000.0);
+            gl.samplerParameterf(samplerB, gl.TEXTURE_MAX_LOD, 1000.0);
+            gl.samplerParameteri(samplerB, gl.TEXTURE_COMPARE_MODE, gl.NONE);
+            gl.samplerParameteri(samplerB, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL);
 
         }
 
@@ -221,9 +225,10 @@
                 0,0,0,1
             ];
             gl.uniformMatrix4fv(program.UniformMVP,false,new Float32Array(matrix));
-            gl.uniform4f(program.UniformColor, 1.0, 0.5, 0.0, 1.0);
-            gl.uniform1i(program.UniformDiffuseA, 0);
-            gl.uniform1i(program.UniformDiffuseB, 1);
+            gl.uniform1i(program.UniformDiffuse1, 0);
+            gl.uniform1i(program.UniformDiffuse2, 1);
+
+            gl.bindVertexArray(vertexArray);
 
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -232,8 +237,6 @@
             gl.activeTexture(gl.TEXTURE1);
             gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.bindSampler(1, samplerB);
-
-            gl.bindVertexArray(vertexArray);
 
             gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
 
