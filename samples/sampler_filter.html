@@ -120,7 +120,8 @@
             // Unbind buffer
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-            var texcoords = [0.0,1.0,
+            var texcoords = [
+                0.0,1.0,
                 1.0,1.0,
                 1.0,0.0,
                 1.0,0.0,
@@ -252,26 +253,17 @@
                 0,0,0,1
             ];
             gl.uniformMatrix4fv(program.UniformMVP,false,new Float32Array(matrix));
+            gl.uniform1i(program.UniformDiffuse, 0);
 
             // Bind samplers
-            for (var i = 0; i < viewport.MAX; ++i) {
-                gl.bindSampler(i, samplers[i]);
-            }
 
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.activeTexture(gl.TEXTURE1);
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.activeTexture(gl.TEXTURE2);
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.activeTexture(gl.TEXTURE3);
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-
             gl.bindVertexArray(vertexArray);
 
             for (var i = 0; i < viewport.MAX; ++i) {
 
-                gl.uniform1i(program.UniformDiffuse, 0);
+                gl.bindSampler(0, samplers[i]);
                 gl.viewport(Viewport[i].x, Viewport[i].y, Viewport[i].z, Viewport[i].w);
                 gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
             }
