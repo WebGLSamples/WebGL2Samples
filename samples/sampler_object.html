@@ -7,6 +7,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
+    <script src="utility.js"></script>
 </head>
 
 <body>
@@ -70,32 +71,6 @@
 
     <script>
 
-        function createShader(str, type) {
-            var shader = gl.createShader(type);
-            gl.shaderSource(shader, str);
-            gl.compileShader(shader);
-            return shader;
-        }
-
-        function createProgram(vstr, fstr) {
-            var program = gl.createProgram();
-            var vshader = createShader(vstr, gl.VERTEX_SHADER);
-            var fshader = createShader(fstr, gl.FRAGMENT_SHADER);
-            gl.attachShader(program, vshader);
-            gl.attachShader(program, fshader);
-            gl.linkProgram(program);
-
-            //check program
-            var log = gl.getShaderInfoLog(vshader);
-            console.log('vs info: ' + log);
-            log = gl.getShaderInfoLog(fshader);
-            console.log('fs info: ' + log);
-            log = gl.getProgramInfoLog(program);
-            console.log('program: ' + log);
-
-            return program;
-        }
-
         var program;
         var vertexBuffer;
         var textureBuffer;
@@ -120,7 +95,7 @@
         function initProgram() {
             var vertexShader = document.getElementById( 'vs' ).textContent;
             var fragmentShader = document.getElementById( 'fs' ).textContent;
-            program = createProgram(vertexShader,fragmentShader);
+            program = createProgram(gl, vertexShader,fragmentShader);
 
             program.Position = gl.getAttribLocation(program, 'Position');
             gl.enableVertexAttribArray(program.Position);
@@ -199,10 +174,7 @@
                     image
                     );
 
-                gl.bindSampler(0, samplerA);
-
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.generateMipmap(gl.TEXTURE_2D);
 
                 requestAnimationFrame(render);
                 cleanup();
@@ -249,7 +221,7 @@
                 0,0,0,1
             ];
             gl.uniformMatrix4fv(program.UniformMVP,false,new Float32Array(matrix));
-            gl.uniform4f(program.UniformColor, 0.0, 0.0, 0.0, 1.0);
+            gl.uniform4f(program.UniformColor, 1.0, 0.5, 0.0, 1.0);
             gl.uniform1i(program.UniformDiffuseA, 0);
             gl.uniform1i(program.UniformDiffuseB, 1);
 
