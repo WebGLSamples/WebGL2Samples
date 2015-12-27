@@ -10,7 +10,6 @@
 </head>
 
 <body>
-
     <div id="info">WebGL 2 Samples - glsl_discard</div>
 
     <!-- WebGL 2 shaders -->
@@ -18,7 +17,7 @@
         #version 300 es
         precision highp float;
         precision highp int;
-        layout(std140,column_major) uniform;
+        layout(std140, column_major) uniform;
         
         uniform mat4 MVP;
         
@@ -38,7 +37,7 @@
         #version 300 es
         precision highp float;
         precision highp int;
-        layout(std140,column_major) uniform;
+        layout(std140, column_major) uniform;
 
         uniform sampler2D diffuse;
         
@@ -52,28 +51,22 @@
             {
                 discard;
             }
+
             color = texture(diffuse, uv);
         }
     </script>
 
     <script src="utility.js"></script>
     <script>
-        
     (function () {
         'use strict';
-        // -- INITIALIZE CANVAS
 
-        var canvas;
-        var gl;
-
-        canvas = document.createElement('canvas');
-        canvas.width = Math.min(window.innerWidth,window.innerHeight);
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.min(window.innerWidth, window.innerHeight);
         canvas.height = canvas.width;
         document.body.appendChild(canvas);
 
-        // -- INITIALIZE WEBGL CONTEXT
-
-        gl = canvas.getContext( 'webgl2', { antialias: false } );
+        var gl = canvas.getContext( 'webgl2', { antialias: false } );
         if (!gl) {
             gl = canvas.getContext( 'experimental-webgl2', { antialias: false } );
         }
@@ -83,99 +76,88 @@
             document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
             return;
         }
-        else
-        {
-            // -- Init program
 
-            var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
-            gl.useProgram(program);
-            
-            program.Position = gl.getAttribLocation(program, 'position');
-            gl.enableVertexAttribArray(program.Position);
-            program.Texcoord = gl.getAttribLocation(program, 'texcoord');
-            gl.enableVertexAttribArray(program.Texcoord);
-            
-            program.UniformMVP = gl.getUniformLocation(program,"MVP");
-            program.UniformDiffuse = gl.getUniformLocation(program,"diffuse");
-            
-            
-            // -- Init buffer
-            var vertexPosBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-            // vec2 Position, vec2 Texcoord
-            var vertices = [-1.0, -1.0, 
-                            1.0, -1.0, 
-                            1.0, 1.0, 
-                            1.0, 1.0, 
-                            -1.0, 1.0, 
-                            -1.0, -1.0
-                            ];
-            gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.STATIC_DRAW);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-            
-            
-            
-            var texcoords = [0.0,1.0,
-                1.0,1.0,
-                1.0,0.0,
-                1.0,0.0,
-                0.0,0.0,
-                0.0,1.0
-            ];
-            var vertexTexBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords),gl.STATIC_DRAW);
-            gl.bindBuffer(gl.ARRAY_BUFFER,null);
-            
-            
-            // -- Init VertexArray
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-            gl.vertexAttribPointer(program.Position, 2, gl.FLOAT, false, 0, 0);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-            
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
-            gl.vertexAttribPointer(program.Texcoord, 2, gl.FLOAT, false, 0, 0);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-            
-            
+        // -- Init program
+        var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
+        
+        var positionLocation = gl.getAttribLocation(program, 'position');
+        gl.enableVertexAttribArray(positionLocation);
+        var texcoordLocation = gl.getAttribLocation(program, 'texcoord');
+        gl.enableVertexAttribArray(texcoordLocation);
+        
+        var mvpLocation = gl.getUniformLocation(program,"MVP");
+        var diffuseLocation = gl.getUniformLocation(program,"diffuse");
+        
+        // -- Init buffers
+        var vertexPosBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        // vec2 Position, vec2 Texcoord
+        var vertices = new Float32Array([
+            -1.0, -1.0, 
+             1.0, -1.0, 
+             1.0,  1.0, 
+             1.0,  1.0, 
+            -1.0,  1.0, 
+            -1.0, -1.0
+        ]);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        
+        var texcoords = new Float32Array([
+            0.0, 1.0,
+            1.0, 1.0,
+            1.0, 0.0,
+            1.0, 0.0,
+            0.0, 0.0,
+            0.0, 1.0
+        ]);
+        var vertexTexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, texcoords, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER,null);
+        
+        // -- Init VertexArray
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
+        gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        
+        loadImage('../assets/img/Di-3d.png', function(image) {
             // -- Init Texture
             var texture = gl.createTexture();
-            var img = new Image();
-            img.src = '../assets/img/Di-3d.png';
-            img.onload = function() {
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, texture);
-                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,img);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-                
-                gl.uniform1i(program.UniformDiffuse,0);
-                
-                // -- Render
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
             
-                gl.clearColor(0,0,0.0,1);
-                gl.clear(gl.COLOR_BUFFER_BIT);
+            // -- Render
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+        
+            var matrix = new Float32Array([
+                0.5, 0.0, 0.0, 0.0,
+                0.0, 0.5, 0.0, 0.0,
+                0.0, 0.0, 0.5, 0.0,
+                0.0, 0.0, 0.0, 1.0
+            ]);
+
+            gl.useProgram(program);
+            gl.uniform1i(diffuseLocation, 0);
+            gl.uniformMatrix4fv(mvpLocation, false, matrix);
+
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
             
-                var matrix = [
-                    0.5,0,0,0,
-                    0,0.5,0,0,
-                    0,0,0.5,0,
-                    0,0,0,1
-                ];
-                gl.uniformMatrix4fv(program.UniformMVP,false,new Float32Array(matrix));
-                                                         
-                gl.drawArrays(gl.TRIANGLES, 0, 6);
-                
-                // Delete WebGL resources
-                gl.deleteBuffer(vertexPosBuffer);
-                gl.deleteBuffer(vertexTexBuffer);
-                gl.deleteTexture(texture);
-                gl.deleteProgram(program);
-            };
-            
-            
-        }
+            // Delete WebGL resources
+            gl.deleteBuffer(vertexPosBuffer);
+            gl.deleteBuffer(vertexTexBuffer);
+            gl.deleteTexture(texture);
+            gl.deleteProgram(program);
+        });
     })();
     </script>
 
