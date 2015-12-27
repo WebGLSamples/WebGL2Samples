@@ -125,15 +125,13 @@
         gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         
-        var img = new Image();
-        img.src = '../assets/img/Di-3d.png';
-        img.onload = function() {
+        loadImage('../assets/img/Di-3d.png', function(image) {
             // -- Init Texture
             var texture = gl.createTexture();
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
             
@@ -159,7 +157,7 @@
             gl.deleteBuffer(vertexTexBuffer);
             gl.deleteTexture(texture);
             gl.deleteProgram(program);
-        };
+        });
     })();
     </script>
 
