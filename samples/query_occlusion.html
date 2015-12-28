@@ -100,7 +100,7 @@
         gl.endQuery(gl.ANY_SAMPLES_PASSED);
         
         var samplesCount = gl.getQueryParameter(query, gl.QUERY_RESULT);
-        console.log("samples count: " + samplesCount);
+        console.log("samples count: " + Number(samplesCount));
         
         // Delete WebGL resources
         gl.deleteBuffer(vertexPosBuffer);
