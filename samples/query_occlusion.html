@@ -51,7 +51,6 @@
         document.body.appendChild(canvas);
         
         // -- Init WebGL Context
-        
         var gl = canvas.getContext('webgl2', { antialias: false });
         if (!gl) {
             gl = canvas.getContext('experimental-webgl2', { antialias: false });
