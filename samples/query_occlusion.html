@@ -84,9 +84,8 @@
         
         // -- Init Vertex Array
 
-        var vertexPosAttrib = gl.getAttribLocation(program, 'pos');
-        gl.enableVertexAttribArray(vertexPosAttrib);
-        gl.vertexAttribPointer(vertexPosAttrib, 2, gl.FLOAT, false, 8, 0);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8, 0);
 
 
         // -- Init Query
