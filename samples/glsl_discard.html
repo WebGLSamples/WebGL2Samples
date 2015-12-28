@@ -21,8 +21,8 @@
         
         uniform mat4 MVP;
         
-        in vec2 position;
-        in vec2 texcoord;
+        layout(location = 0) in vec2 position;
+        layout(location = 1) in vec2 texcoord;
         
         out vec2 uv;
         
@@ -80,10 +80,8 @@
         // -- Init program
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
         
-        var positionLocation = gl.getAttribLocation(program, 'position');
-        gl.enableVertexAttribArray(positionLocation);
-        var texcoordLocation = gl.getAttribLocation(program, 'texcoord');
-        gl.enableVertexAttribArray(texcoordLocation);
+        gl.enableVertexAttribArray(0);
+        gl.enableVertexAttribArray(1);
         
         var mvpLocation = gl.getUniformLocation(program,"MVP");
         var diffuseLocation = gl.getUniformLocation(program,"diffuse");
@@ -118,11 +116,11 @@
         
         // -- Init VertexArray
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
-        gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         
         loadImage('../assets/img/Di-3d.png', function(image) {
