@@ -78,9 +78,8 @@
 
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
 
-        var vertexPosAttrib = gl.getAttribLocation(program, 'pos');
-        gl.enableVertexAttribArray(vertexPosAttrib);
-        gl.vertexAttribPointer(vertexPosAttrib, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
         gl.useProgram(program);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 2);
