@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<!-- Ported from the OpenGL Samples Pack: github.com/g-truc/ogl-samples/blob/master/tests/gl-320-draw-instanced.cpp -->
+<html lang="en">
+
+<head>
+    <title>WebGL 2 Samples - draw_range_arrays</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="info">WebGL 2 Samples - draw_range_arrays</div>
+
+    <script id="vs" type="x-shader/x-vertex">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        layout(std140, column_major) uniform;
+        
+        uniform Transform
+        {
+            mat4 MVP;
+        } transform;
+        
+        layout(location=0) in vec2 position;
+        
+        void main()
+        {
+            gl_Position = vec4(position, 0.0, 1.0);
+        }
+    </script>
+
+    <script id="fs" type="x-shader/x-fragment">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+        layout(std140) uniform;
+
+        out vec4 color;
+
+        void main()
+        {
+            color = vec4(1.0, 0.5, 0.0, 1.0);
+        }
+    </script>
+
+    <script src="utility.js"></script>
+    <script>
+    (function () {
+        'use strict';
+
+        var canvas = document.createElement('canvas');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        document.body.appendChild(canvas);
+
+        var gl = canvas.getContext('webgl2', { antialias: false });
+        if (!gl) {
+            gl = canvas.getContext('experimental-webgl2', { antialias: false });
+        }
+        var isWebGL2 = !!gl;
+        if(!isWebGL2)
+        {
+            document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
+            return;
+        }
+        
+        // -- Init program
+        var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
+        gl.useProgram(program);
+           
+        // -- Init Buffer
+        var vertexPosBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        var vertices = new Float32Array([
+            -1.0, -1.0,
+             1.0, -1.0,
+             1.0,  1.0,
+             1.0,  1.0,
+             -1.0, 1.0,
+             -1.0, -1.0,
+             -0.5, -0.5,
+             0.5, -0.5,
+             0.5, 0.5,
+             0.5, 0.5,
+             -0.5, 0.5,
+             -0.5, -0.5,
+        ]);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+        
+        var uniformTransformLocation = gl.getUniformBlockIndex(program, 'Transform');
+        gl.uniformBlockBinding(program, uniformTransformLocation, 0);
+        
+        var uniformTransformBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.UNIFORM_BUFFER, uniformTransformBuffer);
+        var transforms = new Float32Array([
+            0.8, 0.0, 0.0, 0.0, 
+            0.0, 0.8, 0.0, 0.0, 
+            0.0, 0.0, 0.8, 0.0, 
+            0.0, 0.0, 0.0, 1.0
+        ]);
+        gl.bufferData(gl.UNIFORM_BUFFER, transforms, gl.DYNAMIC_DRAW);
+        gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+
+        // -- Render
+        gl.clearColor(0, 0, 0, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        
+        gl.bindBufferBase(gl.UNIFORM_BUFFER, 0, uniformTransformBuffer);
+        
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+        gl.viewport(0, 0, canvas.width / 2, canvas.height);
+        gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
+        gl.viewport(canvas.width / 2, 0, canvas.width / 2, canvas.height);
+        gl.drawArraysInstanced(gl.TRIANGLES, 6, 6, 1);
+
+        // -- Delete WebGL resources
+        gl.deleteBuffer(vertexPosBuffer);
+        gl.deleteBuffer(uniformTransformBuffer);
+        gl.deleteProgram(program);
+    })();
+    </script>
+</body>
+</html>
