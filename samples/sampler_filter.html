@@ -160,14 +160,12 @@
         gl.bindVertexArray(vertexArray);
 
         var vertexPosLocation = 0; // set with GLSL layout qualifier
-        gl.enableVertexAttribArray(vertexPosLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(vertexPosLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         var vertexTexLocation = 4; // set with GLSL layout qualifier
-        gl.enableVertexAttribArray(vertexTexLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
         gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(vertexTexLocation);
