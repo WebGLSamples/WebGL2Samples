@@ -11,12 +11,11 @@ MIT license.  See [LICENSE.md](LICENSE.md).
 
 ## Samples
 
-|              | Chrome 47 Windows | Firefox 42 Windows|
+|              | Chrome 49 Windows | Firefox 42 Windows|
 |--------------|:-----------------:|:-----------------:|
-|draw instanced|:white_check_mark: | :x: crash         |
-|glsl discard  |:white_check_mark: | :white_check_mark:|
-|query occlusion|:white_check_mark:| :white_check_mark:|         
-
+|[draw_instanced](http://webglsamples.org/WebGL2Samples/#query_occlusion)|:draw_instanced: | :x: crash         |
+|[glsl_discard](http://webglsamples.org/WebGL2Samples/#query_occlusion)  |:glsl_discard: | :white_check_mark:|
+|[query_occlusion](http://webglsamples.org/WebGL2Samples/#query_occlusion)|:white_check_mark:| :white_check_mark:|         
 
 ## Running the Samples Locally
 
@@ -49,6 +48,12 @@ To run JSHint automatically when a file is saved, run:
 ```
 npm run jsHint-watch
 ```
+
+## Contributions
+
+This is a community project.  We welcome contributions.  Check out the [issues](https://github.com/WebGLSamples/WebGL2Samples/issues) for ways to contribute.
+
+When you open a pull request, please make sure that GitHub reports that "All checks have passed", indicated by the white checkmark in a green circle on top of the "Merge pull request" button.  Travis CI is used to run JSHint, and [CLA assistant](https://cla-assistant.io/) is used for signing a Contributor License Agreement (CLA).  Submit an [issue](https://github.com/WebGLSamples/WebGL2Samples/issues) if you have any questions.
 
 ## Acknowledgements
 
