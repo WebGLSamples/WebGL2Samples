@@ -15,16 +15,16 @@
 
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
-        #define POSITION 0
-        #define TEXCOORD 4
+        #define POSITION_LOCATION 0
+        #define TEXCOORD_LOCATION 4
 
         precision highp float;
         precision highp int;
 
         uniform mat4 mvp;
 
-        layout(location = POSITION) in vec2 position;
-        layout(location = TEXCOORD) in vec2 textureCoordinates;
+        layout(location = POSITION_LOCATION) in vec2 position;
+        layout(location = TEXCOORD_LOCATION) in vec2 textureCoordinates;
 
         out vec2 st;
 
@@ -37,7 +37,7 @@
 
     <script id="fs" type="x-shader/x-fragment">
         #version 300 es
-        #define FRAG_COLOR 0
+        #define FRAG_COLOR_LOCATION 0
 
         precision highp float;
         precision highp int;
@@ -46,7 +46,7 @@
 
         in vec2 st;
 
-        layout(location = FRAG_COLOR) out vec4 color;
+        layout(location = FRAG_COLOR_LOCATION) out vec4 color;
 
         void main()
         {
@@ -81,7 +81,7 @@
             y: canvas.height
         };
 
-        var CORNERS = {
+        var Corners = {
             TOP_LEFT: 0,
             TOP_RIGHT: 1,
             BOTTOM_RIGHT: 2,
@@ -89,30 +89,30 @@
             MAX: 4
         };
 
-        var Viewport = new Array(CORNERS.MAX);
+        var viewport = new Array(Corners.MAX);
 
-        Viewport[CORNERS.TOP_LEFT] = {
+        viewport[Corners.TOP_LEFT] = {
             x: 0,
             y: 0,
             z: windowSize.x / 2,
             w: windowSize.y / 2
         };
 
-        Viewport[CORNERS.TOP_RIGHT] = {
+        viewport[Corners.TOP_RIGHT] = {
             x: windowSize.x / 2,
             y: 0,
             z: windowSize.x / 2,
             w: windowSize.y / 2
         };
 
-        Viewport[CORNERS.BOTTOM_RIGHT] = {
+        viewport[Corners.BOTTOM_RIGHT] = {
             x: windowSize.x / 2,
             y: windowSize.y / 2,
             z: windowSize.x / 2,
             w: windowSize.y / 2
         };
 
-        Viewport[CORNERS.BOTTOM_LEFT] = {
+        viewport[Corners.BOTTOM_LEFT] = {
             x: 0,
             y: windowSize.y / 2,
             z: windowSize.x / 2,
@@ -177,8 +177,8 @@
 
         // -- Initialize samplers
 
-        var samplers = new Array(CORNERS.MAX);
-        for (var i = 0; i < CORNERS.MAX; ++i) {
+        var samplers = new Array(Corners.MAX);
+        for (var i = 0; i < Corners.MAX; ++i) {
             samplers[i] = gl.createSampler();
             gl.samplerParameteri(samplers[i], gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             gl.samplerParameteri(samplers[i], gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -186,54 +186,16 @@
         }
 
         // Min filter
-        gl.samplerParameteri(
-            samplers[CORNERS.TOP_LEFT],
-            gl.TEXTURE_MIN_FILTER,
-            gl.NEAREST
-            );
-
-        gl.samplerParameteri(
-            samplers[CORNERS.TOP_RIGHT],
-            gl.TEXTURE_MIN_FILTER,
-            gl.LINEAR
-            );
-
-        gl.samplerParameteri(
-            samplers[CORNERS.BOTTOM_RIGHT],
-            gl.TEXTURE_MIN_FILTER,
-            gl.LINEAR_MIPMAP_NEAREST
-            );
-
-        gl.samplerParameteri(
-            samplers[CORNERS.BOTTOM_LEFT],
-            gl.TEXTURE_MIN_FILTER,
-            gl.LINEAR_MIPMAP_LINEAR
-            );
+        gl.samplerParameteri(samplers[Corners.TOP_LEFT], gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.samplerParameteri(samplers[Corners.TOP_RIGHT], gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.samplerParameteri(samplers[Corners.BOTTOM_RIGHT], gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+        gl.samplerParameteri(samplers[Corners.BOTTOM_LEFT], gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
 
         // Mag filter
-        gl.samplerParameteri(
-            samplers[CORNERS.TOP_LEFT],
-            gl.TEXTURE_MAG_FILTER,
-            gl.NEAREST
-            );
-
-        gl.samplerParameteri(
-            samplers[CORNERS.TOP_RIGHT],
-            gl.TEXTURE_MAG_FILTER,
-            gl.LINEAR
-            );
-
-        gl.samplerParameteri(
-            samplers[CORNERS.BOTTOM_RIGHT],
-            gl.TEXTURE_MAG_FILTER,
-            gl.LINEAR
-            );
-
-        gl.samplerParameteri(
-            samplers[CORNERS.BOTTOM_LEFT],
-            gl.TEXTURE_MAG_FILTER,
-            gl.LINEAR
-            );
+        gl.samplerParameteri(samplers[Corners.TOP_LEFT], gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.samplerParameteri(samplers[Corners.TOP_RIGHT], gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.samplerParameteri(samplers[Corners.BOTTOM_RIGHT], gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.samplerParameteri(samplers[Corners.BOTTOM_LEFT], gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
         // -- Load texture then render
 
@@ -277,8 +239,8 @@
             gl.bindVertexArray(vertexArray);
 
             // Bind samplers
-            for (var i = 0; i < CORNERS.MAX; ++i) {
-                gl.viewport(Viewport[i].x, Viewport[i].y, Viewport[i].z, Viewport[i].w);
+            for (var i = 0; i < Corners.MAX; ++i) {
+                gl.viewport(viewport[i].x, viewport[i].y, viewport[i].z, viewport[i].w);
 
                 gl.bindSampler(0, samplers[i]);
                 gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
