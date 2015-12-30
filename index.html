@@ -208,12 +208,10 @@
             ,
             "GLSL": [
                 "glsl_discard"
-            ]
-            ,
+            ],
             "Query":[
                 "query_occlusion"
             ]
-
         };
 
         var panel = document.getElementById( 'panel' );
@@ -268,7 +266,7 @@
             container.appendChild( div );
 
             for ( var i = 0; i < section.length; i ++ ) {
-
+                /*jshint loopfunc: true */
                 ( function ( file ) {
 
                     var div = document.createElement( 'div' );
