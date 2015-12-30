@@ -11,12 +11,12 @@ MIT license.  See [LICENSE.md](LICENSE.md).
 
 ## Samples
 
-|              | Chrome 47 Windows | 49.0.2607.0 canary (64-bit) OSX 10.10.5| Firefox 42 Windows| Firefox 42.0 OSX 10.10.5|
+|              | Chrome 49 Windows | 49 OSX 10.10| Firefox 42 Windows| Firefox 42 OSX 10.10|
 |--------------|:-----------------:|:--------------------------------------:|:-----------------:|:-----------------------:|
-|draw instanced|:white_check_mark: |:white_check_mark:| :x: crash|:white_check_mark:|
-|glsl discard  |:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
-|query occlusion|:white_check_mark:|:white_check_mark:| :white_check_mark:|:white_check_mark:|
-|sampler_filter|:x:not tested|:white_check_mark:| :x: not tested|:white_check_mark:|
+|[draw_instanced](http://webglsamples.org/WebGL2Samples/#draw_instanced)|:white_check_mark: |:white_check_mark:| :x: crash|:white_check_mark:|
+|[glsl_discard](http://webglsamples.org/WebGL2Samples/#glsl_discard)|:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
+|[query_occlusion](http://webglsamples.org/WebGL2Samples/#query_occlusion)|:white_check_mark:|:white_check_mark:| :white_check_mark:|:white_check_mark:|
+|[sampler_filter](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:x:not tested|:white_check_mark:| :x: not tested|:white_check_mark:|
 
 ## Running the Samples Locally
 
@@ -35,7 +35,9 @@ Then browse to
 http://localhost:8000/
 ```
 
-### Build Options
+### Build Instructions
+
+The samples do not require a build; however, Node.js and gulp can be used to run JSHint to aid in development.
 
 Install [Node.js](http://nodejs.org/).  From the root directory of this repo, run:
 ```
@@ -45,10 +47,16 @@ To run JSHint on the entire codebase, run
 ```
 npm run jsHint
 ```
-To run JSHint automatically when a file is saved, run:
+To run JSHint automatically when a file is saved, run the following and leave it open in a console window:
 ```
 npm run jsHint-watch
 ```
+
+## Contributions
+
+This is a community project.  We welcome contributions!  Check out the [issues](https://github.com/WebGLSamples/WebGL2Samples/issues) for ideas on what to contribute.
+
+When you open a pull request, please make sure that GitHub reports that "All checks have passed", indicated by the white checkmark in a green circle on top of the "Merge pull request" button.  Travis CI is used to run JSHint on your branch, and [CLA assistant](https://cla-assistant.io/) is used for signing a Contributor License Agreement (CLA).  Submit an [issue](https://github.com/WebGLSamples/WebGL2Samples/issues) if you have any questions.
 
 ## Acknowledgements
 

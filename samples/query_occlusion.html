@@ -101,7 +101,7 @@
         gl.endQuery(gl.ANY_SAMPLES_PASSED);
 
         var samplesPassed = gl.getQueryParameter(query, gl.QUERY_RESULT);
-        document.getElementById('samplesPassed').innerHTML = 'Any samples passed: ' + samplesPassed;
+        document.getElementById('samplesPassed').innerHTML = 'Any samples passed: ' + Number(samplesPassed);
 
         // -- Delete WebGL resources
         gl.deleteBuffer(vertexPosBuffer);
