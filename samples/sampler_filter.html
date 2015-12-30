@@ -27,11 +27,11 @@
         layout(location = POSITION) in vec2 position;
         layout(location = TEXCOORD) in vec2 textureCoordinates;
 
-        out vec2 UV;
+        out vec2 uv;
 
         void main()
         {
-            UV = textureCoordinates;
+            uv = textureCoordinates;
             gl_Position = MVP * vec4(position, 0.0, 1.0) ;
         }
     </script>
@@ -42,15 +42,15 @@
         precision highp float;
         precision highp int;
 
-        uniform sampler2D Diffuse;
+        uniform sampler2D diffuse;
 
-        in vec2 UV;
+        in vec2 uv;
 
-        layout(location = FRAG_COLOR) out vec4 Color;
+        layout(location = FRAG_COLOR) out vec4 color;
 
         void main()
         {
-            Color = texture(Diffuse, UV);
+            color = texture(Diffuse, uv);
         }
     </script>
 
