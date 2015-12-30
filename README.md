@@ -11,7 +11,7 @@ MIT license.  See [LICENSE.md](LICENSE.md).
 
 ## Samples
 
-|              | Chrome 49 Windows | 49 OSX 10.10| Firefox 42 Windows| Firefox 42 OSX 10.10|
+|              | Chrome 49 Windows | Chrome 49 OSX 10.10| Firefox 42 Windows| Firefox 42 OSX 10.10|
 |--------------|:-----------------:|:--------------------------------------:|:-----------------:|:-----------------------:|
 |[draw_instanced](http://webglsamples.org/WebGL2Samples/#draw_instanced)|:white_check_mark: |:white_check_mark:| :x: crash|:white_check_mark:|
 |[glsl_discard](http://webglsamples.org/WebGL2Samples/#glsl_discard)|:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
