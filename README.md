@@ -12,6 +12,7 @@ MIT license.  See [LICENSE.md](LICENSE.md).
 |              | Chrome 47 Windows | Firefox 42 Windows|
 |--------------|:-----------------:|:-----------------:|
 |draw instanced|:white_check_mark: | :x: crash         |
+|draw range arrays|:white_check_mark: | :white_check_mark:|
 |glsl discard  |:white_check_mark: | :white_check_mark:|
 |query occlusion|:white_check_mark:| :white_check_mark:|         
 
