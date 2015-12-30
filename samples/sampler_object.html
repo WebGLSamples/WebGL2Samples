@@ -11,10 +11,8 @@
 </head>
 
 <body>
-
     <div id="info">WebGL 2 Samples - sampler_object</div>
 
-    <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
         #define POSITION_LOCATION 0
@@ -67,7 +65,6 @@
     </script>
 
     <script>
-
     (function() {
         'use strict';
 
@@ -188,7 +185,6 @@
         });
 
        function render() {
-
             // Clear color buffer
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
@@ -228,7 +224,6 @@
             gl.deleteProgram(program);
         }
     })();
-
     </script>
 
 </body>
