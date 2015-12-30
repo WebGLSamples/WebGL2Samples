@@ -64,9 +64,7 @@
             return;
         }
 
-        // -- Init Program
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
-        gl.useProgram(program);
 
         // -- Init Buffer
         var vertices = new Float32Array([
@@ -85,15 +83,12 @@
         var vertexPosLocation = 0;  // set with GLSL layout qualifier
         gl.enableVertexAttribArray(vertexPosLocation);
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
-        
-        gl.bindVertexArray(null);
 
         // -- Render
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         
-        gl.bindVertexArray(vertexArray);
-        
+        gl.useProgram(program);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 2);
 
         // -- Delete WebGL resources
