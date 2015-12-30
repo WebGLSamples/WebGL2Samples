@@ -110,6 +110,9 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         
         // -- Init VertexArray
+        var vertexArray = gl.createVertexArray();
+        gl.bindVertexArray(vertexArray);
+
         var vertexPosLocation = 0; // set with GLSL layout qualifier
         gl.enableVertexAttribArray(vertexPosLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
@@ -121,7 +124,9 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
         gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        
+
+        gl.bindVertexArray(null);
+
         loadImage('../assets/img/Di-3d.png', function(image) {
             // -- Init Texture
             var texture = gl.createTexture();
@@ -135,7 +140,7 @@
             // -- Render
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
-        
+
             var matrix = new Float32Array([
                 0.5, 0.0, 0.0, 0.0,
                 0.0, 0.5, 0.0, 0.0,
@@ -147,6 +152,8 @@
             gl.uniformMatrix4fv(mvpLocation, false, matrix);
             gl.uniform1i(diffuseLocation, 0);
 
+            gl.bindVertexArray(vertexArray);
+
             gl.drawArrays(gl.TRIANGLES, 0, 6);
             
             // Delete WebGL resources
@@ -154,6 +161,7 @@
             gl.deleteBuffer(vertexTexBuffer);
             gl.deleteTexture(texture);
             gl.deleteProgram(program);
+            gl.deleteVertexArray(vertexArray);
         });
     })();
     </script>
