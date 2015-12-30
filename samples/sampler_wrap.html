@@ -11,7 +11,6 @@
 </head>
 
 <body>
-
     <div id="info">WebGL 2 Samples - sampler_wrap</div>
 
     <!-- WebGL 2 shaders -->
@@ -57,11 +56,8 @@
     </script>
 
     <script>
-
     (function() {
         'use strict';
-
-        // -- Initialize context
 
         var canvas = document.createElement('canvas');
         canvas.width = Math.min(window.innerWidth, window.innerHeight);
@@ -219,7 +215,6 @@
         });
 
         function render() {
-
             // Clear color buffer
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
@@ -243,6 +238,7 @@
 
             for (var i = 0; i < Corners.MAX; ++i) {
                 gl.viewport(viewport[i].x, viewport[i].y, viewport[i].z, viewport[i].w);
+
                 gl.bindSampler(0, samplers[i]);
                 gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
             }
@@ -259,7 +255,6 @@
             gl.deleteProgram(program);
         }
     })();
-
     </script>
 
 </body>
