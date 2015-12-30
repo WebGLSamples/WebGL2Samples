@@ -20,7 +20,8 @@
     },
     "scripts": {
         "jsHint": "gulp jsHint",
-        "jsHint-watch": "gulp jsHint-watch"
+        "jsHint-watch": "gulp jsHint-watch",
+        "test" : "npm run jsHint"
     },
     "devDependencies": {
         "gulp": "3.9.0",
