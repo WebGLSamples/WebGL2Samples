@@ -203,6 +203,12 @@
         var files = {
             "Instancing": [
                 "draw_instanced"
+            ],
+            "GLSL": [
+                "glsl_discard"
+            ],
+            "Query":[
+                "query_occlusion"
             ]
         };
 
@@ -258,7 +264,7 @@
             container.appendChild( div );
 
             for ( var i = 0; i < section.length; i ++ ) {
-
+                /*jshint loopfunc: true */
                 ( function ( file ) {
 
                     var div = document.createElement( 'div' );

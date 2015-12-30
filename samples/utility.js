@@ -3,7 +3,7 @@
 
     window.getShaderSource = function(id) {
         return document.getElementById(id).textContent.replace(/^\s+|\s+$/g, '');
-    }
+    };
 
     function createShader(gl, source, type) {
         var shader = gl.createShader(type);
@@ -27,5 +27,13 @@
         console.log(gl.getShaderInfoLog(fshader));
 
         return program;
-    }
+    };
+
+    window.loadImage = function(url, onload) {
+        var img = new Image();
+        img.src = url;
+        img.onload = function() {
+            onload(img);
+        };
+    };
 })();
