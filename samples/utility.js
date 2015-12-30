@@ -3,7 +3,7 @@
 
     window.getShaderSource = function(id) {
         return document.getElementById(id).textContent.replace(/^\s+|\s+$/g, '');
-    }
+    };
 
     function createShader(gl, source, type) {
         var shader = gl.createShader(type);
@@ -27,27 +27,13 @@
         console.log(gl.getShaderInfoLog(fshader));
 
         return program;
-    }
+    };
 
-    window.loadTexture = function(gl, src, callback) {
-        var texture = gl.createTexture();
-        var image = new Image();
-        image.onload = function() {
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.texImage2D(
-                gl.TEXTURE_2D,
-                0, // Level of details
-                gl.RGBA, // Format
-                gl.RGBA,
-                gl.UNSIGNED_BYTE, // Size of each channel
-                image
-            );
-
-            if (callback) {
-                callback(texture);
-            }
-        }
-        image.src = src;
-        return texture;
-    }
+    window.loadImage = function(url, onload) {
+        var img = new Image();
+        img.src = url;
+        img.onload = function() {
+            onload(img);
+        };
+    };
 })();
