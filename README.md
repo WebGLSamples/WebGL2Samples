@@ -10,8 +10,9 @@ MIT license.  See [LICENSE.md](LICENSE.md).
 ## Samples
 
 |              | Chrome 47 Windows | Firefox 42 Windows|
-|--------------|:---------------:|:---------------:|
-|draw instanced|   :white_check_mark:    |  :x: crash        |
+|--------------|:-----------------:|:-----------------:|
+|draw instanced|:white_check_mark: | :x: crash         |
+|glsl discard  |:white_check_mark: | :white_check_mark:|          
 
 
 ## Running the Samples Locally
