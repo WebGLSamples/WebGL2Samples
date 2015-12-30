@@ -33,6 +33,21 @@ Then browse to
 http://localhost:8000/
 ```
 
+### Build Options
+
+Install [Node.js](http://nodejs.org/).  From the root directory of this repo, run:
+```
+npm install
+```
+To run JSHint on the entire codebase, run
+```
+npm run jsHint
+```
+To run JSHint automatically when a file is saved, run:
+```
+npm run jsHint-watch
+```
+
 ## Credits
 
 * [three.js example page framework](https://github.com/mrdoob/three.js) by Mr.doob ([@mrdoob](https://github.com/mrdoob)) and contributors
