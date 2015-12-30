@@ -11,12 +11,12 @@ MIT license.  See [LICENSE.md](LICENSE.md).
 
 ## Samples
 
-|              | Chrome 47 Windows | Firefox 42 Windows|
-|--------------|:-----------------:|:-----------------:|
-|draw instanced|:white_check_mark: | :x: crash         |
-|glsl discard  |:white_check_mark: | :white_check_mark:|
-|query occlusion|:white_check_mark:| :white_check_mark:|         
-
+|              | Chrome 47 Windows | 49.0.2607.0 canary (64-bit) OSX 10.10.5| Firefox 42 Windows| Firefox 42.0 OSX 10.10.5|
+|--------------|:-----------------:|:--------------------------------------:|:-----------------:|:-----------------------:|
+|draw instanced|:white_check_mark: |:white_check_mark:| :x: crash|:white_check_mark:|
+|glsl discard  |:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
+|query occlusion|:white_check_mark:|:white_check_mark:| :white_check_mark:|:white_check_mark:|
+|sampler_filter|:x:not tested|:white_check_mark:| :x: not tested|:white_check_mark:|
 
 ## Running the Samples Locally
 
