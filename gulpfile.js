@@ -1,7 +1,7 @@
 /*jshint node: true*/
 'use strict';
 
-var jshint = require('gulp-jshint');
+var jshint = require('gulp-jshint')
 var gulp = require('gulp');
 
 var jsHintFiles = ['**/*.js', '**/*.html', '!node_modules/**'];
