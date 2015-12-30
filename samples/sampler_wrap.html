@@ -58,7 +58,7 @@
 
     <script>
 
-        var viewport = {
+        var corners = {
             TL: 0,
             TR: 1,
             BL: 2,
@@ -66,138 +66,17 @@
             MAX: 4
         };
 
-        // -- DECLARE ALL VARIABLES
-
-        var program;
-        var vertexBuffer;
-        var textureBuffer;
-        var texture;
-        var vertexArray;
-        var samplers = new Array(viewport.MAX);
-        var Viewport = new Array(viewport.MAX);
-
-        function initContext() {
-            gl = canvas.getContext( 'webgl2', { antialias: false } );
-            if (!gl) {
-                gl = canvas.getContext( 'experimental-webgl2', { antialias: false } );
-            }
-            var isWebGL2 = !!gl;
-            return isWebGL2;
-        }
-
-        function initQuery() {
-            timeQuery = gl.createQuery();
-        }
-
-        function initProgram() {
-            var vertexShader = document.getElementById( 'vs' ).textContent;
-            var fragmentShader = document.getElementById( 'fs' ).textContent;
-            program = createProgram(gl, vertexShader,fragmentShader);
-
-            program.Position = gl.getAttribLocation(program, 'Position');
-            gl.enableVertexAttribArray(program.Position);
-            program.Texcoord = gl.getAttribLocation(program, 'Texcoord');
-            gl.enableVertexAttribArray(program.Texcoord);
-
-            program.UniformMVP = gl.getUniformLocation(program,"MVP");
-            program.UniformDiffuse = gl.getUniformLocation(program,"Diffuse");
-        }
-
-        function initBuffer() {
-            vertexBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-            var vertices = [-1.0, -1.0,
-                            1.0, -1.0,
-                            1.0, 1.0,
-                            1.0, 1.0,
-                            -1.0, 1.0,
-                            -1.0, -1.0
-                            ];
-            gl.bufferData(
-                gl.ARRAY_BUFFER,
-                new Float32Array(vertices),
-                gl.STATIC_DRAW
-                );
-
-            // Unbind buffer
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-            var texcoords = [
-                -2.0,2.0,
-                2.0,2.0,
-                2.0,-2.0,
-                2.0,-2.0,
-                -2.0,-2.0,
-                -2.0,2.0
-            ];
-
-            textureBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords),gl.STATIC_DRAW);
-            gl.bindBuffer(gl.ARRAY_BUFFER,null);
-        }
-
-        function initVertexArray() {
-            vertexArray = gl.createVertexArray();
-            gl.bindVertexArray(vertexArray);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-            gl.vertexAttribPointer(program.Position, 2, gl.FLOAT, false, 0, 0);
-            gl.enableVertexAttribArray(program.Position);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
-            gl.vertexAttribPointer(program.Texcoord, 2, gl.FLOAT, false, 0, 0);
-            gl.enableVertexAttribArray(program.Texcoord);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-            gl.bindVertexArray(null);
-        }
-
-        function initTexture() {
-            texture = gl.createTexture();
-            var image = new Image();
-            image.onload = function() {
-
-                gl.bindTexture(gl.TEXTURE_2D, texture);
-                gl.texImage2D(
-                    gl.TEXTURE_2D,
-                    0, // Level of details
-                    gl.RGBA, // Format
-                    gl.RGBA,
-                    gl.UNSIGNED_BYTE, // Size of each channel
-                    image
-                    );
-
-                gl.generateMipmap(gl.TEXTURE_2D);
-
-                requestAnimationFrame(render);
-                cleanup();
-            }
-            image.src = "../assets/img/wall.png";
-        }
-
-        function initSampler() {
-
-            for (var i = 0; i < viewport.MAX; ++i) {
-                samplers[i] = gl.createSampler();
-                gl.samplerParameteri(samplers[i], gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-                gl.samplerParameteri(samplers[i], gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            }
-
-            gl.samplerParameteri(samplers[viewport.TL], gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
-            gl.samplerParameteri(samplers[viewport.TR], gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.samplerParameteri(samplers[viewport.BR], gl.TEXTURE_WRAP_S, gl.REPEAT);
-            gl.samplerParameteri(samplers[viewport.BL], gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-
-            gl.samplerParameteri(samplers[viewport.TL], gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
-            gl.samplerParameteri(samplers[viewport.TR], gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
-            gl.samplerParameteri(samplers[viewport.BR], gl.TEXTURE_WRAP_T, gl.REPEAT);
-            gl.samplerParameteri(samplers[viewport.BL], gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-        }
-
-        function render() {
+        function render(
+            gl,
+            program,
+            texture,
+            uniformMvpLocation,
+            uniformDiffuseLocation,
+            vertexArray,
+            samplers,
+            Viewport
+            )
+        {
 
             // Clear color buffer
             gl.clearColor(0,0,0.0,1);
@@ -207,73 +86,191 @@
             gl.useProgram(program);
 
             var matrix = [
-                1,0,0,0,
-                0,1,0,0,
-                0,0,1,0,
-                0,0,0,1
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 0.0, 1.0
             ];
-            gl.uniformMatrix4fv(program.UniformMVP,false,new Float32Array(matrix));
-            gl.uniform4f(program.UniformColor, 0.0, 0.0, 0.0, 1.0);
-            gl.uniform1i(program.UniformDiffuse, 0);
+            gl.uniformMatrix4fv(uniformMvpLocation, false, new Float32Array(matrix));
+            gl.uniform1i(uniformDiffuseLocation, 0);
 
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, texture);
 
             gl.bindVertexArray(vertexArray);
 
-            for (var i = 0; i < viewport.MAX; ++i) {
+            for (var i = 0; i < corners.MAX; ++i) {
                 gl.viewport(Viewport[i].x, Viewport[i].y, Viewport[i].z, Viewport[i].w);
                 gl.bindSampler(0, samplers[i]);
                 gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
             }
 
-            requestAnimationFrame(render);
-        }
+            // -- Clean up
 
-        function cleanup() {
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
             gl.bindSampler(0, null);
             gl.bindTexture(gl.TEXTURE_2D, null);
             gl.bindVertexArray(null);
             gl.useProgram(null);
+
+            requestAnimationFrame(function() {
+                render(
+                    gl,
+                    program,
+                    texture,
+                    uniformMvpLocation,
+                    uniformDiffuseLocation,
+                    vertexArray,
+                    samplers,
+                    Viewport
+                    );
+            });
         }
 
-        // -- INITIALIZE CANVAS
+        (function() {
+            'use strict';
 
-        var canvas;
-        var gl;
+            var canvas = document.createElement('canvas');
+            canvas.width = Math.min(window.innerWidth, window.innerHeight);
+            canvas.height = canvas.width;
+            document.body.appendChild(canvas);
 
-        canvas = document.createElement('canvas');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        document.body.appendChild(canvas);
+            var gl = canvas.getContext( 'webgl2', { antialias: false } );
+            if (!gl) {
+                gl = canvas.getContext( 'experimental-webgl2', { antialias: false } );
+                document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
+                return;
+            }
 
-        // -- INITIALIZE WEBGL CONTEXT
+            // -- Divide viewport
 
-        var isWebGL2 = initContext();
-        if(!isWebGL2)
-        {
-            console.log("webgl2 is not available.");
-            document.getElementById("info").innerHTML = "webgl2 is not available.";
-        }
-        else
-        {
-            // -- RUN SAMPLE
+            var windowSize = {
+                x: innerWidth,
+                y: innerHeight
+            };
 
-            var windowSize = {x: innerWidth, y: innerHeight};
-            Viewport[viewport.TL] = {x: 0, y: 0, z: windowSize.x / 2, w: windowSize.y / 2};
-            Viewport[viewport.TR] = {x: windowSize.x / 2, y: 0, z: windowSize.x / 2, w: windowSize.y / 2};
-            Viewport[viewport.BR] = {x: windowSize.x / 2, y: windowSize.y / 2, z: windowSize.x / 2, w: windowSize.y / 2};
-            Viewport[viewport.BL] = {x: 0, y: windowSize.y / 2, z: windowSize.x / 2, w: windowSize.y / 2};
+            var Viewport = new Array(corners.MAX);
 
+            Viewport[corners.TL] = {
+                x: 0,
+                y: 0,
+                z: windowSize.x / 2,
+                w: windowSize.y / 2
+            };
 
-            initProgram();
-            initBuffer();
-            initVertexArray();
-            initSampler();
-            initTexture();
+            Viewport[corners.TR] = {
+                x: windowSize.x / 2,
+                y: 0,
+                z: windowSize.x / 2,
+                w: windowSize.y / 2
+            };
 
-        }
+            Viewport[corners.BR] = {
+                x: windowSize.x / 2,
+                y: windowSize.y / 2,
+                z: windowSize.x / 2,
+                w: windowSize.y / 2
+            };
+
+            Viewport[corners.BL] = {
+                x: 0,
+                y: windowSize.y / 2,
+                z: windowSize.x / 2,
+                w: windowSize.y / 2
+            };
+
+            // -- Initialize program
+
+            var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
+
+            var positionLocation = gl.getAttribLocation(program, 'Position');
+            gl.enableVertexAttribArray(positionLocation);
+            var texcoordLocation = gl.getAttribLocation(program, 'Texcoord');
+            gl.enableVertexAttribArray(texcoordLocation);
+
+            var uniformMvpLocation = gl.getUniformLocation(program,"MVP");
+            var uniformDiffuseLocation = gl.getUniformLocation(program,"Diffuse");
+
+            // -- Initialize buffer
+
+            var vertexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            var vertices = [
+                -1.0, -1.0,  1.0,
+                -1.0,  1.0,  1.0,
+                 1.0,  1.0, -1.0,
+                 1.0, -1.0, -1.0
+            ];
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+            var texcoords = [
+                -2.0,  2.0,  2.0,
+                 2.0,  2.0, -2.0,
+                 2.0, -2.0, -2.0,
+                -2.0, -2.0,  2.0
+            ];
+
+            var textureBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords),gl.STATIC_DRAW);
+            gl.bindBuffer(gl.ARRAY_BUFFER,null);
+
+            // -- Initilize vertex array
+
+            var vertexArray = gl.createVertexArray();
+            gl.bindVertexArray(vertexArray);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(positionLocation);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
+            gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(texcoordLocation);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+            gl.bindVertexArray(null);
+
+            // -- Initialize samplers
+
+            var samplers = new Array(corners.MAX);
+
+            for (var i = 0; i < corners.MAX; ++i) {
+                samplers[i] = gl.createSampler();
+                gl.samplerParameteri(samplers[i], gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+                gl.samplerParameteri(samplers[i], gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            }
+
+            gl.samplerParameteri(samplers[corners.TL], gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+            gl.samplerParameteri(samplers[corners.TR], gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.samplerParameteri(samplers[corners.BR], gl.TEXTURE_WRAP_S, gl.REPEAT);
+            gl.samplerParameteri(samplers[corners.BL], gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+
+            gl.samplerParameteri(samplers[corners.TL], gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+            gl.samplerParameteri(samplers[corners.TR], gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+            gl.samplerParameteri(samplers[corners.BR], gl.TEXTURE_WRAP_T, gl.REPEAT);
+            gl.samplerParameteri(samplers[corners.BL], gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+            // -- Load texture then render
+
+            var texture = loadTexture(gl, "../assets/img/wall.png", function() {
+                gl.generateMipmap(gl.TEXTURE_2D);
+                requestAnimationFrame(function() {
+                    render(
+                        gl,
+                        program,
+                        texture,
+                        uniformMvpLocation,
+                        uniformDiffuseLocation,
+                        vertexArray,
+                        samplers,
+                        Viewport
+                        );
+                });
+            });
+        })();
 
     </script>
 
