@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>webgl 2 samples - draw instances</title>
+    <title>webgl 2 samples - sampler_wrap</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
@@ -12,7 +12,7 @@
 
 <body>
 
-    <div id="info">webgl 2 samples - sampler filter</div>
+    <div id="info">webgl 2 samples - sampler objecte</div>
 
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">#version 300 es
@@ -58,12 +58,10 @@
 
     <script>
 
-        // -- INITIALIZE CANVAS
-
-        (function()  {
+        (function() {
             'use strict';
 
-            // -- Initalize context
+            // -- Initialize context
 
             var canvas = document.createElement('canvas');
             canvas.width = Math.min(window.innerWidth, window.innerHeight);
@@ -87,8 +85,8 @@
             var corners = {
                 TL: 0,
                 TR: 1,
-                BR: 2,
-                BL: 3,
+                BL: 2,
+                BR: 3,
                 MAX: 4
             };
 
@@ -150,15 +148,15 @@
             var textureBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
             var texcoords = [
-                0.0, 1.0, 1.0,
-                1.0, 1.0, 0.0,
-                1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0
+                -2.0,  2.0,  2.0,
+                 2.0,  2.0, -2.0,
+                 2.0, -2.0, -2.0,
+                -2.0, -2.0,  2.0
             ];
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords), gl.STATIC_DRAW);
             gl.bindBuffer(gl.ARRAY_BUFFER,null);
 
-            // -- Initialize vertex array
+            // -- Initilize vertex array
 
             var vertexArray = gl.createVertexArray();
             gl.bindVertexArray(vertexArray);
@@ -178,62 +176,22 @@
             // -- Initialize samplers
 
             var samplers = new Array(corners.MAX);
+
             for (var i = 0; i < corners.MAX; ++i) {
                 samplers[i] = gl.createSampler();
-                gl.samplerParameteri(samplers[i], gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                gl.samplerParameteri(samplers[i], gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                gl.samplerParameteri(samplers[i], gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+                gl.samplerParameteri(samplers[i], gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+                gl.samplerParameteri(samplers[i], gl.TEXTURE_MAG_FILTER, gl.LINEAR);
             }
 
-            // Min filter
-            gl.samplerParameteri(
-                samplers[corners.TL],
-                gl.TEXTURE_MIN_FILTER,
-                gl.NEAREST
-                );
+            gl.samplerParameteri(samplers[corners.TL], gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+            gl.samplerParameteri(samplers[corners.TR], gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.samplerParameteri(samplers[corners.BR], gl.TEXTURE_WRAP_S, gl.REPEAT);
+            gl.samplerParameteri(samplers[corners.BL], gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 
-            gl.samplerParameteri(
-                samplers[corners.TR],
-                gl.TEXTURE_MIN_FILTER,
-                gl.LINEAR
-                );
-
-            gl.samplerParameteri(
-                samplers[corners.BR],
-                gl.TEXTURE_MIN_FILTER,
-                gl.LINEAR_MIPMAP_NEAREST
-                );
-
-            gl.samplerParameteri(
-                samplers[corners.BL],
-                gl.TEXTURE_MIN_FILTER,
-                gl.LINEAR_MIPMAP_LINEAR
-                );
-
-            // Mag filter
-            gl.samplerParameteri(
-                samplers[corners.TL],
-                gl.TEXTURE_MAG_FILTER,
-                gl.NEAREST
-                );
-
-            gl.samplerParameteri(
-                samplers[corners.TR],
-                gl.TEXTURE_MAG_FILTER,
-                gl.LINEAR
-                );
-
-            gl.samplerParameteri(
-                samplers[corners.BR],
-                gl.TEXTURE_MAG_FILTER,
-                gl.LINEAR
-                );
-
-            gl.samplerParameteri(
-                samplers[corners.BL],
-                gl.TEXTURE_MAG_FILTER,
-                gl.LINEAR
-                );
+            gl.samplerParameteri(samplers[corners.TL], gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+            gl.samplerParameteri(samplers[corners.TR], gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+            gl.samplerParameteri(samplers[corners.BR], gl.TEXTURE_WRAP_T, gl.REPEAT);
+            gl.samplerParameteri(samplers[corners.BL], gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
             // -- Load texture then render
 
@@ -257,17 +215,17 @@
                     0.0, 0.0, 1.0, 0.0,
                     0.0, 0.0, 0.0, 1.0
                 ];
-                gl.uniformMatrix4fv(uniformMvpLocation,false,new Float32Array(matrix));
+                gl.uniformMatrix4fv(uniformMvpLocation, false, new Float32Array(matrix));
                 gl.uniform1i(uniformDiffuseLocation, 0);
 
                 gl.activeTexture(gl.TEXTURE0);
                 gl.bindTexture(gl.TEXTURE_2D, texture);
+
                 gl.bindVertexArray(vertexArray);
 
-                // Bind samplers
                 for (var i = 0; i < corners.MAX; ++i) {
-                    gl.bindSampler(0, samplers[i]);
                     gl.viewport(Viewport[i].x, Viewport[i].y, Viewport[i].z, Viewport[i].w);
+                    gl.bindSampler(0, samplers[i]);
                     gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
                 }
 

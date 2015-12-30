@@ -28,4 +28,26 @@
 
         return program;
     }
+
+    window.loadTexture = function(gl, src, callback) {
+        var texture = gl.createTexture();
+        var image = new Image();
+        image.onload = function() {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(
+                gl.TEXTURE_2D,
+                0, // Level of details
+                gl.RGBA, // Format
+                gl.RGBA,
+                gl.UNSIGNED_BYTE, // Size of each channel
+                image
+            );
+
+            if (callback) {
+                callback(texture);
+            }
+        }
+        image.src = src;
+        return texture;
+    }
 })();
