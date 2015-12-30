@@ -78,9 +78,14 @@
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
         // -- Init Vertex Array
+        var vertexArray = gl.createVertexArray();
+        gl.bindVertexArray(vertexArray);
+        
         var vertexPosLocation = 0; // set with GLSL layout qualifier
         gl.enableVertexAttribArray(vertexPosLocation);
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 8, 0);
+        
+        gl.bindVertexArray(null);
 
         // -- Init Query
         var query = gl.createQuery();
@@ -88,6 +93,8 @@
         // -- Render
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
+
+        gl.bindVertexArray(vertexArray);
 
         gl.beginQuery(gl.ANY_SAMPLES_PASSED, query);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 2);
@@ -100,6 +107,7 @@
         gl.deleteBuffer(vertexPosBuffer);
         gl.deleteProgram(program);
         gl.deleteQuery(query);
+        gl.deleteVertexArray(vertexArray);
     })();
     </script>
 </body>
