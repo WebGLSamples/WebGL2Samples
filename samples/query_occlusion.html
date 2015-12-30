@@ -100,13 +100,22 @@
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 2);
         gl.endQuery(gl.ANY_SAMPLES_PASSED);
 
-        var samplesPassed = gl.getQueryParameter(query, gl.QUERY_RESULT);
-        document.getElementById('samplesPassed').innerHTML = 'Any samples passed: ' + samplesPassed;
+        (function tick() {
+            if (!gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE)) {
+                // A query's result is never available in the same frame
+                // the query was issued.  Try in the next frame.
+                requestAnimationFrame(tick);
+                return;
+            }
+
+            var samplesPassed = gl.getQueryParameter(query, gl.QUERY_RESULT);
+            document.getElementById('samplesPassed').innerHTML = 'Any samples passed: ' + samplesPassed;
+            gl.deleteQuery(query);
+        })();
 
         // -- Delete WebGL resources
         gl.deleteBuffer(vertexPosBuffer);
         gl.deleteProgram(program);
-        gl.deleteQuery(query);
         gl.deleteVertexArray(vertexArray);
     })();
     </script>
