@@ -84,14 +84,21 @@
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
         // -- Init Vertex Array
+        var vertexArray = gl.createVertexArray();
+        gl.bindVertexArray(vertexArray);
+        
         var vertexPosLocation = 0;  // set with GLSL layout qualifier
         gl.enableVertexAttribArray(vertexPosLocation);
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
+        
+        gl.bindVertexArray(null);
 
         // -- Render
         gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
+        gl.bindVertexArray(vertexArray);
+        
         gl.viewport(0, 0, canvas.width / 2, canvas.height);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, vertexCount / 2, 1);
         gl.viewport(canvas.width / 2, 0, canvas.width / 2, canvas.height);
@@ -99,8 +106,8 @@
 
         // -- Delete WebGL resources
         gl.deleteBuffer(vertexPosBuffer);
-        gl.deleteBuffer(uniformTransformBuffer);
         gl.deleteProgram(program);
+        gl.deleteVertexArray(vertexArray);
     })();
     </script>
 </body>
