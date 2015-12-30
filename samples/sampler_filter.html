@@ -254,7 +254,7 @@
 
                 gl.generateMipmap(gl.TEXTURE_2D);
                 render();
-            })
+            });
 
             function render() {
 
@@ -289,8 +289,8 @@
 
                 gl.deleteBuffer(vertexPosBuffer);
                 gl.deleteBuffer(vertexTexBuffer);
-                for (var i = 0; i < samplers.length; ++i) {
-                    gl.deleteSampler(samplers[i]);
+                for (var j = 0; j < samplers.length; ++j) {
+                    gl.deleteSampler(samplers[j]);
                 }
                 gl.deleteVertexArray(vertexArray);
                 gl.deleteTexture(texture);
