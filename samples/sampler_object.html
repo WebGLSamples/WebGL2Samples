@@ -58,7 +58,7 @@
             if (st.y / st.x < 1.0) {
                 color = texture(material.diffuse[0], st);
             } else {
-                color = texture(material.diffuse[1], st) * .77;
+                color = texture(material.diffuse[1], st) * 0.77;
             }
         }
     </script>
@@ -87,9 +87,9 @@
 
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
 
-        var uniformMvpLocation = gl.getUniformLocation(program,"mvp");
-        var uniformDiffuse0Location = gl.getUniformLocation(program,"material.diffuse[0]");
-        var uniformDiffuse1Location = gl.getUniformLocation(program, "material.diffuse[1]");
+        var uniformMvpLocation = gl.getUniformLocation(program,'mvp');
+        var uniformDiffuse0Location = gl.getUniformLocation(program,'material.diffuse[0]');
+        var uniformDiffuse1Location = gl.getUniformLocation(program, 'material.diffuse[1]');
 
         // -- Initialize buffer
 

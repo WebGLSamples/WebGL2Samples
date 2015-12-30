@@ -27,7 +27,6 @@
         console.log(gl.getShaderInfoLog(fshader));
 
         return program;
-
     };
 
     window.loadImage = function(url, onload) {
