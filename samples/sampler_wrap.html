@@ -58,77 +58,10 @@
 
     <script>
 
-        var corners = {
-            TL: 0,
-            TR: 1,
-            BL: 2,
-            BR: 3,
-            MAX: 4
-        };
-
-        function render(
-            gl,
-            program,
-            texture,
-            uniformMvpLocation,
-            uniformDiffuseLocation,
-            vertexArray,
-            samplers,
-            Viewport
-            )
-        {
-
-            // Clear color buffer
-            gl.clearColor(0,0,0.0,1);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-
-            // Bind program
-            gl.useProgram(program);
-
-            var matrix = [
-                1.0, 0.0, 0.0, 0.0,
-                0.0, 1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0,
-                0.0, 0.0, 0.0, 1.0
-            ];
-            gl.uniformMatrix4fv(uniformMvpLocation, false, new Float32Array(matrix));
-            gl.uniform1i(uniformDiffuseLocation, 0);
-
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-
-            gl.bindVertexArray(vertexArray);
-
-            for (var i = 0; i < corners.MAX; ++i) {
-                gl.viewport(Viewport[i].x, Viewport[i].y, Viewport[i].z, Viewport[i].w);
-                gl.bindSampler(0, samplers[i]);
-                gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
-            }
-
-            // -- Clean up
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-            gl.bindSampler(0, null);
-            gl.bindTexture(gl.TEXTURE_2D, null);
-            gl.bindVertexArray(null);
-            gl.useProgram(null);
-
-            requestAnimationFrame(function() {
-                render(
-                    gl,
-                    program,
-                    texture,
-                    uniformMvpLocation,
-                    uniformDiffuseLocation,
-                    vertexArray,
-                    samplers,
-                    Viewport
-                    );
-            });
-        }
-
         (function() {
             'use strict';
+
+            // -- Initialize context
 
             var canvas = document.createElement('canvas');
             canvas.width = Math.min(window.innerWidth, window.innerHeight);
@@ -145,8 +78,16 @@
             // -- Divide viewport
 
             var windowSize = {
-                x: innerWidth,
-                y: innerHeight
+                x: canvas.width,
+                y: canvas.height
+            };
+
+            var corners = {
+                TL: 0,
+                TR: 1,
+                BL: 2,
+                BR: 3,
+                MAX: 4
             };
 
             var Viewport = new Array(corners.MAX);
@@ -204,16 +145,15 @@
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
+            var textureBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
             var texcoords = [
                 -2.0,  2.0,  2.0,
                  2.0,  2.0, -2.0,
                  2.0, -2.0, -2.0,
                 -2.0, -2.0,  2.0
             ];
-
-            var textureBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords),gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texcoords), gl.STATIC_DRAW);
             gl.bindBuffer(gl.ARRAY_BUFFER,null);
 
             // -- Initilize vertex array
@@ -257,19 +197,49 @@
 
             var texture = loadTexture(gl, "../assets/img/wall.png", function() {
                 gl.generateMipmap(gl.TEXTURE_2D);
-                requestAnimationFrame(function() {
-                    render(
-                        gl,
-                        program,
-                        texture,
-                        uniformMvpLocation,
-                        uniformDiffuseLocation,
-                        vertexArray,
-                        samplers,
-                        Viewport
-                        );
-                });
+                render();
             });
+
+            function render() {
+
+                // Clear color buffer
+                gl.clearColor(0,0,0.0,1);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+
+                // Bind program
+                gl.useProgram(program);
+
+                var matrix = [
+                    1.0, 0.0, 0.0, 0.0,
+                    0.0, 1.0, 0.0, 0.0,
+                    0.0, 0.0, 1.0, 0.0,
+                    0.0, 0.0, 0.0, 1.0
+                ];
+                gl.uniformMatrix4fv(uniformMvpLocation, false, new Float32Array(matrix));
+                gl.uniform1i(uniformDiffuseLocation, 0);
+
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+
+                gl.bindVertexArray(vertexArray);
+
+                for (var i = 0; i < corners.MAX; ++i) {
+                    gl.viewport(Viewport[i].x, Viewport[i].y, Viewport[i].z, Viewport[i].w);
+                    gl.bindSampler(0, samplers[i]);
+                    gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
+                }
+
+                // -- Clean up
+
+                gl.deleteBuffer(vertexBuffer);
+                gl.deleteBuffer(textureBuffer);
+                for (var i = 0; i < samplers.length; ++i) {
+                    gl.deleteSampler(samplers[i]);
+                }
+                gl.deleteVertexArray(vertexArray);
+                gl.deleteTexture(texture);
+                gl.deleteProgram(program);
+            }
         })();
 
     </script>
