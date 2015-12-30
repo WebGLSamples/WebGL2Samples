@@ -31,7 +31,7 @@
 
     window.loadImage = function(url, onload) {
         var img = new Image();
-        img.src = url
+        img.src = url;
         img.onload = function() {
             onload(img);
         };
