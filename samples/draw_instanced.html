@@ -65,6 +65,8 @@
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
+        var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
+
         var vertices = new Float32Array([
             -0.3, -0.5,
              0.3, -0.5,
@@ -75,10 +77,9 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
-        var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
-
-        gl.enableVertexAttribArray(0);
-        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+        var vertexPosLocation = 0; // Set with GLSL layout qualifier
+        gl.enableVertexAttribArray(vertexPosLocation);
+        gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
 
         gl.useProgram(program);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 2);
