@@ -113,7 +113,6 @@
             var vshaderTransform = createShader(gl, vertexShaderSourceTransform, gl.VERTEX_SHADER);
             var fshaderTransform = createShader(gl, fragmentShaderSourceTransform, gl.FRAGMENT_SHADER);
 
-            // transform program
             var programTransform = gl.createProgram();
             gl.attachShader(programTransform, vshaderTransform);
             gl.deleteShader(vshaderTransform);
