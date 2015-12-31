@@ -34,8 +34,6 @@
         #version 300 es
         precision highp float;
         precision highp int;
-
-        uniform mat4 MVP;
         
         in vec4 color;
         out vec4 o_color;
@@ -122,7 +120,13 @@
             gl.deleteShader(vshader_transform);
             gl.attachShader(program_transform, fshader_transform);
             gl.deleteShader(fshader_transform);
+            
+            var strings = ['gl_Position', 'color'];
+            gl.transformFeedbackVaryings(program_transform, strings, gl.INTERLEAVED_ATTRIBS);
             gl.linkProgram(program_transform);
+            
+            var info = gl.getTransformFeedbackVarying(program_transform, 0);
+            
             
             var program_feedback = gl.createProgram();
             gl.attachShader(program_feedback, vshader_feedback);
@@ -159,7 +163,8 @@
             return [program_transform, program_feedback];
         })(gl, getShaderSource('vs-transform'), getShaderSource('fs-transform'), getShaderSource('vs-feedback'), getShaderSource('fs-feedback'));
         
-        gl.transformFeedbackVaryings(programs[PROGRAM_TRANSFORM], ['gl_Position', 'color'], gl.INTERLEAVED_ATTRIBS);
+        //var strings = ['gl_Position', 'color'];
+        //gl.transformFeedbackVaryings(programs[PROGRAM_TRANSFORM], strings, gl.INTERLEAVED_ATTRIBS);
         
         var mvpLocation = gl.getUniformLocation(programs[PROGRAM_TRANSFORM], 'MVP');
 
