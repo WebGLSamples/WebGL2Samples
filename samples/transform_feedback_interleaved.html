@@ -29,17 +29,17 @@
         }
     </script>
 
-    <!-- This fragment shader will not be called. It is used to keep transform program valid. It should not have an input. -->
+    <!-- This fragment shader will not be called since it is used when the rasterizer is disabled. -->
     <script id="fs-transform" type="x-shader/x-fragment">
         #version 300 es
         precision highp float;
         precision highp int;
         
-        out vec4 o_color;
+        out vec4 color;
 
         void main()
         {
-            o_color = vec4(1.0, 0.0, 0.0, 1.0);
+            color = vec4(1.0);
         }
     </script>
 
