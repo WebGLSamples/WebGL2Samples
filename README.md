@@ -8,6 +8,8 @@ Run the live **[WebGL 2 Samples Pack](http://webglsamples.org/WebGL2Samples/)**.
 
 Short and easy to understand samples demonstrating WebGL 2 features by [Shuai Shao (Shrek)](https://shrekshao.github.io) and [Trung Le](http://www.trungtuanle.com/). Advised by [Patrick Cozzi](http://www.seas.upenn.edu/~pcozzi/), University of Pennsylvania.
 
+Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.com/Groovounet)) [OpenGL Samples Pack](https://github.com/g-truc/ogl-samples).
+
 ## Samples
 
 |              | Chrome 49 Windows | Chrome 49 OSX 10.10| Firefox 42 Windows| Firefox 42 OSX 10.10|
@@ -58,6 +60,13 @@ npm run jsHint-watch
 This is a community project.  We welcome contributions!  Check out the [issues](https://github.com/WebGLSamples/WebGL2Samples/issues) for ideas on what to contribute.
 
 When you open a pull request, please make sure that GitHub reports that "All checks have passed", indicated by the white checkmark in a green circle on top of the "Merge pull request" button.  Travis CI is used to run JSHint on your branch, and [CLA assistant](https://cla-assistant.io/) is used for signing a Contributor License Agreement (CLA).  Submit an [issue](https://github.com/WebGLSamples/WebGL2Samples/issues) if you have any questions.
+
+## WebGL 2 Resources
+
+* WebGL 2 course at [SIGGRAPH Asia 2015](https://docs.google.com/presentation/d/1Orx0GB0cQcYhHkYsaEcoo5js3c5-pv7ahPniIRIzzfg/edit?usp=sharing)
+* [WebGL 2 Spec](https://www.khronos.org/registry/webgl/specs/latest/2.0/)
+* [OpenGL ES 3.0 Reference Pages](https://www.khronos.org/opengles/sdk/docs/man3/)
+* [WebGL Report](http://webglreport.com/)
 
 ## Acknowledgements
 
