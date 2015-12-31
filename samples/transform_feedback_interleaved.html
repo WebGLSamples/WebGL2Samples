@@ -35,7 +35,6 @@
         precision highp float;
         precision highp int;
         
-        in vec4 color;
         out vec4 o_color;
 
         void main()
@@ -115,6 +114,7 @@
             var vshader_feedback = createShader(gl, vertexShaderSourceFeedback, gl.VERTEX_SHADER);
             var fshader_feedback = createShader(gl, fragmentShaderSourceFeedback, gl.FRAGMENT_SHADER);
             
+            // transform program
             var program_transform = gl.createProgram();
             gl.attachShader(program_transform, vshader_transform);
             gl.deleteShader(vshader_transform);
@@ -125,9 +125,11 @@
             gl.transformFeedbackVaryings(program_transform, strings, gl.INTERLEAVED_ATTRIBS);
             gl.linkProgram(program_transform);
             
-            var info = gl.getTransformFeedbackVarying(program_transform, 0);
+            //var info = gl.getTransformFeedbackVarying(program_transform, 0);
             
             
+            
+            // feedback program
             var program_feedback = gl.createProgram();
             gl.attachShader(program_feedback, vshader_feedback);
             gl.deleteShader(vshader_feedback);
@@ -165,6 +167,7 @@
         
         //var strings = ['gl_Position', 'color'];
         //gl.transformFeedbackVaryings(programs[PROGRAM_TRANSFORM], strings, gl.INTERLEAVED_ATTRIBS);
+        var info = gl.getTransformFeedbackVarying(programs[PROGRAM_TRANSFORM], 0);
         
         var mvpLocation = gl.getUniformLocation(programs[PROGRAM_TRANSFORM], 'MVP');
 
