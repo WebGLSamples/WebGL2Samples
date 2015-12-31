@@ -102,7 +102,7 @@
         var PROGRAM_TRANSFORM = 0;
         var PROGRAM_FEEDBACK = 1;
 
-        var programs = (function(gl, vertexShaderSourceTransform, fragmentShaderSourceTransform, vertexShaderSourceFeedback, fragmentShaderSourceFeedback) {
+        var programTransform = (function(gl, vertexShaderSourceTransform, fragmentShaderSourceTransform) {
             function createShader(gl, source, type) {
                 var shader = gl.createShader(type);
                 gl.shaderSource(shader, source);
@@ -110,58 +110,37 @@
                 return shader;
             }
 
-            var vshader_transform = createShader(gl, vertexShaderSourceTransform, gl.VERTEX_SHADER);
-            var fshader_transform = createShader(gl, fragmentShaderSourceTransform, gl.FRAGMENT_SHADER);
-            var vshader_feedback = createShader(gl, vertexShaderSourceFeedback, gl.VERTEX_SHADER);
-            var fshader_feedback = createShader(gl, fragmentShaderSourceFeedback, gl.FRAGMENT_SHADER);
+            var vshaderTransform = createShader(gl, vertexShaderSourceTransform, gl.VERTEX_SHADER);
+            var fshaderTransform = createShader(gl, fragmentShaderSourceTransform, gl.FRAGMENT_SHADER);
 
             // transform program
-            var program_transform = gl.createProgram();
-            gl.attachShader(program_transform, vshader_transform);
-            gl.deleteShader(vshader_transform);
-            gl.attachShader(program_transform, fshader_transform);
-            gl.deleteShader(fshader_transform);
+            var programTransform = gl.createProgram();
+            gl.attachShader(programTransform, vshaderTransform);
+            gl.deleteShader(vshaderTransform);
+            gl.attachShader(programTransform, fshaderTransform);
+            gl.deleteShader(fshaderTransform);
 
             var strings = ['gl_Position', 'color'];
-            gl.transformFeedbackVaryings(program_transform, strings, gl.INTERLEAVED_ATTRIBS);
-            gl.linkProgram(program_transform);
-
-            // feedback program
-            var program_feedback = gl.createProgram();
-            gl.attachShader(program_feedback, vshader_feedback);
-            gl.deleteShader(vshader_feedback);
-            gl.attachShader(program_feedback, fshader_feedback);
-            gl.deleteShader(fshader_feedback);
-            gl.linkProgram(program_feedback);
+            gl.transformFeedbackVaryings(programTransform, strings, gl.INTERLEAVED_ATTRIBS);
+            gl.linkProgram(programTransform);
 
             // check
-            var log = gl.getProgramInfoLog(program_transform);
+            var log = gl.getProgramInfoLog(programTransform);
             if (log) {
                 console.log(log);
             }
 
-            log = gl.getProgramInfoLog(program_feedback);
+            log = gl.getShaderInfoLog(vshaderTransform);
             if (log) {
                 console.log(log);
             }
 
-            log = gl.getShaderInfoLog(vshader_transform);
-            if (log) {
-                console.log(log);
-            }
+            return programTransform;
+        })(gl, getShaderSource('vs-transform'), getShaderSource('fs-transform'));
 
-            log = gl.getShaderInfoLog(vshader_feedback);
-            if (log) {
-                console.log(log);
-            }
+        var programFeedback = createProgram(gl, getShaderSource('vs-feedback'), getShaderSource('fs-feedback'));
 
-            log = gl.getShaderInfoLog(fshader_feedback);
-            if (log) {
-                console.log(log);
-            }
-
-            return [program_transform, program_feedback];
-        })(gl, getShaderSource('vs-transform'), getShaderSource('fs-transform'), getShaderSource('vs-feedback'), getShaderSource('fs-feedback'));
+        var programs = [programTransform, programFeedback];
 
         var mvpLocation = gl.getUniformLocation(programs[PROGRAM_TRANSFORM], 'MVP');
 
