@@ -29,13 +29,30 @@
         }
     </script>
     
+    <!-- This fragment shader will not be called. It is used to keep transform program valid. -->
+    <script id="fs-transform" type="x-shader/x-fragment">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        uniform mat4 MVP;
+        
+        in vec4 color;
+        out vec4 o_color;
+
+        void main()
+        {
+            o_color = vec4(1.0, 0.0, 0.0, 1.0);
+        }
+    </script>
+    
     <script id="vs-feedback" type="x-shader/x-vertex">
         #version 300 es
         precision highp float;
         precision highp int;
 
         layout(location = 0) in vec4 position;
-        in vec4 color;
+        layout(location = 1) in vec4 color;
 
         out vec4 v_color;
 
@@ -94,14 +111,17 @@
         
         var PROGRAM_TRANSFORM = 0;
         var PROGRAM_FEEDBACK = 1;
-        var programs = (function(gl, vertexShaderSourceTransform, vertexShaderSourceFeedback, fragmentShaderSourceFeedback) {
+        var programs = (function(gl, vertexShaderSourceTransform, fragmentShaderSourceTransform, vertexShaderSourceFeedback, fragmentShaderSourceFeedback) {
             var vshader_transform = createShader(gl, vertexShaderSourceTransform, gl.VERTEX_SHADER);
+            var fshader_transform = createShader(gl, fragmentShaderSourceTransform, gl.FRAGMENT_SHADER);
             var vshader_feedback = createShader(gl, vertexShaderSourceFeedback, gl.VERTEX_SHADER);
             var fshader_feedback = createShader(gl, fragmentShaderSourceFeedback, gl.FRAGMENT_SHADER);
             
             var program_transform = gl.createProgram();
             gl.attachShader(program_transform, vshader_transform);
             gl.deleteShader(vshader_transform);
+            gl.attachShader(program_transform, fshader_transform);
+            gl.deleteShader(fshader_transform);
             gl.linkProgram(program_transform);
             
             var program_feedback = gl.createProgram();
@@ -137,12 +157,11 @@
             }
 
             return [program_transform, program_feedback];
-        })(gl, getShaderSource('vs-transform'), getShaderSource('vs-feedback'), getShaderSource('fs-feedback'));
+        })(gl, getShaderSource('vs-transform'), getShaderSource('fs-transform'), getShaderSource('vs-feedback'), getShaderSource('fs-feedback'));
         
         gl.transformFeedbackVaryings(programs[PROGRAM_TRANSFORM], ['gl_Position', 'color'], gl.INTERLEAVED_ATTRIBS);
         
         var mvpLocation = gl.getUniformLocation(programs[PROGRAM_TRANSFORM], 'MVP');
-
 
         // -- Init Buffer
         var SIZE_V4C4 = 32;
@@ -153,7 +172,7 @@
              1.0, 1.0, 0.0, 1.0,
              1.0, 1.0, 0.0, 1.0,
             -1.0, 1.0, 0.0, 1.0,
-            -1.0, -1.0, 0.0, 1.0,
+            -1.0, -1.0, 0.0, 1.0
         ]);
         //Transform
         var vertexPosBuffer = gl.createBuffer();
@@ -174,6 +193,7 @@
         var vertexPosLocation = 0;
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
         gl.vertexAttribPointer(vertexPosLocation, 4, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.enableVertexAttribArray(vertexPosLocation);
         gl.bindVertexArray(null);
 
@@ -182,10 +202,11 @@
         gl.bindVertexArray(vertexArrayFeedback);
         
         var vertexPosLocationFeedback = 0;
-        var vertexColorLocationFeedback = 0;
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        var vertexColorLocationFeedback = 1;
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexFeedbackBuffer);
         gl.vertexAttribPointer(vertexPosLocationFeedback, 4, gl.FLOAT, false, SIZE_V4C4, 0);
         gl.vertexAttribPointer(vertexColorLocationFeedback, 4, gl.FLOAT, false, SIZE_V4C4, SIZE_V4C4 / 2);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.enableVertexAttribArray(vertexPosLocationFeedback);
         gl.enableVertexAttribArray(vertexColorLocationFeedback);
         
