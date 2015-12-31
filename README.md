@@ -63,7 +63,7 @@ When you open a pull request, please make sure that GitHub reports that "All che
 
 ## WebGL 2 Resources
 
-* WebGL 2 course at [SIGGRAPH Asia 2015](https://docs.google.com/presentation/d/1Orx0GB0cQcYhHkYsaEcoo5js3c5-pv7ahPniIRIzzfg/edit?usp=sharing)
+* [WebGL 2 course](https://docs.google.com/presentation/d/1Orx0GB0cQcYhHkYsaEcoo5js3c5-pv7ahPniIRIzzfg/edit?usp=sharing) from SIGGRAPH Asia 2015
 * [WebGL 2 Spec](https://www.khronos.org/registry/webgl/specs/latest/2.0/)
 * [OpenGL ES 3.0 Reference Pages](https://www.khronos.org/opengles/sdk/docs/man3/)
 * [WebGL Report](http://webglreport.com/)
