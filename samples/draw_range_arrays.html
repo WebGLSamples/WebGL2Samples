@@ -1,29 +1,27 @@
 <!DOCTYPE html>
-<!-- Ported from the OpenGL Samples Pack: github.com/g-truc/ogl-samples/blob/master/tests/gl-320-draw-instanced.cpp -->
+<!-- Ported from the OpenGL Samples Pack: https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-draw-range-arrays.cpp -->
 <html lang="en">
 
 <head>
-    <title>WebGL 2 Samples - draw_instanced</title>
+    <title>WebGL 2 Samples - draw_range_arrays</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - draw_instanced</div>
+    <div id="info">WebGL 2 Samples - draw_range_arrays</div>
 
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
         precision highp float;
         precision highp int;
 
-        layout(location = 0) in vec2 pos;
-        flat out int instance;
+        layout(location=0) in vec2 position;
 
         void main()
         {
-            instance = gl_InstanceID;
-            gl_Position = vec4(pos + vec2(float(gl_InstanceID) - 0.5, 0.0), 0.0, 1.0);
+            gl_Position = vec4(position, 0.0, 1.0);
         }
     </script>
 
@@ -31,13 +29,12 @@
         #version 300 es
         precision highp float;
         precision highp int;
-
-        flat in int instance;
+        
         out vec4 color;
 
         void main()
         {
-            color = vec4(1.0 - float(instance), 0.5, 0.0 + float(instance), 1.0);
+            color = vec4(1.0, 0.5, 0.0, 1.0);
         }
     </script>
 
@@ -46,13 +43,11 @@
     (function () {
         'use strict';
 
-        // -- Init Canvas
         var canvas = document.createElement('canvas');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         document.body.appendChild(canvas);
 
-        // -- Init WebGL Context
         var gl = canvas.getContext('webgl2', { antialias: false });
         if (!gl) {
             gl = canvas.getContext('experimental-webgl2', { antialias: false });
@@ -64,18 +59,28 @@
             return;
         }
 
-        // -- Init Program
+        // -- Init program
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
         gl.useProgram(program);
 
         // -- Init Buffer
-        var vertices = new Float32Array([
-            -0.3, -0.5,
-             0.3, -0.5,
-             0.0,  0.5
-        ]);
         var vertexPosBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        var vertexCount = 12;
+        var vertices = new Float32Array([
+            -0.8, -0.8,
+             0.8, -0.8,
+             0.8,  0.8,
+             0.8,  0.8,
+             -0.8, 0.8,
+             -0.8, -0.8,
+             -0.5, -0.5,
+             0.5, -0.5,
+             0.5, 0.5,
+             0.5, 0.5,
+             -0.5, 0.5,
+             -0.5, -0.5,
+        ]);
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
         // -- Init Vertex Array
@@ -89,12 +94,15 @@
         gl.bindVertexArray(null);
 
         // -- Render
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
-        
+
         gl.bindVertexArray(vertexArray);
         
-        gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 2);
+        gl.viewport(0, 0, canvas.width / 2, canvas.height);
+        gl.drawArraysInstanced(gl.TRIANGLES, 0, vertexCount / 2, 1);
+        gl.viewport(canvas.width / 2, 0, canvas.width / 2, canvas.height);
+        gl.drawArraysInstanced(gl.TRIANGLES, 6, vertexCount / 2, 1);
 
         // -- Delete WebGL resources
         gl.deleteBuffer(vertexPosBuffer);

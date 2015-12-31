@@ -34,7 +34,7 @@
 
             h1 {
                 margin-top: 30px;
-                margin-bottom: 40px;
+                margin-bottom: 10px;
                 margin-left: 20px;
                 font-size: 25px;
                 font-weight: normal;
@@ -48,6 +48,11 @@
             a {
                 color: #2194CE;
                 text-decoration: none;
+            }
+
+            #githubLink {
+                margin-left: 20px;
+                margin-bottom: 30px;
             }
 
             #panel {
@@ -189,6 +194,7 @@
 
         <div id="panel" class="collapsed">
             <h1>WebGL 2.0 Samples</h1>
+            <div id="githubLink">(<a href="https://github.com/WebGLSamples/WebGL2Samples">GitHub repo</a>)</div>
             <a id="expandButton" href="#">
                 <span></span>
                 <span></span>
@@ -201,22 +207,24 @@
         <script>
 
         var files = {
-            "Instancing": [
-                "draw_instanced"
-            ]
-            ,
+            "Draw": [
+                "draw_instanced",
+                "draw_range_arrays"
+            ],
+            "Sampler": [
+                "sampler_object",
+                "sampler_filter",
+                "sampler_wrap"
+            ],
             "GLSL": [
                 "glsl_discard"
-            ]
-            ,
-            "Query":[
+            ],
+            "Query": [
                 "query_occlusion"
-            ]
-            ,
+            ],
             "Buffer":[
                 "buffer_uniform"
             ]
-
         };
 
         var panel = document.getElementById( 'panel' );
@@ -271,7 +279,7 @@
             container.appendChild( div );
 
             for ( var i = 0; i < section.length; i ++ ) {
-
+                /*jshint loopfunc: true */
                 ( function ( file ) {
 
                     var div = document.createElement( 'div' );

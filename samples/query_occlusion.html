@@ -10,7 +10,9 @@
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - query_occlusion<br/>Samples Count is output in console</div>
+    <div id="info">WebGL 2 Samples - query_occlusion</div>
+    <p>&nbsp;</p>
+    <div id="samplesPassed"></div>
 
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
@@ -63,7 +65,7 @@
         
         // -- Init Program
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
-        gl.useProgram(program);       
+        gl.useProgram(program);
 
         // -- Init Buffer
         var vertices = new Float32Array([
@@ -76,8 +78,14 @@
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
         // -- Init Vertex Array
-        gl.enableVertexAttribArray(0);
-        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8, 0);
+        var vertexArray = gl.createVertexArray();
+        gl.bindVertexArray(vertexArray);
+        
+        var vertexPosLocation = 0; // set with GLSL layout qualifier
+        gl.enableVertexAttribArray(vertexPosLocation);
+        gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
+        
+        gl.bindVertexArray(null);
 
         // -- Init Query
         var query = gl.createQuery();
@@ -85,18 +93,30 @@
         // -- Render
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
-        
+
+        gl.bindVertexArray(vertexArray);
+
         gl.beginQuery(gl.ANY_SAMPLES_PASSED, query);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 2);
         gl.endQuery(gl.ANY_SAMPLES_PASSED);
-        
-        var samplesCount = gl.getQueryParameter(query, gl.QUERY_RESULT);
-        console.log("samples count: " + Number(samplesCount));
-        
+
+        (function tick() {
+            if (!gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE)) {
+                // A query's result is never available in the same frame
+                // the query was issued.  Try in the next frame.
+                requestAnimationFrame(tick);
+                return;
+            }
+
+            var samplesPassed = gl.getQueryParameter(query, gl.QUERY_RESULT);
+            document.getElementById('samplesPassed').innerHTML = 'Any samples passed: ' + Number(samplesPassed);
+            gl.deleteQuery(query);
+        })();
+
         // -- Delete WebGL resources
         gl.deleteBuffer(vertexPosBuffer);
         gl.deleteProgram(program);
-        gl.deleteQuery(query);
+        gl.deleteVertexArray(vertexArray);
     })();
     </script>
 </body>

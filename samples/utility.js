@@ -22,16 +22,27 @@
         gl.deleteShader(fshader);
         gl.linkProgram(program);
 
-        console.log(gl.getProgramInfoLog(program));
-        console.log(gl.getShaderInfoLog(vshader));
-        console.log(gl.getShaderInfoLog(fshader));
+        var log = gl.getProgramInfoLog(program);
+        if (log) {
+            console.log(log);
+        }
+
+        log = gl.getShaderInfoLog(vshader);
+        if (log) {
+            console.log(log);
+        }
+
+        log = gl.getShaderInfoLog(fshader);
+        if (log) {
+            console.log(log);
+        }
 
         return program;
     };
 
     window.loadImage = function(url, onload) {
         var img = new Image();
-        img.src = url
+        img.src = url;
         img.onload = function() {
             onload(img);
         };

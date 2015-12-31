@@ -1,0 +1,32 @@
+{
+    "name": "webgl-2-samples",
+    "version": "0.0.0",
+    "description": "Short and easy to understand samples demonstrating WebGL 2 features.",
+    "license": "MIT",
+    "contributors": {
+        "name": "Trung Le, Shuai Shao (Shrek), and Contributors",
+        "url": "https://github.com/WebGLSamples/WebGL2Samples/graphs/contributors"
+    },
+    "keywords": [
+        "WebGL"
+    ],
+    "homepage": "https://github.com/WebGLSamples/WebGL2Samples",
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:WebGLSamples/WebGL2Samples.git"
+    },
+    "bugs": {
+        "url": "https://github.com/WebGLSamples/WebGL2Samples/issues"
+    },
+    "scripts": {
+        "jsHint": "gulp jsHint",
+        "jsHint-watch": "gulp jsHint-watch",
+        "test" : "npm run jsHint"
+    },
+    "devDependencies": {
+        "gulp": "3.9.0",
+        "gulp-jshint": "2.0.0",
+        "jshint": "2.8.0",
+        "jshint-stylish": "2.1.0"
+    }
+}
