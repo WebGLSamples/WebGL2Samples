@@ -3,14 +3,14 @@
 <html lang="en">
 
 <head>
-    <title>WebGL 2 Samples - texture-integer</title>
+    <title>WebGL 2 Samples - texture_integer</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - texture-integer</div>
+    <div id="info">WebGL 2 Samples - texture_integer</div>
 
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
@@ -47,7 +47,6 @@
         void main()
         {
             uvec4 intColor = texture(diffuse, st);
-            //color = vec4(intColor.rgb, 1023.0) / 1023.0;
             color = vec4(intColor) / 255.0;
         }
     </script>
