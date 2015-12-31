@@ -230,6 +230,7 @@
         ]);
         gl.uniformMatrix4fv(mvpLocation, false, matrix);
         
+        gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, vertexFeedbackBuffer);
         gl.bindVertexArray(vertexArrayTransform);
         
         gl.beginTransformFeedback(gl.TRIANGLES);
@@ -246,6 +247,7 @@
         
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);  // 6 - temp
 
+        //console.log(gl.getError());
 
         // -- Delete WebGL resources
         gl.deleteBuffer(vertexPosBuffer);
