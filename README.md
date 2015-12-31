@@ -2,21 +2,25 @@ WebGL 2 Samples Pack
 =====================
 
 [![Build Status](https://travis-ci.org/WebGLSamples/WebGL2Samples.svg?branch=master)](https://travis-ci.org/WebGLSamples/WebGL2Samples)
+[![License](http://img.shields.io/:license-mit-blue.svg)](https://github.com/WebGLSamples/WebGL2Samples/blob/master/LICENSE.md)
 
 Run the live **[WebGL 2 Samples Pack](http://webglsamples.org/WebGL2Samples/)**.
 
 Short and easy to understand samples demonstrating WebGL 2 features by [Shuai Shao (Shrek)](https://shrekshao.github.io) and [Trung Le](http://www.trungtuanle.com/). Advised by [Patrick Cozzi](http://www.seas.upenn.edu/~pcozzi/), University of Pennsylvania.
 
-MIT license.  See [LICENSE.md](LICENSE.md).
+Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.com/Groovounet)) [OpenGL Samples Pack](https://github.com/g-truc/ogl-samples).
 
 ## Samples
 
-|              | Chrome 49 Windows | Firefox 42 Windows|
-|--------------|:-----------------:|:-----------------:|
-|draw instanced|:white_check_mark: | :x: crash         |
-|draw range arrays|:white_check_mark: | :white_check_mark:|
-|glsl discard  |:white_check_mark: | :white_check_mark:|
-|query occlusion|:white_check_mark:| :white_check_mark:|         
+|              | Chrome 49 Windows | Chrome 49 OSX 10.10| Firefox 42 Windows| Firefox 42 OSX 10.10|
+|--------------|:-----------------:|:--------------------------------------:|:-----------------:|:-----------------------:|
+|[draw_instanced](http://webglsamples.org/WebGL2Samples/#draw_instanced)|:white_check_mark: |:white_check_mark:| :x: crash|:white_check_mark:|
+|[draw_range_arrays](http://webglsamples.org/WebGL2Samples/#draw_range_arrays)|:white_check_mark: | :white_check_mark:|:white_check_mark:|:white_check_mark:|
+|[glsl_discard](http://webglsamples.org/WebGL2Samples/#glsl_discard)|:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
+|[query_occlusion](http://webglsamples.org/WebGL2Samples/#query_occlusion)|:white_check_mark:|:white_check_mark:| :white_check_mark:|:white_check_mark:|
+|[sampler_object](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:x:D3D not supported|:white_check_mark:| :x: D3D not supported|:white_check_mark:|
+|[sampler_wrap](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:grey_question:|:white_check_mark:| :grey_question:|:white_check_mark:|
+|[sampler_filter](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:grey_question:|:white_check_mark:| :grey_question:|:white_check_mark:|
 
 ## Running the Samples Locally
 
@@ -57,6 +61,13 @@ npm run jsHint-watch
 This is a community project.  We welcome contributions!  Check out the [issues](https://github.com/WebGLSamples/WebGL2Samples/issues) for ideas on what to contribute.
 
 When you open a pull request, please make sure that GitHub reports that "All checks have passed", indicated by the white checkmark in a green circle on top of the "Merge pull request" button.  Travis CI is used to run JSHint on your branch, and [CLA assistant](https://cla-assistant.io/) is used for signing a Contributor License Agreement (CLA).  Submit an [issue](https://github.com/WebGLSamples/WebGL2Samples/issues) if you have any questions.
+
+## WebGL 2 Resources
+
+* [WebGL 2 course](https://docs.google.com/presentation/d/1Orx0GB0cQcYhHkYsaEcoo5js3c5-pv7ahPniIRIzzfg/edit?usp=sharing) from SIGGRAPH Asia 2015
+* [WebGL 2 Spec](https://www.khronos.org/registry/webgl/specs/latest/2.0/)
+* [OpenGL ES 3.0 Reference Pages](https://www.khronos.org/opengles/sdk/docs/man3/)
+* [WebGL Report](http://webglreport.com/)
 
 ## Acknowledgements
 
