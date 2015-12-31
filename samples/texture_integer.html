@@ -46,8 +46,7 @@
         
         void main()
         {
-            uvec4 intColor = texture(diffuse, st) / 32u;
-            intColor *= 32u;
+            uvec4 intColor = texture(diffuse, st) / 32u * 32u;
             color = vec4(intColor) / 255.0;
         }
     </script>
