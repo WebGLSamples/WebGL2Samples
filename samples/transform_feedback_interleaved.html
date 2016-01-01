@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<!-- Ported from the OpenGL Samples Pack: https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-transform-feedback-interleaved.cpp -->
+<html lang="en">
+
+<head>
+    <title>WebGL 2 Samples - transform_feedback_interleaved</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="info">WebGL 2 Samples - transform_feedback_interleaved</div>
+
+    <script id="vs-transform" type="x-shader/x-vertex">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        uniform mat4 MVP;
+        layout(location = 0) in vec4 position;
+
+        out vec4 color;
+
+        void main()
+        {
+            gl_Position = MVP * position;
+            color = vec4(clamp(vec2(position), 0.0, 1.0), 0.0, 1.0);
+        }
+    </script>
+
+    <!-- This fragment shader will not be called since it is used when the rasterizer is disabled. -->
+    <script id="fs-transform" type="x-shader/x-fragment">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+        
+        out vec4 color;
+
+        void main()
+        {
+            color = vec4(1.0);
+        }
+    </script>
+
+    <script id="vs-feedback" type="x-shader/x-vertex">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        layout(location = 0) in vec4 position;
+        layout(location = 1) in vec4 color;
+
+        out vec4 v_color;
+
+        void main()
+        {
+            gl_Position = position;
+            v_color = color;
+        }
+    </script>
+
+    <script id="fs-feedback" type="x-shader/x-fragment">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        in vec4 v_color;
+
+        out vec4 color;
+
+        void main()
+        {
+            color = v_color;
+        }
+    </script>
+
+    <script src="utility.js"></script>
+    <script>
+    (function () {
+        'use strict';
+
+        // -- Init Canvas
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.min(window.innerWidth, window.innerHeight);
+        canvas.height = canvas.width;
+        document.body.appendChild(canvas);
+
+        // -- Init WebGL Context
+        var gl = canvas.getContext('webgl2', { antialias: false });
+        if (!gl) {
+            gl = canvas.getContext('experimental-webgl2', { antialias: false });
+        }
+        var isWebGL2 = !!gl;
+        if(!isWebGL2)
+        {
+            document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
+            return;
+        }
+
+        // -- Init Program
+        var PROGRAM_TRANSFORM = 0;
+        var PROGRAM_FEEDBACK = 1;
+
+        var programTransform = (function(gl, vertexShaderSourceTransform, fragmentShaderSourceTransform) {
+            function createShader(gl, source, type) {
+                var shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                return shader;
+            }
+
+            var vshaderTransform = createShader(gl, vertexShaderSourceTransform, gl.VERTEX_SHADER);
+            var fshaderTransform = createShader(gl, fragmentShaderSourceTransform, gl.FRAGMENT_SHADER);
+
+            var programTransform = gl.createProgram();
+            gl.attachShader(programTransform, vshaderTransform);
+            gl.deleteShader(vshaderTransform);
+            gl.attachShader(programTransform, fshaderTransform);
+            gl.deleteShader(fshaderTransform);
+
+            var strings = ['gl_Position', 'color'];
+            gl.transformFeedbackVaryings(programTransform, strings, gl.INTERLEAVED_ATTRIBS);
+            gl.linkProgram(programTransform);
+
+            // check
+            var log = gl.getProgramInfoLog(programTransform);
+            if (log) {
+                console.log(log);
+            }
+
+            log = gl.getShaderInfoLog(vshaderTransform);
+            if (log) {
+                console.log(log);
+            }
+
+            return programTransform;
+        })(gl, getShaderSource('vs-transform'), getShaderSource('fs-transform'));
+
+        var programFeedback = createProgram(gl, getShaderSource('vs-feedback'), getShaderSource('fs-feedback'));
+
+        var programs = [programTransform, programFeedback];
+
+        var mvpLocation = gl.getUniformLocation(programs[PROGRAM_TRANSFORM], 'MVP');
+
+        // -- Init Buffer
+        var SIZE_V4C4 = 32;
+        var VERTEX_COUNT = 6;
+        var vertices = new Float32Array([
+            -1.0, -1.0, 0.0, 1.0,
+             1.0, -1.0, 0.0, 1.0,
+             1.0, 1.0, 0.0, 1.0,
+             1.0, 1.0, 0.0, 1.0,
+            -1.0, 1.0, 0.0, 1.0,
+            -1.0, -1.0, 0.0, 1.0
+        ]);
+
+        var buffers = [gl.createBuffer(), gl.createBuffer()];
+
+        // Transform buffer
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers[PROGRAM_TRANSFORM]);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        // Feedback empty buffer
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers[PROGRAM_FEEDBACK]);
+        gl.bufferData(gl.ARRAY_BUFFER, SIZE_V4C4 * VERTEX_COUNT, gl.STATIC_COPY);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        // -- Init Vertex Array
+        var vertexArrays = [gl.createVertexArray(), gl.createVertexArray()];
+        gl.bindVertexArray(vertexArrays[PROGRAM_TRANSFORM]);
+
+        var vertexPosLocation = 0;
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers[PROGRAM_TRANSFORM]);
+        gl.vertexAttribPointer(vertexPosLocation, 4, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.enableVertexAttribArray(vertexPosLocation);
+
+        gl.bindVertexArray(null);
+
+        gl.bindVertexArray(vertexArrays[PROGRAM_FEEDBACK]);
+
+        var vertexPosLocationFeedback = 0;
+        var vertexColorLocationFeedback = 1;
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers[PROGRAM_FEEDBACK]);
+        gl.vertexAttribPointer(vertexPosLocationFeedback, 4, gl.FLOAT, false, SIZE_V4C4, 0);
+        gl.vertexAttribPointer(vertexColorLocationFeedback, 4, gl.FLOAT, false, SIZE_V4C4, SIZE_V4C4 / 2);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.enableVertexAttribArray(vertexPosLocationFeedback);
+        gl.enableVertexAttribArray(vertexColorLocationFeedback);
+
+        gl.bindVertexArray(null);
+
+        // -- Render
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        // First draw, capture the attributes
+        // Disable rasterization, vertices processing only
+        gl.enable(gl.RASTERIZER_DISCARD);
+
+        gl.useProgram(programs[PROGRAM_TRANSFORM]);
+        var matrix = new Float32Array([
+            0.5, 0.0, 0.0, 0.0,
+            0.0, 0.5, 0.0, 0.0,
+            0.0, 0.0, 0.5, 0.0,
+            0.0, 0.0, 0.0, 1.0
+        ]);
+        gl.uniformMatrix4fv(mvpLocation, false, matrix);
+
+        gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buffers[PROGRAM_FEEDBACK]);
+        gl.bindVertexArray(vertexArrays[PROGRAM_TRANSFORM]);
+
+        gl.beginTransformFeedback(gl.TRIANGLES);
+        gl.drawArraysInstanced(gl.TRIANGLES, 0, VERTEX_COUNT, 1);
+        gl.endTransformFeedback();
+
+        gl.disable(gl.RASTERIZER_DISCARD);
+
+        // Second draw, reuse captured attributes
+        gl.useProgram(programs[PROGRAM_FEEDBACK]);
+        gl.bindVertexArray(vertexArrays[PROGRAM_FEEDBACK]);
+        gl.drawArraysInstanced(gl.TRIANGLES, 0, VERTEX_COUNT, 1);
+        gl.bindVertexArray(null);
+
+        // -- Delete WebGL resources
+        gl.deleteBuffer(buffers[PROGRAM_TRANSFORM]);
+        gl.deleteBuffer(buffers[PROGRAM_FEEDBACK]);
+        gl.deleteProgram(programs[PROGRAM_TRANSFORM]);
+        gl.deleteProgram(programs[PROGRAM_FEEDBACK]);
+        gl.deleteVertexArray(vertexArrays[PROGRAM_TRANSFORM]);
+        gl.deleteVertexArray(vertexArrays[PROGRAM_FEEDBACK]);
+    })();
+    </script>
+</body>
+</html>
