@@ -104,10 +104,6 @@
             return;
         }
 
-        // -- Init query
-
-        var query = gl.createQuery();
-
         // -- Init Program
         var programTransform = createProgram(gl, getShaderSource('vs-transform'), getShaderSource('fs-transform'));
 
@@ -213,11 +209,9 @@
             gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, buffers[BufferType.COLOR]);
             gl.bindVertexArray(vertexArrays[PROGRAM_TRANSFORM]);
 
-            gl.beginQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, query);
             gl.beginTransformFeedback(gl.TRIANGLES);
             gl.drawArraysInstanced(gl.TRIANGLES, 0, VERTEX_COUNT, 1);
             gl.endTransformFeedback();
-            gl.endQuery(gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
 
             gl.disable(gl.RASTERIZER_DISCARD);
 
@@ -228,7 +222,6 @@
             gl.bindVertexArray(null);
 
             // -- Delete WebGL resources
-            gl.deleteQuery(query);
             gl.deleteBuffer(buffers[BufferType.VERTEX]);
             gl.deleteBuffer(buffers[BufferType.POSITION]);
             gl.deleteBuffer(buffers[BufferType.COLOR]);
