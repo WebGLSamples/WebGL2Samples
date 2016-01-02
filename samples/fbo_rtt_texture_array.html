@@ -257,6 +257,8 @@
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
+        render();
+
         function render() {
             // Clear color buffer
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -264,7 +266,6 @@
 
             // Pass 1
             gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-            gl.viewport(0, 0, windowSize.x * 2, windowSize.y * 2);
 
             // Bind program
             gl.useProgram(multipleOutputProgram);
@@ -281,7 +282,6 @@
 
             // Pass 2
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            gl.viewport(0, 0, windowSize.x, windowSize.y);
 
             // Bind program
             gl.useProgram(layerProgram);
@@ -299,16 +299,15 @@
                 gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
             }
 
-
             // // Clean up
-            // gl.deleteBuffer(vertexPosBuffer);
-            // gl.deleteBuffer(vertexTexBuffer);
-            // for (var j = 0; j < samplers.length; ++j) {
-            //     gl.deleteSampler(samplers[j]);
-            // }
-            // gl.deleteVertexArray(vertexArray);
-            // gl.deleteTexture(texture);
-            // gl.deleteProgram(program);
+            gl.deleteBuffer(vertexPosBuffer);
+            gl.deleteBuffer(vertexTexBuffer);
+            gl.deleteVertexArray(multipleOutputVertexArray);
+            gl.deleteVertexArray(layerVertexArray);
+            gl.deleteFramebuffer(frameBuffer);
+            gl.deleteTexture(texture);
+            gl.deleteProgram(multipleOutputProgram);
+            gl.deleteProgram(layerProgram);
         }
     })();
     </script>
