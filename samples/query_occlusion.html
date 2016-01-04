@@ -50,19 +50,16 @@
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         document.body.appendChild(canvas);
-        
+
         // -- Init WebGL Context
         var gl = canvas.getContext('webgl2', { antialias: false });
-        if (!gl) {
-            gl = canvas.getContext('experimental-webgl2', { antialias: false });
-        }
         var isWebGL2 = !!gl;
         if(!isWebGL2)
         {
             document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
             return;
         }
-        
+
         // -- Init Program
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
         gl.useProgram(program);
@@ -80,11 +77,11 @@
         // -- Init Vertex Array
         var vertexArray = gl.createVertexArray();
         gl.bindVertexArray(vertexArray);
-        
+
         var vertexPosLocation = 0; // set with GLSL layout qualifier
         gl.enableVertexAttribArray(vertexPosLocation);
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
-        
+
         gl.bindVertexArray(null);
 
         // -- Init Query

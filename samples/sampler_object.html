@@ -73,9 +73,6 @@
         document.body.appendChild(canvas);
 
         var gl = canvas.getContext( 'webgl2', { antialias: false } );
-        if (!gl) {
-            gl = canvas.getContext( 'experimental-webgl2', { antialias: false } );
-        }
         var isWebGL2 = !!gl;
         if(!isWebGL2)
         {
