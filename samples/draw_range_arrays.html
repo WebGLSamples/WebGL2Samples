@@ -29,7 +29,7 @@
         #version 300 es
         precision highp float;
         precision highp int;
-        
+
         out vec4 color;
 
         void main()
@@ -49,9 +49,6 @@
         document.body.appendChild(canvas);
 
         var gl = canvas.getContext('webgl2', { antialias: false });
-        if (!gl) {
-            gl = canvas.getContext('experimental-webgl2', { antialias: false });
-        }
         var isWebGL2 = !!gl;
         if(!isWebGL2)
         {
@@ -86,11 +83,11 @@
         // -- Init Vertex Array
         var vertexArray = gl.createVertexArray();
         gl.bindVertexArray(vertexArray);
-        
+
         var vertexPosLocation = 0;  // set with GLSL layout qualifier
         gl.enableVertexAttribArray(vertexPosLocation);
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
-        
+
         gl.bindVertexArray(null);
 
         // -- Render
@@ -98,7 +95,7 @@
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         gl.bindVertexArray(vertexArray);
-        
+
         gl.viewport(0, 0, canvas.width / 2, canvas.height);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, vertexCount / 2, 1);
         gl.viewport(canvas.width / 2, 0, canvas.width / 2, canvas.height);
