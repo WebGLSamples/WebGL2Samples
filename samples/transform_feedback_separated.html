@@ -57,12 +57,12 @@
         layout(location = POSITION_LOCATION) in vec4 position;
         layout(location = COLOR_POSITION) in vec4 color;
 
-        out vec4 vColor;
+        out vec4 v_color;
 
         void main()
         {
             gl_Position = position;
-            vColor = color;
+            v_color = color;
         }
     </script>
 
@@ -71,13 +71,13 @@
         precision highp float;
         precision highp int;
 
-        in vec4 vColor;
+        in vec4 v_color;
 
         out vec4 color;
 
         void main()
         {
-            color = vColor;
+            color = v_color;
         }
     </script>
 
@@ -94,9 +94,6 @@
 
         // -- Init WebGL Context
         var gl = canvas.getContext('webgl2', { antialias: false });
-        if (!gl) {
-            gl = canvas.getContext('experimental-webgl2', { antialias: false });
-        }
         var isWebGL2 = !!gl;
         if(!isWebGL2)
         {
@@ -255,7 +252,6 @@
         gl.deleteProgram(programs[PROGRAM_FEEDBACK]);
         gl.deleteVertexArray(vertexArrays[PROGRAM_TRANSFORM]);
         gl.deleteVertexArray(vertexArrays[PROGRAM_FEEDBACK]);
-
     })();
     </script>
 </body>
