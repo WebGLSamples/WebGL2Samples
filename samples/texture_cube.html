@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-
+<!-- 
+    Reference: OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-glsl-discard.cpp 
+               learnopengl cubemaps http://learnopengl.com/#!Advanced-OpenGL/Cubemaps
+-->
 <html lang="en">
 
 <head>
@@ -20,10 +23,6 @@
 
         uniform mat4 MV;
         uniform mat4 projection;
-        uniform vec3 camera;
-
-        const vec3 CONST_VIEW = vec3(0, 0, -1);
-        const vec3 CONST_NORMAL = vec3(0, 0, 1);
 
         layout(location = 0) in vec3 position;
 
@@ -110,7 +109,6 @@
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
         var uniformMV = gl.getUniformLocation(program, 'MV');
         var uniformP = gl.getUniformLocation(program, 'projection');
-        var uniformCamera = gl.getUniformLocation(program, 'camera');
         var uniformEnvironment = gl.getUniformLocation(program, 'environment');
 
         // -- Init buffers: vec2 Position, vec2 Texcoord
@@ -180,10 +178,6 @@
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        //? sampler
-        //gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WARP_S, gl.CLAMP_TO_EDGE);
-        //gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WARP_T, gl.CLAMP_TO_EDGE);
-        //gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WARP_R, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_COMPARE_MODE, gl.NONE);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL);
         
@@ -214,39 +208,27 @@
             requestAnimationFrame(render);
         });
         
-        
         function render() {
             // -- Render
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
             
-            var matrix = new Float32Array([
-                0.5, 0.0, 0.0, 0.0,
-                0.0, 0.5, 0.0, 0.0,
-                0.0, 0.0, 0.5, 0.0,
-                0.0, 0.0, 0.0, 1.0
-            ]);
-            
-            var cameraPosition = new Float32Array([
-                0.0, 0.0, 4.0
-            ]);
-
-            
             gl.uniformMatrix4fv(uniformMV, false, mvMatrix);
             gl.uniformMatrix4fv(uniformP, false, pMatrix);
             gl.uniform1i(uniformEnvironment, 0);
-            gl.uniform3fv(uniformCamera, cameraPosition);
             
             gl.drawArrays(gl.TRIANGLES, 0, 36);
             
             requestAnimationFrame(render);
         }
         
-        // -- Delete WebGL resources
-        //gl.deleteBuffer(vertexPosBuffer);
-        //gl.deleteTexture(texture);
-        //gl.deleteProgram(program);
-        //gl.deleteVertexArray(vertexArray);
+        window.onunload = function() {
+            // -- Delete WebGL resources
+            gl.deleteBuffer(vertexPosBuffer);
+            gl.deleteTexture(texture);
+            gl.deleteProgram(program);
+            gl.deleteVertexArray(vertexArray);
+        }
     })();
     </script>
 
