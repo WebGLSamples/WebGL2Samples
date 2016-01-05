@@ -100,9 +100,6 @@
         document.body.appendChild(canvas);
 
         var gl = canvas.getContext( 'webgl2', { antialias: false } );
-        if (!gl) {
-            gl = canvas.getContext( 'experimental-webgl2', { antialias: false } );
-        }
         var isWebGL2 = !!gl;
         if(!isWebGL2)
         {
@@ -232,7 +229,7 @@
         gl.texImage3D(gl.TEXTURE_2D_ARRAY,
             0,
             gl.RGB8,
-            windowSize.x / 2, // frame buffer size is 2
+            windowSize.x / 2, // frame buffer size is half screen
             windowSize.y / 2,
             3,//depth
             0,
@@ -243,72 +240,75 @@
         // -- Initialize frame buffer
 
         var frameBuffer = gl.createFramebuffer();
-        gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, frameBuffer);
 
         var drawBuffers = new Array(3);
-        drawBuffers[0] = gl.COLOR_ATTACHMENT0;
-        drawBuffers[1] = gl.COLOR_ATTACHMENT1;
-        drawBuffers[2] = gl.COLOR_ATTACHMENT2;
+        drawBuffers[Textures.RED] = gl.COLOR_ATTACHMENT0;
+        drawBuffers[Textures.GREEN] = gl.COLOR_ATTACHMENT1;
+        drawBuffers[Textures.BLUE] = gl.COLOR_ATTACHMENT2;
         gl.drawBuffers(drawBuffers);
 
-        for(var i = 0; i < Textures.MAX; ++i) {
-            gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + i, texture, 0, i);
-        }
+        gl.framebufferTextureLayer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, texture, 0, Textures.RED);
+        gl.framebufferTextureLayer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT1, texture, 0, Textures.GREEN);
+        gl.framebufferTextureLayer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT2, texture, 0, Textures.BLUE);
 
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
 
-        render();
+        // -- Render
 
-        function render() {
-            // Clear color buffer
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
+        // Clear color buffer
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
 
-            // Pass 1
-            gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
+        // Pass 1
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, frameBuffer);
 
-            // Bind program
-            gl.useProgram(multipleOutputProgram);
+        // Bind program
+        gl.useProgram(multipleOutputProgram);
 
-            var matrix = new Float32Array([
-                1.0, 0.0, 0.0, 0.0,
-                0.0, 1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0,
-                0.0, 0.0, 0.0, 1.0
-            ]);
-            gl.uniformMatrix4fv(multipleOutputUniformMvpLocation, false, matrix);
-            gl.bindVertexArray(multipleOutputVertexArray);
+        var matrix = new Float32Array([
+            1.0, 0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0
+        ]);
+        gl.uniformMatrix4fv(multipleOutputUniformMvpLocation, false, matrix);
+        gl.bindVertexArray(multipleOutputVertexArray);
+        gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
+
+        // Pass 2
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+
+        // Bind program
+        gl.useProgram(layerProgram);
+        gl.uniformMatrix4fv(layerUniformMvpLocation, false, matrix);
+        gl.uniform1i(layerUniformDiffuseLocation, 0);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, texture);
+        gl.bindVertexArray(layerVertexArray);
+        for(var i = 0; i < Textures.MAX; ++i)
+        {
+            gl.viewport(viewport[i].x, viewport[i].y, viewport[i].z, viewport[i].w);
+            gl.uniform1i(layerUniformLayerLocation, i);
+
             gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
-
-            // Pass 2
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-            // Bind program
-            gl.useProgram(layerProgram);
-            gl.uniformMatrix4fv(layerUniformMvpLocation, false, matrix);
-            gl.uniform1i(layerUniformDiffuseLocation, 0);
-
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D_ARRAY, texture);
-            gl.bindVertexArray(layerVertexArray);
-            for(var i = 0; i < Textures.MAX; ++i)
-            {
-                gl.viewport(viewport[i].x, viewport[i].y, viewport[i].z, viewport[i].w);
-                gl.uniform1i(layerUniformLayerLocation, i);
-
-                gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
-            }
-
-            // // Clean up
-            gl.deleteBuffer(vertexPosBuffer);
-            gl.deleteBuffer(vertexTexBuffer);
-            gl.deleteVertexArray(multipleOutputVertexArray);
-            gl.deleteVertexArray(layerVertexArray);
-            gl.deleteFramebuffer(frameBuffer);
-            gl.deleteTexture(texture);
-            gl.deleteProgram(multipleOutputProgram);
-            gl.deleteProgram(layerProgram);
         }
+
+        if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
+            console.log("complete dimenstions");
+        }
+
+        // Clean up
+        gl.deleteBuffer(vertexPosBuffer);
+        gl.deleteBuffer(vertexTexBuffer);
+        gl.deleteVertexArray(multipleOutputVertexArray);
+        gl.deleteVertexArray(layerVertexArray);
+        gl.deleteFramebuffer(frameBuffer);
+        gl.deleteTexture(texture);
+        gl.deleteProgram(multipleOutputProgram);
+        gl.deleteProgram(layerProgram);
+
     })();
     </script>
 

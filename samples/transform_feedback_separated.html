@@ -1,31 +1,33 @@
 <!DOCTYPE html>
-<!-- Ported from the OpenGL Samples Pack: https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-transform-feedback-interleaved.cpp -->
+<!-- Ported from the OpenGL Samples Pack: https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-transform-feedback-separated.cpp -->
 <html lang="en">
 
 <head>
-    <title>WebGL 2 Samples - transform_feedback_interleaved</title>
+    <title>WebGL 2 Samples - transform_feedback_separated</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - transform_feedback_interleaved</div>
+    <div id="info">WebGL 2 Samples - transform_feedback_separated</div>
 
     <script id="vs-transform" type="x-shader/x-vertex">
         #version 300 es
+        #define POSITION_LOCATION 0
+
         precision highp float;
         precision highp int;
 
         uniform mat4 MVP;
-        layout(location = 0) in vec4 position;
+        layout(location = POSITION_LOCATION) in vec4 position;
 
-        out vec4 color;
+        out vec4 v_color;
 
         void main()
         {
             gl_Position = MVP * position;
-            color = vec4(clamp(vec2(position), 0.0, 1.0), 0.0, 1.0);
+            v_color = vec4(clamp(vec2(position), 0.0, 1.0), 0.0, 1.0);
         }
     </script>
 
@@ -35,21 +37,25 @@
         precision highp float;
         precision highp int;
 
+        in vec4 v_color;
         out vec4 color;
 
         void main()
         {
-            color = vec4(1.0);
+            color = v_color;
         }
     </script>
 
     <script id="vs-feedback" type="x-shader/x-vertex">
         #version 300 es
+        #define POSITION_LOCATION 0
+        #define COLOR_POSITION 3
+
         precision highp float;
         precision highp int;
 
-        layout(location = 0) in vec4 position;
-        layout(location = 1) in vec4 color;
+        layout(location = POSITION_LOCATION) in vec4 position;
+        layout(location = COLOR_POSITION) in vec4 color;
 
         out vec4 v_color;
 
@@ -96,9 +102,6 @@
         }
 
         // -- Init Program
-        var PROGRAM_TRANSFORM = 0;
-        var PROGRAM_FEEDBACK = 1;
-
         var programTransform = (function(gl, vertexShaderSourceTransform, fragmentShaderSourceTransform) {
             function createShader(gl, source, type) {
                 var shader = gl.createShader(type);
@@ -116,8 +119,8 @@
             gl.attachShader(programTransform, fshaderTransform);
             gl.deleteShader(fshaderTransform);
 
-            var strings = ['gl_Position', 'color'];
-            gl.transformFeedbackVaryings(programTransform, strings, gl.INTERLEAVED_ATTRIBS);
+            var varyings = ['gl_Position', 'v_color'];
+            gl.transformFeedbackVaryings(programTransform, varyings, gl.SEPARATE_ATTRIBS);
             gl.linkProgram(programTransform);
 
             // check
@@ -136,14 +139,16 @@
 
         var programFeedback = createProgram(gl, getShaderSource('vs-feedback'), getShaderSource('fs-feedback'));
 
+        var mvpLocation = gl.getUniformLocation(programTransform, 'MVP');
+
+        var PROGRAM_TRANSFORM = 0;
+        var PROGRAM_FEEDBACK = 1;
         var programs = [programTransform, programFeedback];
 
-        var mvpLocation = gl.getUniformLocation(programs[PROGRAM_TRANSFORM], 'MVP');
-
         // -- Init Buffer
-        var SIZE_V4C4 = 32;
+
         var VERTEX_COUNT = 6;
-        var vertices = new Float32Array([
+        var positions = new Float32Array([
             -1.0, -1.0, 0.0, 1.0,
              1.0, -1.0, 0.0, 1.0,
              1.0, 1.0, 0.0, 1.0,
@@ -152,24 +157,38 @@
             -1.0, -1.0, 0.0, 1.0
         ]);
 
-        var buffers = [gl.createBuffer(), gl.createBuffer()];
+        var BufferType = {
+            VERTEX: 0,
+            POSITION: 1,
+            COLOR: 2,
+            MAX: 3
+        };
+
+        var buffers = new Array(BufferType.MAX);
+        for (var i = 0; i < BufferType.MAX; ++i) {
+            buffers[i] = gl.createBuffer();
+        }
 
         // Transform buffer
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers[PROGRAM_TRANSFORM]);
-        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers[BufferType.VERTEX]);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        // Feedback empty buffer
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers[PROGRAM_FEEDBACK]);
-        gl.bufferData(gl.ARRAY_BUFFER, SIZE_V4C4 * VERTEX_COUNT, gl.STATIC_COPY);
+        // Feedback empty buffers
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers[BufferType.POSITION]);
+        gl.bufferData(gl.ARRAY_BUFFER, positions.length * Float32Array.BYTES_PER_ELEMENT, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers[BufferType.COLOR]);
+        gl.bufferData(gl.ARRAY_BUFFER, positions.length * Float32Array.BYTES_PER_ELEMENT, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         // -- Init Vertex Array
         var vertexArrays = [gl.createVertexArray(), gl.createVertexArray()];
         gl.bindVertexArray(vertexArrays[PROGRAM_TRANSFORM]);
 
-        var vertexPosLocation = 0;
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers[PROGRAM_TRANSFORM]);
+        var vertexPosLocation = 0; // set with GLSL layout qualifier
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers[BufferType.VERTEX]);
         gl.vertexAttribPointer(vertexPosLocation, 4, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.enableVertexAttribArray(vertexPosLocation);
@@ -178,18 +197,21 @@
 
         gl.bindVertexArray(vertexArrays[PROGRAM_FEEDBACK]);
 
-        var vertexPosLocationFeedback = 0;
-        var vertexColorLocationFeedback = 1;
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers[PROGRAM_FEEDBACK]);
-        gl.vertexAttribPointer(vertexPosLocationFeedback, 4, gl.FLOAT, false, SIZE_V4C4, 0);
-        gl.vertexAttribPointer(vertexColorLocationFeedback, 4, gl.FLOAT, false, SIZE_V4C4, SIZE_V4C4 / 2);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        var vertexPosLocationFeedback = 0; // set with GLSL layout qualifier
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers[BufferType.POSITION]);
+        gl.vertexAttribPointer(vertexPosLocationFeedback, 4, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(vertexPosLocationFeedback);
+
+        var vertexColorLocationFeedback = 3; // set with GLSL layout qualifier
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers[BufferType.COLOR]);
+        gl.vertexAttribPointer(vertexColorLocationFeedback, 4, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(vertexColorLocationFeedback);
 
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindVertexArray(null);
 
         // -- Render
+
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -206,7 +228,8 @@
         ]);
         gl.uniformMatrix4fv(mvpLocation, false, matrix);
 
-        gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buffers[PROGRAM_FEEDBACK]);
+        gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buffers[BufferType.POSITION]);
+        gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, buffers[BufferType.COLOR]);
         gl.bindVertexArray(vertexArrays[PROGRAM_TRANSFORM]);
 
         gl.beginTransformFeedback(gl.TRIANGLES);
@@ -222,8 +245,9 @@
         gl.bindVertexArray(null);
 
         // -- Delete WebGL resources
-        gl.deleteBuffer(buffers[PROGRAM_TRANSFORM]);
-        gl.deleteBuffer(buffers[PROGRAM_FEEDBACK]);
+        gl.deleteBuffer(buffers[BufferType.VERTEX]);
+        gl.deleteBuffer(buffers[BufferType.POSITION]);
+        gl.deleteBuffer(buffers[BufferType.COLOR]);
         gl.deleteProgram(programs[PROGRAM_TRANSFORM]);
         gl.deleteProgram(programs[PROGRAM_FEEDBACK]);
         gl.deleteVertexArray(vertexArrays[PROGRAM_TRANSFORM]);
