@@ -17,19 +17,28 @@
         #version 300 es
         precision highp float;
         precision highp int;
-        layout(std140, column_major) uniform;
 
+        uniform mat4 MV;
         uniform mat4 MVP;
+        uniform vec3 camera;
+
+        const vec3 CONST_VIEW = vec3(0, 0, -1);
+        const vec3 CONST_NORMAL = vec3(0, 0, 1);
 
         layout(location = 0) in vec2 position;
-        layout(location = 1) in vec2 texcoord;
 
-        out vec2 uv;
+        out vec3 r;
 
         void main()
         {
-            uv = texcoord;
             gl_Position = MVP * vec4(position, 0.0, 1.0);
+            
+            mat3 MV3x3 = mat3(MV);
+            vec3 P = MV3x3 * vec3(position,0.0);
+            vec3 N = MV3x3 * CONST_NORMAL;
+            vec3 E = normalize(P - camera);
+            
+            r = reflect(E, N);
         }
     </script>
 
@@ -37,17 +46,16 @@
         #version 300 es
         precision highp float;
         precision highp int;
-        layout(std140, column_major) uniform;
 
-        uniform sampler2D diffuse;
+        uniform samplerCube environment;
 
-        in vec2 uv;
+        in vec3 r;
 
         out vec4 color;
 
         void main()
         {
-            color = texture(diffuse, uv);
+            color = texture(environment, r);
         }
     </script>
 
@@ -71,8 +79,10 @@
 
         // -- Init program
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
-        var mvpLocation = gl.getUniformLocation(program, 'MVP');
-        var diffuseLocation = gl.getUniformLocation(program, 'diffuse');
+        var uniformMV = gl.getUniformLocation(program, 'MV');
+        var uniformMVP = gl.getUniformLocation(program, 'MVP');
+        var uniformCamera = gl.getUniformLocation(program, 'camera');
+        var uniformEnvironment = gl.getUniformLocation(program, 'environment');
 
         // -- Init buffers: vec2 Position, vec2 Texcoord
         var positions = new Float32Array([
@@ -88,19 +98,6 @@
         gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        var texCoords = new Float32Array([
-            0.0, 1.0,
-            1.0, 1.0,
-            1.0, 0.0,
-            1.0, 0.0,
-            0.0, 0.0,
-            0.0, 1.0
-        ]);
-        var vertexTexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
         // -- Init VertexArray
         var vertexArray = gl.createVertexArray();
         gl.bindVertexArray(vertexArray);
@@ -111,14 +108,7 @@
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        var vertexTexLocation = 1; // set with GLSL layout qualifier
-        gl.enableVertexAttribArray(vertexTexLocation);
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
-        gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
         gl.bindVertexArray(null);
-
 
         // -- Init Textrue
         var texture = gl.createTexture();
@@ -126,6 +116,7 @@
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        //? sampler
         //gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WARP_S, gl.CLAMP_TO_EDGE);
         //gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WARP_T, gl.CLAMP_TO_EDGE);
         //gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WARP_R, gl.CLAMP_TO_EDGE);
@@ -163,10 +154,16 @@
                 0.0, 0.0, 0.5, 0.0,
                 0.0, 0.0, 0.0, 1.0
             ]);
+            
+            var cameraPosition = new Float32Array([
+                0.0, 0.0, -1.0
+            ]);
 
             gl.useProgram(program);
-            gl.uniformMatrix4fv(mvpLocation, false, matrix);
-            gl.uniform1i(diffuseLocation, 0);
+            gl.uniformMatrix4fv(uniformMV, false, matrix);
+            gl.uniformMatrix4fv(uniformMVP, false, matrix);
+            gl.uniform1i(uniformEnvironment, 0);
+            gl.uniform3fv(uniformCamera, cameraPosition);
 
             gl.bindVertexArray(vertexArray);
 
@@ -174,7 +171,6 @@
             
             // -- Delete WebGL resources
             gl.deleteBuffer(vertexPosBuffer);
-            gl.deleteBuffer(vertexTexBuffer);
             gl.deleteTexture(texture);
             gl.deleteProgram(program);
             gl.deleteVertexArray(vertexArray);
