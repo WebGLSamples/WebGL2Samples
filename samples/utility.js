@@ -53,17 +53,14 @@
         var imgs = [];
         var imgsToLoad = urls.length;
         
-        var onImgLoad = function() {
-            imgsToLoad--;
-            if(imgsToLoad <= 0)
-            {
+        function onImgLoad() {
+            if (--imgsToLoad <= 0) {
                 onload(imgs);
             }
-        };
+        }
         
-        for (var i = 0; i < imgsToLoad; i++) {
-            var img = loadImage(urls[i], onImgLoad);
-            imgs.push(img);
+        for (var i = 0; i < imgsToLoad; ++i) {
+            imgs.push(loadImage(urls[i], onImgLoad));
         }
     };
 })();
