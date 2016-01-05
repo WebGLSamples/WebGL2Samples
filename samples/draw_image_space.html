@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-glsl-discard.cpp -->
+<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-draw-image-space.cpp -->
 <html lang="en">
 
 <head>
@@ -32,12 +32,13 @@
         precision highp int;
 
         uniform sampler2D diffuse;
+        uniform vec2 viewport;
 
         out vec4 color;
 
         void main()
         {
-            color = texture(diffuse, vec2(gl_FragCoord.x, 1.0 - gl_FragCoord.y) / vec2(1024, 1024));
+            color = texture(diffuse, vec2(gl_FragCoord.x, 1.0 - gl_FragCoord.y) / viewport);
         }
     </script>
 
@@ -62,6 +63,7 @@
         // -- Init program
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
         var diffuseLocation = gl.getUniformLocation(program, 'diffuse');
+        var viewportLocation = gl.getUniformLocation(program, 'viewport');
 
         // -- Init buffers: vec2 Position, vec2 Texcoord
         var positions = new Float32Array([
@@ -105,6 +107,7 @@
 
             gl.useProgram(program);
             gl.uniform1i(diffuseLocation, 0);
+            gl.uniform2f(viewportLocation, canvas.width, canvas.height);
             
             gl.bindVertexArray(vertexArray);
 
