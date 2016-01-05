@@ -46,5 +46,24 @@
         img.onload = function() {
             onload(img);
         };
+        return img;
+    };
+    
+    window.loadImages = function(urls, onload) {
+        var imgs = [];
+        var imgsToLoad = urls.length;
+        
+        var onImgLoad = function() {
+            imgsToLoad--;
+            if(imgsToLoad <= 0)
+            {
+                onload(imgs);
+            }
+        }
+        
+        for (var i = 0; i < imgsToLoad; i++) {
+            var img = loadImage(urls[i], onImgLoad);
+            imgs.push(img);
+        }
     };
 })();
