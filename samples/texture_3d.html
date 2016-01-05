@@ -24,23 +24,23 @@
 
         void main()
         {
-            gl_Position = vec4(4.f * (gl_VertexID % 2) - 1.f, 4.f * (gl_VertexID / 2) - 1.f, 0.0, 1.0);
+            gl_Position = vec4(4.f - 1.f, 4.f - 1.f, 0.0, 1.0);
         }
     </script>
 
     <script id="fs" type="x-shader/x-fragment">
         #version 300 es
-        #define FRAG_COLOR_LOCATION 0
 
         precision highp float;
         precision highp int;
+        precision highp sampler3D;
 
-        in vec4 gl_FragCoord;
+        // in vec4 fragCoordinates;
 
         uniform sampler3D diffuse;
         uniform mat3 orientation;
 
-        layout(location = FRAG_COLOR_LOCATION) out vec4 color;
+        out vec4 color;
 
         void main()
         {
@@ -69,7 +69,7 @@
         // -- Initialize texture
 
         var SIZE = 32;
-        var data = new Array(SIZE * SIZE * SIZE);
+        var data = new Float32Array(SIZE * SIZE * SIZE);
         for (var k = 0; k < SIZE; ++k) {
             for (var j = 0; j < SIZE; ++j) {
                 for (var i = 0; i < SIZE; ++i) {
@@ -93,15 +93,17 @@
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
 
         gl.texImage3D(
-            gl.TEXTURE_3D,
-            0,
-            gl.R32F,
-            SIZE,
-            SIZE,
-            SIZE,
-            0,
-            gl.RED, gl.FLOAT,
-            data);
+            gl.TEXTURE_3D,  // target
+            0,              // level
+            gl.R32F,        // internalformat
+            SIZE,           // width
+            SIZE,           // height
+            SIZE,           // depth
+            0,              // border
+            gl.RED,         // format
+            gl.FLOAT,       // type
+            data            // pixel
+            );
 
         gl.generateMipmap(gl.TEXTURE_3D);
 
@@ -111,8 +113,8 @@
 
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
 
-        var uniformTextureMatrixLocation = gl.getUniformLocation(program,"orientation");
-        var uniformDiffuseLocation = gl.getUniformLocation(program,"diffuse");
+        var uniformTextureMatrixLocation = gl.getUniformLocation(program, 'orientation');
+        var uniformDiffuseLocation = gl.getUniformLocation(program, 'diffuse');
 
         // -- Initialize buffer
 
@@ -140,7 +142,7 @@
         var vertexTexLocation = 4; // set with GLSL layout qualifier
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, Float32Array.BYTES_PER_ELEMENT, 0);
-        gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, Float32Array.BYTES_PER_ELEMENT, Float32Array.BYTES_PER_ELEMENT);
+        gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, Float32Array.BYTES_PER_ELEMENT, Float32Array.BYTES_PER_ELEMENT * VERTEX_COUNT);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         gl.enableVertexAttribArray(vertexTexLocation);
@@ -149,7 +151,7 @@
         gl.bindVertexArray(null);
 
         // -- Render
-        var orientation = [0, 0, 0];
+        var orientation = [0.0, 0.0, 0.0];
 
         requestAnimationFrame(render);
 
@@ -159,11 +161,11 @@
             orientation[1] += 0.010;
             orientation[2] += 0.005;
 
-            var textureMatrix = new Float32Array(
-                orientation[0], 0.0, 0.0,
-                0.0, orientation[1], 0.0,
-                0.0, 0.0, orientation[2]
-                );
+            var textureMatrix = new Float32Array([
+                1.0, 0.0, 0.0,
+                0.0, 1.0, 0.0,
+                0.0, 0.0, 1.0
+                ]);
 
             // Clear color buffer
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -173,9 +175,9 @@
             gl.useProgram(program);
 
             gl.uniform1i(uniformDiffuseLocation, 0);
-            gl.uniformMatrix3fv(uniformTextureMatrixLocation, 1, false, textureMatrix);
+            gl.uniformMatrix3fv(uniformTextureMatrixLocation, gl.FALSE, textureMatrix);
 
-            gl.activeTexture(GL_TEXTURE0);
+            gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_3D, texture);
             gl.bindVertexArray(vertexArray);
 
