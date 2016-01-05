@@ -246,11 +246,18 @@
         drawBuffers[Textures.RED] = gl.COLOR_ATTACHMENT0;
         drawBuffers[Textures.GREEN] = gl.COLOR_ATTACHMENT1;
         drawBuffers[Textures.BLUE] = gl.COLOR_ATTACHMENT2;
-        gl.drawBuffers(drawBuffers);
 
         gl.framebufferTextureLayer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, texture, 0, Textures.RED);
         gl.framebufferTextureLayer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT1, texture, 0, Textures.GREEN);
         gl.framebufferTextureLayer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT2, texture, 0, Textures.BLUE);
+
+        var status = gl.checkFramebufferStatus(gl.DRAW_FRAMEBUFFER);
+        if (status != gl.FRAMEBUFFER_COMPLETE) {
+            console.log('fb status: ' + status.toString(16));
+            return;
+        }
+
+        gl.drawBuffers(drawBuffers);
 
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
 
@@ -287,6 +294,13 @@
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, texture);
         gl.bindVertexArray(layerVertexArray);
+
+        status = gl.checkFramebufferStatus(gl.DRAW_FRAMEBUFFER);
+        if (status != gl.FRAMEBUFFER_COMPLETE) {
+            console.log('fb status: ' + status.toString(16));
+            return;
+        }
+
         for(var i = 0; i < Textures.MAX; ++i)
         {
             gl.viewport(viewport[i].x, viewport[i].y, viewport[i].z, viewport[i].w);
@@ -295,9 +309,6 @@
             gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
         }
 
-        if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) == gl.FRAMEBUFFER_COMPLETE) {
-            console.log("complete dimenstions");
-        }
 
         // Clean up
         gl.deleteBuffer(vertexPosBuffer);
