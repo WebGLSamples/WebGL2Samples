@@ -59,7 +59,7 @@
             {
                 onload(imgs);
             }
-        }
+        };
         
         for (var i = 0; i < imgsToLoad; i++) {
             var img = loadImage(urls[i], onImgLoad);
