@@ -19,7 +19,7 @@
         precision highp int;
 
         uniform mat4 MV;
-        uniform mat4 MVP;
+        uniform mat4 projection;
         uniform vec3 camera;
 
         const vec3 CONST_VIEW = vec3(0, 0, -1);
@@ -31,7 +31,7 @@
 
         void main()
         {
-            gl_Position = MVP * vec4(position, 0.0, 1.0);
+            gl_Position = projection * MV * vec4(position, 0.0, 1.0);
             
             mat3 MV3x3 = mat3(MV);
             vec3 P = MV3x3 * vec3(position,0.0);
@@ -56,10 +56,12 @@
         void main()
         {
             color = texture(environment, r);
+            color = vec4(1,1,1,1);
         }
     </script>
 
     <script src="utility.js"></script>
+    <script src="gl-matrix-min.js"></script>
     <script>
     (function () {
         'use strict';
@@ -77,10 +79,42 @@
             return;
         }
 
+        // -- Mouse Behaviour
+        var mvMatrix = mat4.create();
+        var pMatrix = mat4.create();
+        mat4.perspective(pMatrix, 0.785, 1, 0.1, 1000);
+        var mouseDown = false;
+        var lastMouseX;
+        var lastMouseY;
+        canvas.onmousedown = function(event) {
+            mouseDown = true;
+            lastMouseX = event.clientX;
+            lastMouseY = event.clientY;
+        };
+        canvas.onmouseup = function(event) {
+            mouseDown = false;  
+        };
+        canvas.onmousemove = function(event) {
+            if(!mouseDown) {
+                return;
+            }
+            var newX = event.clientX;
+            var newY = event.clientY;
+            
+            var deltaX = newX - lastMouseX;
+            var deltaY = newY - lastMouseY;
+            
+            mat4.rotateY(mvMatrix, mvMatrix, deltaX / 100);
+            mat4.rotateX(mvMatrix, mvMatrix, deltaY / 100);
+            
+            lastMouseX = newX;
+            lastMouseY = newY;
+        };
+
         // -- Init program
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
         var uniformMV = gl.getUniformLocation(program, 'MV');
-        var uniformMVP = gl.getUniformLocation(program, 'MVP');
+        var uniformP = gl.getUniformLocation(program, 'projection');
         var uniformCamera = gl.getUniformLocation(program, 'camera');
         var uniformEnvironment = gl.getUniformLocation(program, 'environment');
 
@@ -144,6 +178,14 @@
                 );
             }
             
+            gl.useProgram(program);
+            gl.bindVertexArray(vertexArray);
+            
+            requestAnimationFrame(render);
+        });
+        
+        
+        function render() {
             // -- Render
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
@@ -156,27 +198,25 @@
             ]);
             
             var cameraPosition = new Float32Array([
-                0.0, 0.0, -1.0
+                0.0, 0.0, 4.0
             ]);
 
-            gl.useProgram(program);
-            gl.uniformMatrix4fv(uniformMV, false, matrix);
-            gl.uniformMatrix4fv(uniformMVP, false, matrix);
+            
+            gl.uniformMatrix4fv(uniformMV, false, mvMatrix);
+            gl.uniformMatrix4fv(uniformP, false, pMatrix);
             gl.uniform1i(uniformEnvironment, 0);
             gl.uniform3fv(uniformCamera, cameraPosition);
-
-            gl.bindVertexArray(vertexArray);
-
+            
             gl.drawArrays(gl.TRIANGLES, 0, 6);
             
-            // -- Delete WebGL resources
-            gl.deleteBuffer(vertexPosBuffer);
-            gl.deleteTexture(texture);
-            gl.deleteProgram(program);
-            gl.deleteVertexArray(vertexArray);
-        });
+            requestAnimationFrame(render);
+        }
         
-        
+        // -- Delete WebGL resources
+        //gl.deleteBuffer(vertexPosBuffer);
+        //gl.deleteTexture(texture);
+        //gl.deleteProgram(program);
+        //gl.deleteVertexArray(vertexArray);
     })();
     </script>
 
