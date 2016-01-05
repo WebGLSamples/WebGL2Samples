@@ -25,20 +25,14 @@
         const vec3 CONST_VIEW = vec3(0, 0, -1);
         const vec3 CONST_NORMAL = vec3(0, 0, 1);
 
-        layout(location = 0) in vec2 position;
+        layout(location = 0) in vec3 position;
 
-        out vec3 r;
+        out vec3 texcoord;
 
         void main()
         {
-            gl_Position = projection * MV * vec4(position, 0.0, 1.0);
-            
-            mat3 MV3x3 = mat3(MV);
-            vec3 P = MV3x3 * vec3(position,0.0);
-            vec3 N = MV3x3 * CONST_NORMAL;
-            vec3 E = normalize(P - camera);
-            
-            r = reflect(E, N);
+            gl_Position = projection * MV * vec4(position, 1.0);
+            texcoord = position;
         }
     </script>
 
@@ -49,14 +43,13 @@
 
         uniform samplerCube environment;
 
-        in vec3 r;
+        in vec3 texcoord;
 
         out vec4 color;
 
         void main()
         {
-            color = texture(environment, r);
-            color = vec4(1,1,1,1);
+            color = texture(environment, texcoord);
         }
     </script>
 
@@ -84,8 +77,8 @@
         var pMatrix = mat4.create();
         mat4.perspective(pMatrix, 0.785, 1, 0.1, 1000);
         var mouseDown = false;
-        var lastMouseX;
-        var lastMouseY;
+        var lastMouseX = 0;
+        var lastMouseY = 0;
         canvas.onmousedown = function(event) {
             mouseDown = true;
             lastMouseX = event.clientX;
@@ -104,8 +97,10 @@
             var deltaX = newX - lastMouseX;
             var deltaY = newY - lastMouseY;
             
-            mat4.rotateY(mvMatrix, mvMatrix, deltaX / 100);
-            mat4.rotateX(mvMatrix, mvMatrix, deltaY / 100);
+            var m = mat4.create();
+            mat4.rotateY(m, m, deltaX / 100);
+            mat4.rotateX(m, m, deltaY / 100);
+            mat4.multiply(mvMatrix, m, mvMatrix);
             
             lastMouseX = newX;
             lastMouseY = newY;
@@ -119,17 +114,52 @@
         var uniformEnvironment = gl.getUniformLocation(program, 'environment');
 
         // -- Init buffers: vec2 Position, vec2 Texcoord
-        var positions = new Float32Array([
-            -1.0, -1.0,
-             1.0, -1.0,
-             1.0,  1.0,
-             1.0,  1.0,
-            -1.0,  1.0,
-            -1.0, -1.0
+        var skyboxVertices = new Float32Array([         
+            -1.0,  1.0, -1.0,
+            -1.0, -1.0, -1.0,
+            1.0, -1.0, -1.0,
+            1.0, -1.0, -1.0,
+            1.0,  1.0, -1.0,
+            -1.0,  1.0, -1.0,
+
+            -1.0, -1.0,  1.0,
+            -1.0, -1.0, -1.0,
+            -1.0,  1.0, -1.0,
+            -1.0,  1.0, -1.0,
+            -1.0,  1.0,  1.0,
+            -1.0, -1.0,  1.0,
+
+            1.0, -1.0, -1.0,
+            1.0, -1.0,  1.0,
+            1.0,  1.0,  1.0,
+            1.0,  1.0,  1.0,
+            1.0,  1.0, -1.0,
+            1.0, -1.0, -1.0,
+
+            -1.0, -1.0,  1.0,
+            -1.0,  1.0,  1.0,
+            1.0,  1.0,  1.0,
+            1.0,  1.0,  1.0,
+            1.0, -1.0,  1.0,
+            -1.0, -1.0,  1.0,
+
+            -1.0,  1.0, -1.0,
+            1.0,  1.0, -1.0,
+            1.0,  1.0,  1.0,
+            1.0,  1.0,  1.0,
+            -1.0,  1.0,  1.0,
+            -1.0,  1.0, -1.0,
+
+            -1.0, -1.0, -1.0,
+            -1.0, -1.0,  1.0,
+            1.0, -1.0, -1.0,
+            1.0, -1.0, -1.0,
+            -1.0, -1.0,  1.0,
+            1.0, -1.0,  1.0
         ]);
         var vertexPosBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, skyboxVertices, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         // -- Init VertexArray
@@ -139,7 +169,7 @@
         var vertexPosLocation = 0; // set with GLSL layout qualifier
         gl.enableVertexAttribArray(vertexPosLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-        gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(vertexPosLocation, 3, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         gl.bindVertexArray(null);
@@ -207,7 +237,7 @@
             gl.uniform1i(uniformEnvironment, 0);
             gl.uniform3fv(uniformCamera, cameraPosition);
             
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
+            gl.drawArrays(gl.TRIANGLES, 0, 36);
             
             requestAnimationFrame(render);
         }
