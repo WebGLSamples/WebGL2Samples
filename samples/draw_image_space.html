@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-draw-image-space.cpp -->
+<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-glsl-discard.cpp -->
 <html lang="en">
 
 <head>
@@ -18,11 +18,9 @@
         precision highp float;
         precision highp int;
         
-        layout(location = 0) in vec2 position;
-        
         void main()
         {
-            gl_Position = vec4(position, 0.0, 1.0);
+            gl_Position = vec4(4.f * (gl_VertexID % 2) - 1.f, 4.f * (gl_VertexID / 2) - 1.f, 0.0, 1.0);
         }
     </script>
 
@@ -32,13 +30,12 @@
         precision highp int;
 
         uniform sampler2D diffuse;
-        uniform vec2 viewport;
 
         out vec4 color;
 
         void main()
         {
-            color = texture(diffuse, vec2(gl_FragCoord.x, 1.0 - gl_FragCoord.y) / viewport);
+            color = texture(diffuse, vec2(gl_FragCoord.x, 1.0 - gl_FragCoord.y) / vec2(512, 512));
         }
     </script>
 
@@ -63,31 +60,10 @@
         // -- Init program
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
         var diffuseLocation = gl.getUniformLocation(program, 'diffuse');
-        var viewportLocation = gl.getUniformLocation(program, 'viewport');
-
-        // -- Init buffers: vec2 Position, vec2 Texcoord
-        var positions = new Float32Array([
-            -1.0, -1.0,
-             1.0, -1.0,
-             1.0,  1.0,
-             1.0,  1.0,
-            -1.0,  1.0,
-            -1.0, -1.0
-        ]);
-        var vertexPosBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         // -- Init VertexArray
         var vertexArray = gl.createVertexArray();
         gl.bindVertexArray(vertexArray);
-
-        var vertexPosLocation = 0; // set with GLSL layout qualifier
-        gl.enableVertexAttribArray(vertexPosLocation);
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-        gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         gl.bindVertexArray(null);
 
@@ -107,14 +83,12 @@
 
             gl.useProgram(program);
             gl.uniform1i(diffuseLocation, 0);
-            gl.uniform2f(viewportLocation, canvas.width, canvas.height);
             
             gl.bindVertexArray(vertexArray);
 
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
+            gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 1);
 
             // Delete WebGL resources
-            gl.deleteBuffer(vertexPosBuffer);
             gl.deleteTexture(texture);
             gl.deleteProgram(program);
             gl.deleteVertexArray(vertexArray);
