@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-330-sampler-wrap.cpp -->
+<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-texture-3d.cpp -->
 <html lang="en">
 
 <head>
-    <title>WebGL 2 Samples - sampler_wrap</title>
+    <title>WebGL 2 Samples - texture_3d</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
@@ -11,21 +11,38 @@
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - sampler_wrap</div>
+    <div id="info">WebGL 2 Samples - texture_3d</div>
 
-    <!-- WebGL 2 shaders -->
+    <!-- WebGL 2 shaders.
+        This section is adapted from Example 6.15 and 6.16,
+        OpenGL® Programming Guide: The Official Guide to Learning OpenGL®, Version 4.3,
+        Dave Shreiner, Graham Sellers
+     -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
         #define POSITION_LOCATION 0
-        #define TEXCOORD_LOCATION 4
+        #define TEXCOORD_LOCATION 1
 
         precision highp float;
         precision highp int;
 
+        layout(location = POSITION_LOCATION) in vec2 position;
+        layout(location = TEXCOORD_LOCATION) in vec2 in_texcoord;
+
+        // Output 3D texture coordinate after transformation
+        out vec3 texcoord;
+
+        // Matrix to transform the texture coordinates into 3D space
+        uniform mat4 orientation;
+
         void main()
         {
-            gl_Position = vec4(4.f - 1.f, 4.f - 1.f, 0.0, 1.0);
+            // Multiply the texture coordinate by the transformation
+            // matrix to place it into 3D space
+            texcoord = (orientation * vec4(in_texcoord - vec2(0.5, 0.5), 0.5, 1.0)).stp;
+            gl_Position = vec4(position, 0.0, 1.0);
         }
+
     </script>
 
     <script id="fs" type="x-shader/x-fragment">
@@ -35,17 +52,15 @@
         precision highp int;
         precision highp sampler3D;
 
-        // in vec4 fragCoordinates;
-
         uniform sampler3D diffuse;
-        uniform mat3 orientation;
+
+        in vec3 texcoord;
 
         out vec4 color;
 
         void main()
         {
-            vec3 snorm = orientation * vec3(gl_FragCoord.xy / vec2(640, 480) - 0.5, 0.0);
-            color = texture(diffuse, snorm * 0.707106781 + 0.5);
+            color = texture(diffuse, texcoord);
         }
     </script>
 
@@ -66,6 +81,51 @@
             return;
         }
 
+        // -- Divide viewport
+
+        var windowSize = {
+            x: canvas.width,
+            y: canvas.height
+        };
+
+        var Corners = {
+            TOP_LEFT: 0,
+            TOP_RIGHT: 1,
+            BOTTOM_RIGHT: 2,
+            BOTTOM_LEFT: 3,
+            MAX: 4
+        };
+
+        var viewport = new Array(Corners.MAX);
+
+        viewport[Corners.BOTTOM_LEFT] = {
+            x: 0,
+            y: 0,
+            z: windowSize.x / 2,
+            w: windowSize.y / 2
+        };
+
+        viewport[Corners.BOTTOM_RIGHT] = {
+            x: windowSize.x / 2,
+            y: 0,
+            z: windowSize.x / 2,
+            w: windowSize.y / 2
+        };
+
+        viewport[Corners.TOP_RIGHT] = {
+            x: windowSize.x / 2,
+            y: windowSize.y / 2,
+            z: windowSize.x / 2,
+            w: windowSize.y / 2
+        };
+
+        viewport[Corners.TOP_LEFT] = {
+            x: 0,
+            y: windowSize.y / 2,
+            z: windowSize.x / 2,
+            w: windowSize.y / 2
+        };
+
         // -- Initialize texture
 
         var SIZE = 32;
@@ -73,12 +133,10 @@
         for (var k = 0; k < SIZE; ++k) {
             for (var j = 0; j < SIZE; ++j) {
                 for (var i = 0; i < SIZE; ++i) {
-                    data[i + j * SIZE + k * SIZE * SIZE] = Math.random();
+                    data[i + j * SIZE + k * SIZE * SIZE] = (i + j + k) / 100.0;
                 }
             }
         }
-
-        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
         var texture = gl.createTexture();
 
@@ -86,11 +144,8 @@
         gl.bindTexture(gl.TEXTURE_3D, texture);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_BASE_LEVEL, 0);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAX_LEVEL, Math.log2(SIZE));
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_NEAREST);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
         gl.texImage3D(
             gl.TEXTURE_3D,  // target
@@ -107,8 +162,6 @@
 
         gl.generateMipmap(gl.TEXTURE_3D);
 
-        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
-
         // -- Initialize program
 
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
@@ -118,19 +171,30 @@
 
         // -- Initialize buffer
 
-        var VERTEX_COUNT = 6;
         var positions = new Float32Array([
-            -1.0, -1.0, 0.0, 1.0,
-             1.0, -1.0, 1.0, 1.0,
-             1.0,  1.0, 1.0, 0.0,
-             1.0,  1.0, 1.0, 0.0,
-            -1.0,  1.0, 0.0, 0.0,
-            -1.0, -1.0, 0.0, 1.0
+            -1.0, -1.0,
+             1.0, -1.0,
+             1.0,  1.0,
+             1.0,  1.0,
+            -1.0,  1.0,
+            -1.0, -1.0
         ]);
-
         var vertexPosBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var texCoords = new Float32Array([
+            0.0, 2.0,
+            2.0, 2.0,
+            2.0, 0.0,
+            2.0, 0.0,
+            0.0, 0.0,
+            0.0, 2.0
+        ]);
+        var vertexTexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         // -- Initilize vertex array
@@ -139,14 +203,16 @@
         gl.bindVertexArray(vertexArray);
 
         var vertexPosLocation = 0; // set with GLSL layout qualifier
-        var vertexTexLocation = 4; // set with GLSL layout qualifier
+        gl.enableVertexAttribArray(vertexPosLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-        gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, Float32Array.BYTES_PER_ELEMENT, 0);
-        gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, Float32Array.BYTES_PER_ELEMENT, Float32Array.BYTES_PER_ELEMENT * VERTEX_COUNT);
+        gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
+        var vertexTexLocation = 1; // set with GLSL layout qualifier
         gl.enableVertexAttribArray(vertexTexLocation);
-        gl.enableVertexAttribArray(vertexPosLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
+        gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         gl.bindVertexArray(null);
 
@@ -155,17 +221,47 @@
 
         requestAnimationFrame(render);
 
+        function yawPitchRoll(yaw, pitch, roll) {
+            return [
+                Math.cos(yaw) * Math.cos(pitch),
+                Math.cos(yaw) * Math.sin(pitch) * Math.sin(roll) - Math.sin(yaw) * Math.cos(roll),
+                Math.cos(yaw) * Math.sin(pitch) * Math.cos(roll) + Math.sin(yaw) * Math.sin(roll),
+                0.0,
+                Math.sin(yaw) * Math.cos(pitch),
+                Math.sin(yaw) * Math.sin(pitch) * Math.sin(roll) + Math.cos(yaw) * Math.cos(roll),
+                Math.sin(yaw) * Math.sin(pitch) * Math.cos(roll) - Math.cos(yaw) * Math.sin(roll),
+                0.0,
+                -Math.sin(pitch),
+                Math.cos(pitch) * Math.sin(roll),
+                Math.cos(pitch) * Math.cos(roll),
+                0.0,
+                0.0, 0.0, 0.0, 1.0
+            ];
+        }
+
         function render() {
 
-            orientation[0] += 0.020;
-            orientation[1] += 0.010;
-            orientation[2] += 0.005;
+            orientation[0] += 0.020; // yaw
+            orientation[1] += 0.010; // pitch
+            orientation[2] += 0.005; // roll
 
-            var textureMatrix = new Float32Array([
-                1.0, 0.0, 0.0,
-                0.0, 1.0, 0.0,
-                0.0, 0.0, 1.0
-                ]);
+            var yawMatrix = new Float32Array(
+                yawPitchRoll(orientation[0], 0.0, 0.0)
+                );
+
+            var pitchMatrix = new Float32Array(
+                yawPitchRoll(0.0, orientation[1], 0.0)
+                );
+
+            var rollMatrix = new Float32Array(
+                yawPitchRoll(0.0, 0.0, orientation[2])
+                );
+
+            var yawPitchRollMatrix = new Float32Array(
+                yawPitchRoll(orientation[0], orientation[1], orientation[2])
+                );
+
+            var matrices = [yawMatrix, pitchMatrix, rollMatrix, yawPitchRollMatrix];
 
             // Clear color buffer
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -175,22 +271,21 @@
             gl.useProgram(program);
 
             gl.uniform1i(uniformDiffuseLocation, 0);
-            gl.uniformMatrix3fv(uniformTextureMatrixLocation, gl.FALSE, textureMatrix);
 
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_3D, texture);
+
             gl.bindVertexArray(vertexArray);
 
-            gl.drawArraysInstanced(gl.TRIANGLES, 0, VERTEX_COUNT, 1);
+            for (var i = 0; i < Corners.MAX; ++i) {
+                gl.viewport(viewport[i].x, viewport[i].y, viewport[i].z, viewport[i].w);
+                gl.uniformMatrix4fv(uniformTextureMatrixLocation, false, matrices[i]);
+                gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
+            }
+
 
             requestAnimationFrame(render);
 
-            // -- Clean up
-
-            gl.deleteBuffer(vertexPosBuffer);
-            gl.deleteVertexArray(vertexArray);
-            gl.deleteTexture(texture);
-            gl.deleteProgram(program);
         }
     })();
     </script>
