@@ -14,7 +14,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 
 |              | Chrome 49 Windows 10| Chrome 49 OSX 10.10| Firefox 45 Windows 10| Firefox 45 OSX 10.10|
 |--------------|:-----------------:|:--------------------------------------:|:-----------------:|:-----------------------:|
-|[draw_image_space](http://webglsamples.org/WebGL2Samples/#draw_image_space)|:white_check_mark: |:grey_question:| :white_check_mark:|:grey_question:|
+|[draw_image_space](http://webglsamples.org/WebGL2Samples/#draw_image_space)|:x: gl_VertexID not supported|:grey_question:|:x: gl_VertexID not supported|:grey_question:|
 |[draw_instanced](http://webglsamples.org/WebGL2Samples/#draw_instanced)|:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
 |[draw_range_arrays](http://webglsamples.org/WebGL2Samples/#draw_range_arrays)|:white_check_mark: | :white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[glsl_discard](http://webglsamples.org/WebGL2Samples/#glsl_discard)|:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
