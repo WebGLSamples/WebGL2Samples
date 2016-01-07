@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-fbo-srgb.cpp -->
 
 <head>
     <title>WebGL 2 Samples - texture_srgb</title>
@@ -52,9 +53,34 @@
 
         layout(location = FRAG_COLOR_LOCATION) out vec4 color;
 
+        vec3 rgbToSrgb(in vec3 colorRGB, in float gammaCorrection)
+        {
+            vec3 clampedColorRGB = clamp(colorRGB, 0.0, 1.0);
+
+            return mix(
+                pow(clampedColorRGB, vec3(gammaCorrection)) * 1.055 - 0.055,
+                clampedColorRGB * 12.92,
+                lessThan(clampedColorRGB, vec3(0.0031308)));
+        }
+
+        // For all settings: 1.0 = 100% 0.5=50% 1.5 = 150%
+        vec3 contrastSaturationBrightness(vec3 color, float brt, float sat, float con)
+        {
+            const vec3 lumCoeff = vec3(0.2125, 0.7154, 0.0721);
+
+            vec3 brtColor = color * brt;
+            vec3 intensity = vec3(dot(brtColor, lumCoeff));
+            vec3 satColor = mix(intensity, brtColor, sat);
+            vec3 conColor = mix(vec3(0.5), satColor, con);
+            return conColor;
+        }
+
         void main()
         {
-            color = texture(material.diffuse, st);
+            vec3 colorRgb = texture(material.diffuse, st).rgb;
+            vec3 colorSrgb = rgbToSrgb(colorRgb, 0.41666);
+            colorSrgb = contrastSaturationBrightness(colorSrgb, 1.0, 0.5, 1.0);
+            color = vec4(colorSrgb, 1.0);
         }
     </script>
 
