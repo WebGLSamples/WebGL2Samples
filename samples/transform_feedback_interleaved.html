@@ -188,6 +188,9 @@
         gl.enableVertexAttribArray(vertexColorLocationFeedback);
 
         gl.bindVertexArray(null);
+        
+        // -- Init TransformFeedback 
+        var transformFeedback = gl.createTransformFeedback();
 
         // -- Render
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -196,6 +199,8 @@
         // First draw, capture the attributes
         // Disable rasterization, vertices processing only
         gl.enable(gl.RASTERIZER_DISCARD);
+        
+        gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
 
         gl.useProgram(programs[PROGRAM_TRANSFORM]);
         var matrix = new Float32Array([
@@ -214,6 +219,7 @@
         gl.endTransformFeedback();
 
         gl.disable(gl.RASTERIZER_DISCARD);
+        gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
 
         // Second draw, reuse captured attributes
         gl.useProgram(programs[PROGRAM_FEEDBACK]);
@@ -222,6 +228,7 @@
         gl.bindVertexArray(null);
 
         // -- Delete WebGL resources
+        gl.deleteTransformFeedback(transformFeedback);
         gl.deleteBuffer(buffers[PROGRAM_TRANSFORM]);
         gl.deleteBuffer(buffers[PROGRAM_FEEDBACK]);
         gl.deleteProgram(programs[PROGRAM_TRANSFORM]);
