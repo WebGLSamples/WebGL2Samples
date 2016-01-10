@@ -89,15 +89,8 @@
 
         var viewport = new Array(Corners.MAX);
 
-        viewport[Corners.TOP_LEFT] = {
+        viewport[Corners.BOTTOM_LEFT] = {
             x: 0,
-            y: 0,
-            z: windowSize.x / 2,
-            w: windowSize.y / 2
-        };
-
-        viewport[Corners.TOP_RIGHT] = {
-            x: windowSize.x / 2,
             y: 0,
             z: windowSize.x / 2,
             w: windowSize.y / 2
@@ -105,12 +98,19 @@
 
         viewport[Corners.BOTTOM_RIGHT] = {
             x: windowSize.x / 2,
+            y: 0,
+            z: windowSize.x / 2,
+            w: windowSize.y / 2
+        };
+
+        viewport[Corners.TOP_RIGHT] = {
+            x: windowSize.x / 2,
             y: windowSize.y / 2,
             z: windowSize.x / 2,
             w: windowSize.y / 2
         };
 
-        viewport[Corners.BOTTOM_LEFT] = {
+        viewport[Corners.TOP_LEFT] = {
             x: 0,
             y: windowSize.y / 2,
             z: windowSize.x / 2,

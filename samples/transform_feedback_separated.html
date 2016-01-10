@@ -176,11 +176,11 @@
 
         // Feedback empty buffers
         gl.bindBuffer(gl.ARRAY_BUFFER, buffers[BufferType.POSITION]);
-        gl.bufferData(gl.ARRAY_BUFFER, positions.length * Float32Array.BYTES_PER_ELEMENT, gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, positions.length * Float32Array.BYTES_PER_ELEMENT, gl.STATIC_COPY);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, buffers[BufferType.COLOR]);
-        gl.bufferData(gl.ARRAY_BUFFER, positions.length * Float32Array.BYTES_PER_ELEMENT, gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, positions.length * Float32Array.BYTES_PER_ELEMENT, gl.STATIC_COPY);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         // -- Init Vertex Array
@@ -210,6 +210,9 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindVertexArray(null);
 
+        // -- Init TransformFeedback 
+        var transformFeedback = gl.createTransformFeedback();
+
         // -- Render
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -218,6 +221,8 @@
         // First draw, capture the attributes
         // Disable rasterization, vertices processing only
         gl.enable(gl.RASTERIZER_DISCARD);
+        
+        gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
 
         gl.useProgram(programs[PROGRAM_TRANSFORM]);
         var matrix = new Float32Array([
@@ -237,6 +242,8 @@
         gl.endTransformFeedback();
 
         gl.disable(gl.RASTERIZER_DISCARD);
+        gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
+        gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, null);
 
         // Second draw, reuse captured attributes
         gl.useProgram(programs[PROGRAM_FEEDBACK]);
@@ -245,6 +252,7 @@
         gl.bindVertexArray(null);
 
         // -- Delete WebGL resources
+        gl.deleteTransformFeedback(transformFeedback);
         gl.deleteBuffer(buffers[BufferType.VERTEX]);
         gl.deleteBuffer(buffers[BufferType.POSITION]);
         gl.deleteBuffer(buffers[BufferType.COLOR]);
