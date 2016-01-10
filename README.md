@@ -14,7 +14,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 
 |              | Chrome 49 Windows 10| Chrome 49 OSX 10.10| Firefox 45 Windows 10| Firefox 45 OSX 10.10|
 |--------------|:-----------------:|:--------------------------------------:|:-----------------:|:-----------------------:|
-|[draw_image_space](http://webglsamples.org/WebGL2Samples/#draw_image_space)|:x: gl_VertexID not supported|:grey_question:|:x: gl_VertexID not supported|:grey_question:|
+|[draw_image_space](http://webglsamples.org/WebGL2Samples/#draw_image_space)|:x: `gl_VertexID` not supported|:grey_question:|:x: `gl_VertexID` not supported|:grey_question:|
 |[draw_instanced](http://webglsamples.org/WebGL2Samples/#draw_instanced)|:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
 |[draw_range_arrays](http://webglsamples.org/WebGL2Samples/#draw_range_arrays)|:white_check_mark: | :white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[glsl_discard](http://webglsamples.org/WebGL2Samples/#glsl_discard)|:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
@@ -28,6 +28,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[transform_feedback_interleaved](http://webglsamples.org/WebGL2Samples/#transform_feedback_interleaved)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[transform_feedback_separated](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[fbo_rtt_texture_array](http://webglsamples.org/WebGL2Samples/#fbo_rtt_texture_array)|:x: crash|:white_check_mark:|:x: crash|:x: not working|
+|[fbo_blit](http://webglsamples.org/WebGL2Samples/#fbo_blit)|:white_check_mark:|:grey_question:|:x: `clearBufferfv` fail to clear currently bound draw framebuffer|:grey_question:|
 
 ## Running the Samples Locally
 
