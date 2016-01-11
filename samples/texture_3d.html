@@ -8,6 +8,8 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <script src="utility.js"></script>
+    <script src="gl-matrix.js"></script>
+    <script src="noise3D.js"></script>
 </head>
 
 <body>
@@ -133,7 +135,7 @@
         for (var k = 0; k < SIZE; ++k) {
             for (var j = 0; j < SIZE; ++j) {
                 for (var i = 0; i < SIZE; ++i) {
-                    data[i + j * SIZE + k * SIZE * SIZE] = Math.random();
+                    data[i + j * SIZE + k * SIZE * SIZE] = snoise([i, j, k]);
                 }
             }
         }

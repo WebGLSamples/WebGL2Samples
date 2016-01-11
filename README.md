@@ -84,3 +84,4 @@ When you open a pull request, please make sure that GitHub reports that "All che
 * [OpenGL Samples Pack](https://github.com/g-truc/ogl-samples) by Christophe Riccio ([@Groovounet](https://github.com/Groovounet)) and contributors
 * [Cesium](https://github.com/AnalyticalGraphicsInc/cesium) build script by Matt Amato ([@mramato](https://github.com/mramato)) and contributors
 * [webgl2-particles](https://github.com/toji/webgl2-particles) by Brandon Jones ([@toji](https://github.com/toji)) and Mr.doob ([@mrdoob](https://github.com/mrdoob))
+* [gl-matrix](http://glmatrix.net/) by Brandon Jones ([@toji](https://github.com/toji))
