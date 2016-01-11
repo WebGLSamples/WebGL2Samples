@@ -141,7 +141,6 @@
         }
 
         var texture = gl.createTexture();
-
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_3D, texture);
         gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_BASE_LEVEL, 0);
@@ -242,27 +241,14 @@
         }
 
         function render() {
-
             orientation[0] += 0.020; // yaw
             orientation[1] += 0.010; // pitch
             orientation[2] += 0.005; // roll
 
-            var yawMatrix = new Float32Array(
-                yawPitchRoll(orientation[0], 0.0, 0.0)
-                );
-
-            var pitchMatrix = new Float32Array(
-                yawPitchRoll(0.0, orientation[1], 0.0)
-                );
-
-            var rollMatrix = new Float32Array(
-                yawPitchRoll(0.0, 0.0, orientation[2])
-                );
-
-            var yawPitchRollMatrix = new Float32Array(
-                yawPitchRoll(orientation[0], orientation[1], orientation[2])
-                );
-
+            var yawMatrix = new Float32Array(yawPitchRoll(orientation[0], 0.0, 0.0));
+            var pitchMatrix = new Float32Array(yawPitchRoll(0.0, orientation[1], 0.0));
+            var rollMatrix = new Float32Array(yawPitchRoll(0.0, 0.0, orientation[2]));
+            var yawPitchRollMatrix = new Float32Array(yawPitchRoll(orientation[0], orientation[1], orientation[2]));
             var matrices = [yawMatrix, pitchMatrix, rollMatrix, yawPitchRollMatrix];
 
             // Clear color buffer
@@ -285,9 +271,7 @@
                 gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
             }
 
-
             requestAnimationFrame(render);
-
         }
     })();
     </script>
