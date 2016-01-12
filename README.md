@@ -22,6 +22,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[sampler_object](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:x:D3D not supported|:white_check_mark:| :x: D3D not supported|:white_check_mark:|
 |[sampler_wrap](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:| :white_check_mark:|:white_check_mark:|
 |[sampler_filter](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
+|[texture_format](http://webglsamples.org/WebGL2Samples/#texture_format)|:grey_question:|:white_check_mark:|:grey_question:|:white_check_mark:|
 |[texture_fetch](http://webglsamples.org/WebGL2Samples/#texture_fetch)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[texture_integer](http://webglsamples.org/WebGL2Samples/#texture_integer)|:white_check_mark:|:grey_question:|:x: Error: Driver ran out of memory during upload|:grey_question:|
 |[texture_pixel_store](http://webglsamples.org/WebGL2Samples/#texture_pixel_store)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
