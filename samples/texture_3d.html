@@ -223,18 +223,26 @@
         requestAnimationFrame(render);
 
         function yawPitchRoll(yaw, pitch, roll) {
+
+            var cosYaw = Math.cos(yaw);
+            var sinYaw = Math.sin(yaw);
+            var cosPitch = Math.cos(pitch);
+            var sinPitch = Math.sin(pitch);
+            var cosRoll = Math.cos(roll);
+            var sinRoll = Math.sin(roll);
+
             return [
-                Math.cos(yaw) * Math.cos(pitch),
-                Math.cos(yaw) * Math.sin(pitch) * Math.sin(roll) - Math.sin(yaw) * Math.cos(roll),
-                Math.cos(yaw) * Math.sin(pitch) * Math.cos(roll) + Math.sin(yaw) * Math.sin(roll),
+                cosYaw * cosPitch,
+                cosYaw * sinPitch * sinRoll - sinYaw * cosRoll,
+                cosYaw * sinPitch * cosRoll + sinYaw * sinRoll,
                 0.0,
-                Math.sin(yaw) * Math.cos(pitch),
-                Math.sin(yaw) * Math.sin(pitch) * Math.sin(roll) + Math.cos(yaw) * Math.cos(roll),
-                Math.sin(yaw) * Math.sin(pitch) * Math.cos(roll) - Math.cos(yaw) * Math.sin(roll),
+                sinYaw * cosPitch,
+                sinYaw * sinPitch * sinRoll + cosYaw * cosRoll,
+                sinYaw * sinPitch * cosRoll - cosYaw * sinRoll,
                 0.0,
-                -Math.sin(pitch),
-                Math.cos(pitch) * Math.sin(roll),
-                Math.cos(pitch) * Math.cos(roll),
+                -sinPitch,
+                cosPitch * sinRoll,
+                cosPitch * cosRoll,
                 0.0,
                 0.0, 0.0, 0.0, 1.0
             ];
