@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-texture-derivative.cpp -->
+<html lang="en">
+
+<head>
+    <title>WebGL 2 Samples - texture_derivative</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="info">WebGL 2 Samples - texture_derivative</div>
+
+    <!-- WebGL 2 shaders -->
+    <script id="vs-x" type="x-shader/x-vertex">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        uniform mat4 MVP;
+
+        layout(location = 0) in vec2 position;
+        layout(location = 1) in vec2 texcoord;
+
+        out vec2 st;
+
+        void main()
+        {
+            st = texcoord;
+            gl_Position = MVP * vec4(position, 0.0, 1.0);
+        }
+    </script>
+
+    <script id="fs-x" type="x-shader/x-fragment">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        uniform sampler2D diffuse;
+
+        in vec2 st;
+
+        out vec4 color;
+
+        float textureLevel(in sampler2D sampler, in vec2 st)
+        {
+            vec2 size = vec2(textureSize(sampler, 0));
+
+            float levelCount = max(log2(size.x), log2(size.y));
+
+            vec2 dx = dFdx(st * size);
+            vec2 dy = dFdy(st * size);
+            float d = max(dot(dx, dx), dot(dy, dy));
+
+            d = clamp(d, 1.0, pow(2.0, (levelCount - 1.0) * 2.0));
+
+            return 0.5 * log2(d);
+        }
+
+        void main()
+        {
+            float level = textureLevel(diffuse, st);
+
+            color = textureLod(diffuse, st, level);
+        }
+
+    </script>
+
+    <script id="vs-y" type="x-shader/x-vertex">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        uniform mat4 MVP;
+
+        layout(location = 0) in vec2 position;
+        layout(location = 1) in vec2 texcoord;
+
+        out vec2 st;
+
+        void main()
+        {
+            st = texcoord;
+            gl_Position = MVP * vec4(position, 0.0, 1.0);
+        }
+    </script>
+
+    <script id="fs-y" type="x-shader/x-fragment">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        uniform sampler2D diffuse;
+
+        in vec2 st;
+
+        out vec4 color;
+
+        void main()
+        {
+            color = texture(diffuse, st);
+        }
+    </script>
+
+    <script src="utility.js"></script>
+    <script>
+    (function () {
+        'use strict';
+
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.min(window.innerWidth, window.innerHeight);
+        canvas.height = canvas.width;
+        document.body.appendChild(canvas);
+
+        var gl = canvas.getContext( 'webgl2', { antialias: false } );
+        var isWebGL2 = !!gl;
+        if(!isWebGL2)
+        {
+            document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
+            return;
+        }
+
+        // -- Init program
+        var programX = createProgram(gl, getShaderSource('vs-x'), getShaderSource('fs-x'));
+        var mvpLocationX = gl.getUniformLocation(programX, 'MVP');
+        var diffuseLocationX = gl.getUniformLocation(programX, 'diffuse');
+
+        var programY = createProgram(gl, getShaderSource('vs-y'), getShaderSource('fs-y'));
+        var mvpLocationY = gl.getUniformLocation(programY, 'MVP');
+        var diffuseLocationY = gl.getUniformLocation(programY, 'diffuse');
+
+        // -- Init buffers: vec2 Position, vec2 Texcoord
+        var positions = new Float32Array([
+            -1.0, -1.0,
+             1.0, -1.0,
+             1.0,  1.0,
+             1.0,  1.0,
+            -1.0,  1.0,
+            -1.0, -1.0
+        ]);
+        var vertexPosBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var texCoords = new Float32Array([
+            0.0, 1.0,
+            1.0, 1.0,
+            1.0, 0.0,
+            1.0, 0.0,
+            0.0, 0.0,
+            0.0, 1.0
+        ]);
+        var vertexTexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        // -- Init VertexArray
+        var vertexArray = gl.createVertexArray();
+        gl.bindVertexArray(vertexArray);
+
+        var vertexPosLocation = 0; // set with GLSL layout qualifier
+        gl.enableVertexAttribArray(vertexPosLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var vertexTexLocation = 1; // set with GLSL layout qualifier
+        gl.enableVertexAttribArray(vertexTexLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
+        gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        gl.bindVertexArray(null);
+
+        // -- Init Texture
+
+        var SIZE = 8;
+        var LEVEL = 4;
+        var colors = [
+            new Uint8Array([214,  37, 152]),         // 0, Pink C
+            new Uint8Array([239,  51,  64]),         // 1, Red 032 C
+            new Uint8Array([254,  80,   0]),         // 2, Orange 021 C
+            new Uint8Array([255, 215,   0]),         // 3, Yellow 012 C
+            new Uint8Array([0, 132, 61]),            // 4, 348 C (Green)
+            new Uint8Array([0, 133, 202]),           // 5, Process Blue C
+            new Uint8Array([16,   6, 159]),          // 6, Blue 072 C
+            new Uint8Array([78,  0, 142])            // 7, Medium Purple C
+        ];
+
+        var SET =
+        [
+            [
+                4, 0, 1, 2, 1, 7, 0, 7,
+                7, 1, 0, 5, 6, 7, 7, 3,
+                1, 5, 2, 5, 7, 2, 6, 1,
+                1, 3, 3, 3, 0, 2, 4, 0,
+                7, 5, 0, 6, 1, 2, 0, 3,
+                7, 2, 4, 1, 7, 3, 4, 3,
+                4, 3, 5, 1, 5, 2, 3, 6,
+                7, 2, 2, 2, 5, 5, 6, 6,
+            ],
+            [
+                0, 2, 3, 4, 1, 6, 5, 7,
+                5, 4, 0, 5, 3, 7, 2, 1,
+                6, 7, 1, 2, 5, 4, 3, 0,
+                1, 5, 4, 3, 7, 0, 6, 2,
+                3, 6, 7, 0, 2, 1, 4, 5,
+                2, 0, 5, 1, 4, 3, 7, 6,
+                4, 1, 2, 7, 6, 5, 0, 3,
+                7, 3, 6, 5, 0, 2, 1, 4,
+            ],
+            [
+                2, 3, 4, 5, 7, 2, 7, 5,
+                6, 7, 1, 3, 6, 6, 2, 0,
+                6, 7, 5, 7, 6, 6, 2, 4,
+                6, 3, 1, 7, 6, 6, 7, 1,
+                7, 0, 4, 3, 2, 2, 5, 1,
+                0, 1, 4, 5, 3, 5, 4, 1,
+                0, 0, 5, 5, 0, 4, 1, 1,
+                2, 2, 7, 5, 4, 1, 1, 4,
+            ],
+            [
+                0, 7, 6, 7, 3, 6, 7, 3,
+                2, 6, 3, 6, 1, 3, 6, 1,
+                3, 5, 4, 5, 0, 4, 5, 0,
+                1, 4, 0, 4, 2, 0, 4, 2,
+                2, 6, 3, 6, 1, 3, 6, 1,
+                3, 5, 4, 5, 0, 4, 5, 0,
+                2, 6, 3, 6, 1, 3, 6, 1,
+                6, 1, 5, 1, 4, 5, 1, 4,
+            ]
+        ];
+
+        function buildColorChart(colors, set, size) {
+            var data = new Uint8Array(size * size * 3);
+
+            for (var j = 0; j < size; ++j) {
+                for (var i = 0; i < size; ++i) {
+                    var texelIndex = i + j * size;
+                    var colorIndex = set[texelIndex];
+                    for (var c = 0; c < 3; ++c) {
+                        data[texelIndex * 3 + c] = colors[colorIndex][c];
+                    }
+                }
+            }
+
+            return data;
+        }
+
+        var data = new Array(LEVEL);
+
+        for (var l = 0; l < LEVEL; ++l) {
+            data[l] = buildColorChart(colors, SET[l], SIZE);
+        }
+
+        var texture = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_BASE_LEVEL, 0);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, LEVEL - 1);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        for (var i = 0; i < LEVEL; ++i) {
+            gl.texImage2D(gl.TEXTURE_2D, i, gl.RGB, SIZE, SIZE, 0, gl.RGB, gl.UNSIGNED_BYTE, data[i]);
+        }
+
+        gl.generateMipmap(gl.TEXTURE_2D);
+
+        // -- Render
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        var matrix = new Float32Array([
+            1.0, 0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0
+        ]);
+
+        gl.useProgram(programX);
+        gl.uniformMatrix4fv(mvpLocationX, false, matrix);
+        gl.uniform1i(diffuseLocationX, 0);
+
+        gl.bindVertexArray(vertexArray);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        // Delete WebGL resources
+        gl.deleteBuffer(vertexPosBuffer);
+        gl.deleteBuffer(vertexTexBuffer);
+        gl.deleteTexture(texture);
+        gl.deleteProgram(programX);
+        gl.deleteProgram(programY);
+        gl.deleteVertexArray(vertexArray);
+
+    })();
+    </script>
+
+</body>
+
+</html>
