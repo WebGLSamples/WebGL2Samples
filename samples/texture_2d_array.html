@@ -39,7 +39,6 @@
         precision highp sampler2DArray;
 
         uniform sampler2DArray diffuse;
-        
         uniform int layer;
 
         in vec2 v_st;
@@ -49,8 +48,6 @@
         void main()
         {
             color = texture(diffuse, vec3(v_st, layer));
-            //color = texture(diffuse, vec3(0.5,0.5,1));
-            //color = vec4(1.0,0.0,0.0,1.0);
         }
     </script>
 
@@ -124,10 +121,9 @@
 
         
         var textureNames = [
-            '../assets/img/di_animation_009.png',
-            '../assets/img/di_animation_010.png'
-            //'../assets/img/Di-3d.png',
-            //'../assets/img/Di-3d.png'
+            '../assets/img/di_animation_1.png',
+            '../assets/img/di_animation_2.png',
+            '../assets/img/di_animation_3.png'
         ];
         var texture = gl.createTexture();
         loadImages(textureNames, function(images){
@@ -135,7 +131,7 @@
             // use canvas to get the pixel data array of the image
             var canvas = document.createElement('canvas');
             var ctx = canvas.getContext('2d');
-            var imageDataArray = [];
+            var imageDataArray = new Array(textureNames.length);
             var pointerPosition = new Array(textureNames.length + 1);
             pointerPosition[0] = 0;
             //var totalLength = 0;
@@ -144,9 +140,10 @@
             canvas.height = images[0].height;
               
             for (var i = 0; i < textureNames.length; i++) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(images[i], 0, 0);
                 var imageData = ctx.getImageData(0, 0, images[i].width, images[i].height);
-                imageDataArray = imageDataArray.concat(imageData.data);
+                imageDataArray[i] = imageData.data;
                 //totalLength += imageData.data.length;
                 pointerPosition[i + 1] = pointerPosition[i] + imageData.data.length; 
             }
@@ -154,16 +151,16 @@
 
             var pixels = new Uint8Array(pointerPosition[textureNames.length]);
             for (var i = 0; i < textureNames.length; i++) {
+            //for (var i = textureNames.length-1; i >=0; i--) {
                 pixels.set(imageDataArray[i], pointerPosition[i]);
             }
             //pixels = new Uint8Array(pixels);
             //pixels.set([255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255],500000);
             // -- Init Texture
-            
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D_ARRAY, texture);
-            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_BASE_LEVEL, 0);
-            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAX_LEVEL, 0);
+            //gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_BASE_LEVEL, 0);
+            //gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAX_LEVEL, 0);
             gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             gl.texImage3D(
@@ -183,9 +180,9 @@
             gl.bindVertexArray(vertexArray);
             
             var matrix = new Float32Array([
-                0.5, 0.0, 0.0, 0.0,
-                0.0, 0.5, 0.0, 0.0,
-                0.0, 0.0, 0.5, 0.0,
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
                 0.0, 0.0, 0.0, 1.0
             ]);
             gl.uniformMatrix4fv(mvpLocation, false, matrix);
@@ -215,17 +212,19 @@
         
         var frame = 0;
         function render() {
-            // -- Render
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.uniform1i(layerLocation, frame);
+            setTimeout( function(){
+                requestAnimationFrame(render);
             
-            //console.log(frame);
-            frame = (frame + 1) % textureNames.length;
-            
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
-            
-            requestAnimationFrame(render);
+                // -- Render
+                gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.uniform1i(layerLocation, frame);
+                
+                //console.log(frame);
+                frame = (frame + 1) % textureNames.length;
+                
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+            }, 200);
         }
         
         //function render() {
