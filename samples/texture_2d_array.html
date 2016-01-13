@@ -3,14 +3,14 @@
 <html lang="en">
 
 <head>
-    <title>WebGL 2 Samples - texture_cube</title>
+    <title>WebGL 2 Samples - texture_2d_array</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - texture_cube</div>
+    <div id="info">WebGL 2 Samples - texture_2d_array</div>
 
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
@@ -39,6 +39,8 @@
         precision highp sampler2DArray;
 
         uniform sampler2DArray diffuse;
+        
+        uniform int layer;
 
         in vec2 v_st;
 
@@ -46,7 +48,7 @@
 
         void main()
         {
-            color = texture(diffuse, vec3(v_st, 0));
+            color = texture(diffuse, vec3(v_st, layer));
         }
     </script>
 
@@ -71,6 +73,7 @@
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
         var mvpLocation = gl.getUniformLocation(program, 'MVP');
         var diffuseLocation = gl.getUniformLocation(program, 'diffuse');
+        var layerLocation = gl.getUniformLocation(program, 'layer');
 
         // -- Init buffers
         var positions = new Float32Array([
@@ -117,45 +120,60 @@
 
         gl.bindVertexArray(null);
 
-        // -- Init Textrue
+        
         var textureNames = [
-            '../assets/img/di_animation_009.png',
-            '../assets/img/di_animation_010.png'
+            //'../assets/img/di_animation_009.png',
+            //'../assets/img/di_animation_010.png'
+            '../assets/img/Di-3d.png',
+            '../assets/img/Di-3d.png'
         ];
-        
-        gl.activeTexture(gl.TEXTURE0);
-        var textures = new Array(textureNames.length);
-        
+        var texture = gl.createTexture();
         loadImages(textureNames, function(images){
             
             // use canvas to get the pixel data array of the image
             var canvas = document.createElement('canvas');
             var ctx = canvas.getContext('2d');
-            var pixels;
-                        
+            var imageDataArray = [];
+            var pointerPosition = new Array(textureNames.length + 1);
+            pointerPosition[0] = 0;
+            //var totalLength = 0;
+            
+            canvas.width = images[0].width;
+            canvas.height = images[0].height;
+              
             for (var i = 0; i < textureNames.length; i++) {
-                canvas.width = images[i].width;
-                canvas.height = images[i].height;
                 ctx.drawImage(images[i], 0, 0);
-                pixels = new Uint8Array(ctx.getImageData(0, 0, images[i].width, images[i].height).data.buffer);
-                
-                textures[i] = gl.createTexture();
-                gl.bindTexture(gl.TEXTURE_2D_ARRAY, textures[i]);
-                gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                gl.texImage3D(
-                    gl.TEXTURE_2D_ARRAY,
-                    0,
-                    gl.RGBA,
-                    images[i].width,
-                    images[i].height,
-                    textureNames.length,
-                    0,
-                    gl.RGBA,
-                    gl.UNSIGNED_BYTE,
-                    pixels
-                );
+                var imageData = ctx.getImageData(0, 0, images[i].width, images[i].height);
+                imageDataArray = imageDataArray.concat(imageData.data.buffer);
+                //totalLength += imageData.data.length;
+                pointerPosition[i + 1] = pointerPosition[i] + imageData.data.length; 
             }
+            
+
+            var pixels = new Uint8Array(pointerPosition[textureNames.length]);
+            for (var i = 0; i < textureNames.length; i++) {
+                pixels.set(imageDataArray[i], pointerPosition[i]);
+            }
+            //pixels = new Uint8Array(pixels);
+            
+            // -- Init Texture
+            
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D_ARRAY, texture);
+            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texImage3D(
+                gl.TEXTURE_2D_ARRAY,
+                0,
+                gl.RGBA,
+                images[0].width,
+                images[0].height,
+                textureNames.length,
+                0,
+                gl.RGBA,
+                gl.UNSIGNED_BYTE,
+                pixels
+            );
             
             gl.useProgram(program);
             gl.bindVertexArray(vertexArray);
@@ -169,25 +187,42 @@
             gl.uniformMatrix4fv(mvpLocation, false, matrix);
             gl.uniform1i(diffuseLocation, 0);
             
-            requestAnimationFrame(render);
+            render();
+            /*
+            var render = function() {
+                var frame = 0;
+                
+                return function() {
+                    // -- Render
+                    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                    gl.clear(gl.COLOR_BUFFER_BIT);            
+                    gl.uniform1i(layerLocation, frame);
+                    
+                    console.log(frame);
+                    frame = (frame + 1) % textureNames.length;
+                    
+                    gl.drawArrays(gl.TRIANGLES, 0, 6);
+                    
+                    requestAnimationFrame(render);
+                };
+            }();
+            */
         });
         
-        var render = function() {
-            var frame = 0;
+        var frame = 0;
+        function render() {
+            // -- Render
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);            
+            gl.uniform1i(layerLocation, frame);
             
-            return function() {
-                // -- Render
-                gl.clearColor(0.0, 0.0, 0.0, 1.0);
-                gl.clear(gl.COLOR_BUFFER_BIT);
-                
-                gl.bindTexture(gl.TEXTURE_2D_ARRAY, textures[frame]);
-                frame = (frame + 1) % textures.length;
-                
-                gl.drawArrays(gl.TRIANGLES, 0, 6);
-                
-                requestAnimationFrame(render);
-            };
-        };
+            //console.log(frame);
+            frame = (frame + 1) % textureNames.length;
+            
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+            
+            requestAnimationFrame(render);
+        }
         
         //function render() {
             // -- Render
@@ -205,9 +240,7 @@
             // -- Delete WebGL resources
             gl.deleteBuffer(vertexPosBuffer);
             gl.deleteBuffer(vertexTexBuffer);
-            for (var i = 0; i < textureNames.length; i++) {
-                gl.deleteTexture(textures[i]);
-            }
+            gl.deleteTexture(texture);
             gl.deleteProgram(program);
             gl.deleteVertexArray(vertexArray);
         };
