@@ -49,6 +49,8 @@
         void main()
         {
             color = texture(diffuse, vec3(v_st, layer));
+            //color = texture(diffuse, vec3(0.5,0.5,1));
+            //color = vec4(1.0,0.0,0.0,1.0);
         }
     </script>
 
@@ -122,10 +124,10 @@
 
         
         var textureNames = [
-            //'../assets/img/di_animation_009.png',
-            //'../assets/img/di_animation_010.png'
-            '../assets/img/Di-3d.png',
-            '../assets/img/Di-3d.png'
+            '../assets/img/di_animation_009.png',
+            '../assets/img/di_animation_010.png'
+            //'../assets/img/Di-3d.png',
+            //'../assets/img/Di-3d.png'
         ];
         var texture = gl.createTexture();
         loadImages(textureNames, function(images){
@@ -144,7 +146,7 @@
             for (var i = 0; i < textureNames.length; i++) {
                 ctx.drawImage(images[i], 0, 0);
                 var imageData = ctx.getImageData(0, 0, images[i].width, images[i].height);
-                imageDataArray = imageDataArray.concat(imageData.data.buffer);
+                imageDataArray = imageDataArray.concat(imageData.data);
                 //totalLength += imageData.data.length;
                 pointerPosition[i + 1] = pointerPosition[i] + imageData.data.length; 
             }
@@ -155,11 +157,13 @@
                 pixels.set(imageDataArray[i], pointerPosition[i]);
             }
             //pixels = new Uint8Array(pixels);
-            
+            //pixels.set([255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255],500000);
             // -- Init Texture
             
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D_ARRAY, texture);
+            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_BASE_LEVEL, 0);
+            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAX_LEVEL, 0);
             gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             gl.texImage3D(
@@ -213,7 +217,7 @@
         function render() {
             // -- Render
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);            
+            gl.clear(gl.COLOR_BUFFER_BIT);
             gl.uniform1i(layerLocation, frame);
             
             //console.log(frame);
