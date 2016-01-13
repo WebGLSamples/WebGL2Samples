@@ -57,8 +57,8 @@
         'use strict';
 
         var canvas = document.createElement('canvas');
-        canvas.width = Math.min(window.innerWidth, window.innerHeight);
-        canvas.height = canvas.width;
+        canvas.height = window.innerHeight;
+        canvas.width = canvas.height * 960 / 540;
         document.body.appendChild(canvas);
 
         var gl = canvas.getContext( 'webgl2', { antialias: false } );
