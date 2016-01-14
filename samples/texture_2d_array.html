@@ -119,35 +119,21 @@
 
         gl.bindVertexArray(null);
         
-        var textureNames = [
-            '../assets/img/di_animation_1.png',
-            '../assets/img/di_animation_2.png',
-            '../assets/img/di_animation_3.png'
-        ];
         var texture = gl.createTexture();
-        loadImages(textureNames, function(images){
+        loadImage('../assets/img/di-animation-array.jpg', function(image){
+            var NUM_IMAGES = 3;
+            var IMAGE_SIZE = {
+                width: 960,
+                height: 540
+            };
             // use canvas to get the pixel data array of the image
             var canvas = document.createElement('canvas');
+            canvas.width = IMAGE_SIZE.width;
+            canvas.height = IMAGE_SIZE.height * NUM_IMAGES;
             var ctx = canvas.getContext('2d');
-            var imageDataArray = new Array(textureNames.length);
-            var pointerPosition = new Array(textureNames.length + 1);
-            pointerPosition[0] = 0;
-            
-            canvas.width = images[0].width;
-            canvas.height = images[0].height;
-              
-            for (var i = 0; i < textureNames.length; i++) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(images[i], 0, 0);
-                var imageData = ctx.getImageData(0, 0, images[i].width, images[i].height);
-                imageDataArray[i] = imageData.data;
-                pointerPosition[i + 1] = pointerPosition[i] + imageData.data.length; 
-            }
-            
-            var pixels = new Uint8Array(pointerPosition[textureNames.length]);
-            for (i = 0; i < textureNames.length; i++) {
-                pixels.set(imageDataArray[i], pointerPosition[i]);
-            }
+            ctx.drawImage(image, 0, 0);
+            var imageData = ctx.getImageData(0, 0, IMAGE_SIZE.width, IMAGE_SIZE.height * NUM_IMAGES);
+            var pixels = new Uint8Array(imageData.data.buffer);
             
             // -- Init Texture
             gl.activeTexture(gl.TEXTURE0);
@@ -158,9 +144,9 @@
                 gl.TEXTURE_2D_ARRAY,
                 0,
                 gl.RGBA,
-                images[0].width,
-                images[0].height,
-                textureNames.length,
+                IMAGE_SIZE.width,
+                IMAGE_SIZE.height,
+                NUM_IMAGES,
                 0,
                 gl.RGBA,
                 gl.UNSIGNED_BYTE,
@@ -182,11 +168,11 @@
             var frame = 0;
             (function render() {
                 // -- Render
-                gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                gl.clearColor(1.0, 1.0, 1.0, 1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT);
                 gl.uniform1i(layerLocation, frame);
                 
-                frame = (frame + 1) % textureNames.length;
+                frame = (frame + 1) % NUM_IMAGES;
                 
                 gl.drawArrays(gl.TRIANGLES, 0, 6);
                 
