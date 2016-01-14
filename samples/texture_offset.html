@@ -294,7 +294,7 @@
             gl.uniformMatrix4fv(mvpLocation, false, matrix);
             gl.uniform1i(diffuseLocation, 0);
 
-            gl.viewport(viewports[Corners.LEFT].x, viewports[Corners.LEFT].y, viewports[Corners.LEFT].z, viewports[Corners.LEFT].w);
+            gl.viewport(viewports[Corners.RIGHT].x, viewports[Corners.RIGHT].y, viewports[Corners.RIGHT].z, viewports[Corners.RIGHT].w);
             gl.drawArrays(gl.TRIANGLES, 0, 6);
 
             // Offset
@@ -305,7 +305,7 @@
             var offset = new Int32Array([100, -80]);
             gl.uniform2iv(offsetUniformLocation, offset);
 
-            gl.viewport(viewports[Corners.RIGHT].x, viewports[Corners.RIGHT].y, viewports[Corners.RIGHT].z, viewports[Corners.RIGHT].w);
+            gl.viewport(viewports[Corners.LEFT].x, viewports[Corners.LEFT].y, viewports[Corners.LEFT].z, viewports[Corners.LEFT].w);
             gl.drawArrays(gl.TRIANGLES, 0, 6);
 
             // Delete WebGL resources
