@@ -179,24 +179,20 @@
             gl.uniformMatrix4fv(mvpLocation, false, matrix);
             gl.uniform1i(diffuseLocation, 0);
             
-            (function() {
-                var frame = 0;
-                render();
-                function render() {
-                    setTimeout( function(){
-                        requestAnimationFrame(render);
-                    
-                        // -- Render
-                        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-                        gl.clear(gl.COLOR_BUFFER_BIT);
-                        gl.uniform1i(layerLocation, frame);
-                        
-                        //console.log(frame);
-                        frame = (frame + 1) % textureNames.length;
-                        
-                        gl.drawArrays(gl.TRIANGLES, 0, 6);
-                    }, 200);
-                }
+            var frame = 0;
+            (function render() {
+                // -- Render
+                gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.uniform1i(layerLocation, frame);
+                
+                frame = (frame + 1) % textureNames.length;
+                
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                
+                setTimeout( function(){
+                    requestAnimationFrame(render);
+                }, 200);
             })();
         });
         
