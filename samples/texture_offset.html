@@ -52,7 +52,7 @@
                 vec4(-3.0, 4.0, 1.0, 0.0),
                 vec4( 1.0,-1.0, 0.0, 0.0));
 
-            vec4 expo = vec4(s * s * s, s * s, s, 1);
+            vec4 expo = vec4(s * s * s, s * s, s, 1.0);
 
             return 0.5 * expo * catmullRomMatrix * mat4(
                 A[0], B[0], C[0], D[0],
@@ -119,7 +119,7 @@
                 vec4(-3.0, 4.0, 1.0, 0.0),
                 vec4( 1.0,-1.0, 0.0, 0.0));
 
-            vec4 expo = vec4(s * s * s, s * s, s, 1);
+            vec4 expo = vec4(s * s * s, s * s, s, 1.0);
 
             return 0.5 * expo * catmullRomMatrix * mat4(
                 A[0], B[0], C[0], D[0],
@@ -214,12 +214,10 @@
         var mvpLocation = gl.getUniformLocation(programBicubic, 'MVP');
         var diffuseLocation = gl.getUniformLocation(programBicubic, 'diffuse');
 
-
         var programOffsetBicubic = createProgram(gl, getShaderSource('vs'), getShaderSource('fs-offset-bicubic'));
         var mvpOffsetLocation = gl.getUniformLocation(programOffsetBicubic, 'MVP');
         var diffuseOffsetLocation = gl.getUniformLocation(programOffsetBicubic, 'diffuse');
         var offsetUniformLocation = gl.getUniformLocation(programOffsetBicubic, 'offset');
-
 
         // -- Init buffers: vec2 Position, vec2 Texcoord
         var positions = new Float32Array([
@@ -304,9 +302,7 @@
             gl.uniformMatrix4fv(mvpOffsetLocation, false, matrix);
             gl.uniform1i(diffuseOffsetLocation, 0);
 
-            var offset = new Int32Array([
-                    100, -80
-                ]);
+            var offset = new Int32Array([100, -80]);
             gl.uniform2iv(offsetUniformLocation, offset);
 
             gl.viewport(viewports[Corners.RIGHT].x, viewports[Corners.RIGHT].y, viewports[Corners.RIGHT].z, viewports[Corners.RIGHT].w);
