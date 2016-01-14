@@ -1,6 +1,6 @@
 (function(exports) {
     "use strict";
-   /*global window,vec3*/
+    /*global window,vec3*/
 
     exports = exports || window;
 
