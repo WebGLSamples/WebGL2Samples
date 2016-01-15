@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-texture-offset.cpp -->
+<html lang="en">
+
+<head>
+    <title>WebGL 2 Samples - texture_offset</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="info">WebGL 2 Samples - texture_offset</div>
+
+    <!-- WebGL 2 shaders -->
+    <script id="vs" type="x-shader/x-vertex">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        uniform mat4 MVP;
+
+        layout(location = 0) in vec2 position;
+        layout(location = 1) in vec2 texcoord;
+
+        out vec2 st;
+
+        void main()
+        {
+            st = texcoord;
+            gl_Position = MVP * vec4(position, 0.0, 1.0);
+        }
+    </script>
+
+    <script id="fs-offset-bicubic" type="x-shader/x-fragment">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        uniform sampler2D diffuse;
+        uniform ivec2 offset;
+
+        in vec2 st;
+
+        out vec4 color;
+
+        vec4 catmullRom(in vec4 A, in vec4 B, in vec4 C, in vec4 D, in float s)
+        {
+            mat4 catmullRomMatrix = mat4(
+                vec4(-1.0, 2.0,-1.0, 0.0),
+                vec4( 3.0,-5.0, 0.0, 2.0),
+                vec4(-3.0, 4.0, 1.0, 0.0),
+                vec4( 1.0,-1.0, 0.0, 0.0));
+
+            vec4 expo = vec4(s * s * s, s * s, s, 1.0);
+
+            return 0.5 * expo * catmullRomMatrix * mat4(
+                A[0], B[0], C[0], D[0],
+                A[1], B[1], C[1], D[1],
+                A[2], B[2], C[2], D[2],
+                A[3], B[3], C[3], D[3]);
+        }
+
+        vec4 textureCatmullrom(in sampler2D sampler, in vec2 texcoord, in vec2 offset)
+        {
+            vec4 texel00 = textureOffset(sampler, texcoord + offset, ivec2(-1,-1));
+            vec4 texel10 = textureOffset(sampler, texcoord + offset, ivec2( 0,-1));
+            vec4 texel20 = textureOffset(sampler, texcoord + offset, ivec2( 1,-1));
+            vec4 texel30 = textureOffset(sampler, texcoord + offset, ivec2( 2,-1));
+
+            vec4 texel01 = textureOffset(sampler, texcoord + offset, ivec2(-1, 0));
+            vec4 texel11 = textureOffset(sampler, texcoord + offset, ivec2( 0, 0));
+            vec4 texel21 = textureOffset(sampler, texcoord + offset, ivec2( 1, 0));
+            vec4 texel31 = textureOffset(sampler, texcoord + offset, ivec2( 2, 0));
+
+            vec4 texel02 = textureOffset(sampler, texcoord + offset, ivec2(-1, 1));
+            vec4 texel12 = textureOffset(sampler, texcoord + offset, ivec2( 0, 1));
+            vec4 texel22 = textureOffset(sampler, texcoord + offset, ivec2( 1, 1));
+            vec4 texel32 = textureOffset(sampler, texcoord + offset, ivec2( 2, 1));
+
+            vec4 texel03 = textureOffset(sampler, texcoord + offset, ivec2(-1, 2));
+            vec4 texel13 = textureOffset(sampler, texcoord + offset, ivec2( 0, 2));
+            vec4 texel23 = textureOffset(sampler, texcoord + offset, ivec2( 1, 2));
+            vec4 texel33 = textureOffset(sampler, texcoord + offset, ivec2( 2, 2));
+
+            vec2 splineCoord = fract(vec2(textureSize(sampler, 0)) * texcoord);
+
+            vec4 row0 = catmullRom(texel00, texel10, texel20, texel30, splineCoord.x);
+            vec4 row1 = catmullRom(texel01, texel11, texel21, texel31, splineCoord.x);
+            vec4 row2 = catmullRom(texel02, texel12, texel22, texel32, splineCoord.x);
+            vec4 row3 = catmullRom(texel03, texel13, texel23, texel33, splineCoord.x);
+
+            return catmullRom(row0, row1, row2, row3, splineCoord.y);
+        }
+
+        void main()
+        {
+            ivec2 textureSize = textureSize(diffuse, 0);
+            color = textureCatmullrom(diffuse, st, vec2(offset) / vec2(textureSize));
+        }
+    </script>
+
+    <script id="fs-bicubic" type="x-shader/x-fragment">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        uniform sampler2D diffuse;
+
+        in vec2 st;
+
+        out vec4 color;
+
+        vec4 catmullRom(in vec4 A, in vec4 B, in vec4 C, in vec4 D, in float s)
+        {
+            mat4 catmullRomMatrix = mat4(
+                vec4(-1.0, 2.0,-1.0, 0.0),
+                vec4( 3.0,-5.0, 0.0, 2.0),
+                vec4(-3.0, 4.0, 1.0, 0.0),
+                vec4( 1.0,-1.0, 0.0, 0.0));
+
+            vec4 expo = vec4(s * s * s, s * s, s, 1.0);
+
+            return 0.5 * expo * catmullRomMatrix * mat4(
+                A[0], B[0], C[0], D[0],
+                A[1], B[1], C[1], D[1],
+                A[2], B[2], C[2], D[2],
+                A[3], B[3], C[3], D[3]);
+        }
+
+        vec4 textureCatmullrom(in sampler2D sampler, in vec2 st)
+        {
+            ivec2 size = textureSize(sampler, 0);
+            ivec2 texelCoord = ivec2(vec2(size) * st);
+
+            vec4 texel00 = texelFetchOffset(sampler, texelCoord, 0, ivec2(-1,-1));
+            vec4 texel10 = texelFetchOffset(sampler, texelCoord, 0, ivec2( 0,-1));
+            vec4 texel20 = texelFetchOffset(sampler, texelCoord, 0, ivec2( 1,-1));
+            vec4 texel30 = texelFetchOffset(sampler, texelCoord, 0, ivec2( 2,-1));
+
+            vec4 texel01 = texelFetchOffset(sampler, texelCoord, 0, ivec2(-1, 0));
+            vec4 texel11 = texelFetchOffset(sampler, texelCoord, 0, ivec2( 0, 0));
+            vec4 texel21 = texelFetchOffset(sampler, texelCoord, 0, ivec2( 1, 0));
+            vec4 texel31 = texelFetchOffset(sampler, texelCoord, 0, ivec2( 2, 0));
+
+            vec4 texel02 = texelFetchOffset(sampler, texelCoord, 0, ivec2(-1, 1));
+            vec4 texel12 = texelFetchOffset(sampler, texelCoord, 0, ivec2( 0, 1));
+            vec4 texel22 = texelFetchOffset(sampler, texelCoord, 0, ivec2( 1, 1));
+            vec4 texel32 = texelFetchOffset(sampler, texelCoord, 0, ivec2( 2, 1));
+
+            vec4 texel03 = texelFetchOffset(sampler, texelCoord, 0, ivec2(-1, 2));
+            vec4 texel13 = texelFetchOffset(sampler, texelCoord, 0, ivec2( 0, 2));
+            vec4 texel23 = texelFetchOffset(sampler, texelCoord, 0, ivec2( 1, 2));
+            vec4 texel33 = texelFetchOffset(sampler, texelCoord, 0, ivec2( 2, 2));
+
+            vec2 splineCoord = fract(vec2(size * texelCoord));
+
+            vec4 row0 = catmullRom(texel00, texel10, texel20, texel30, splineCoord.x);
+            vec4 row1 = catmullRom(texel01, texel11, texel21, texel31, splineCoord.x);
+            vec4 row2 = catmullRom(texel02, texel12, texel22, texel32, splineCoord.x);
+            vec4 row3 = catmullRom(texel03, texel13, texel23, texel33, splineCoord.x);
+
+            return catmullRom(row0, row1, row2, row3, splineCoord.y);
+        }
+
+        void main()
+        {
+            color = textureCatmullrom(diffuse, st);
+        }
+    </script>
+
+    <script src="utility.js"></script>
+    <script>
+    (function () {
+        'use strict';
+
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.min(window.innerWidth, window.innerHeight);
+        canvas.height = canvas.width;
+        document.body.appendChild(canvas);
+
+        var gl = canvas.getContext( 'webgl2', { antialias: false } );
+        var isWebGL2 = !!gl;
+        if(!isWebGL2)
+        {
+            document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
+            return;
+        }
+
+        var Corners = {
+            LEFT: 0,
+            RIGHT: 1,
+            MAX: 2
+        };
+
+        var viewports = new Array(Corners.MAX);
+
+        viewports[Corners.LEFT] = {
+            x: 0,
+            y: canvas.height / 4,
+            z: canvas.width / 2,
+            w: canvas.height / 2
+        };
+
+        viewports[Corners.RIGHT] = {
+            x: canvas.width / 2,
+            y: canvas.height / 4,
+            z: canvas.width / 2,
+            w: canvas.height / 2
+        };
+
+        // -- Init program
+        var programBicubic = createProgram(gl, getShaderSource('vs'), getShaderSource('fs-bicubic'));
+        var mvpLocation = gl.getUniformLocation(programBicubic, 'MVP');
+        var diffuseLocation = gl.getUniformLocation(programBicubic, 'diffuse');
+
+        var programOffsetBicubic = createProgram(gl, getShaderSource('vs'), getShaderSource('fs-offset-bicubic'));
+        var mvpOffsetLocation = gl.getUniformLocation(programOffsetBicubic, 'MVP');
+        var diffuseOffsetLocation = gl.getUniformLocation(programOffsetBicubic, 'diffuse');
+        var offsetUniformLocation = gl.getUniformLocation(programOffsetBicubic, 'offset');
+
+        // -- Init buffers: vec2 Position, vec2 Texcoord
+        var positions = new Float32Array([
+            -1.0, -1.0,
+             1.0, -1.0,
+             1.0,  1.0,
+             1.0,  1.0,
+            -1.0,  1.0,
+            -1.0, -1.0
+        ]);
+        var vertexPosBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var texCoords = new Float32Array([
+            0.0, 1.0,
+            1.0, 1.0,
+            1.0, 0.0,
+            1.0, 0.0,
+            0.0, 0.0,
+            0.0, 1.0
+        ]);
+        var vertexTexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        // -- Init VertexArray
+        var vertexArray = gl.createVertexArray();
+        gl.bindVertexArray(vertexArray);
+
+        var vertexPosLocation = 0; // set with GLSL layout qualifier
+        gl.enableVertexAttribArray(vertexPosLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var vertexTexLocation = 1; // set with GLSL layout qualifier
+        gl.enableVertexAttribArray(vertexTexLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
+        gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        gl.bindVertexArray(null);
+
+        loadImage('../assets/img/Di-3d.png', function(image) {
+            // -- Init Texture
+            var texture = gl.createTexture();
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+            // -- Render
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            gl.bindVertexArray(vertexArray);
+
+            var matrix = new Float32Array([
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 0.0, 1.0
+            ]);
+
+            // No offset
+            gl.useProgram(programBicubic);
+            gl.uniformMatrix4fv(mvpLocation, false, matrix);
+            gl.uniform1i(diffuseLocation, 0);
+
+            gl.viewport(viewports[Corners.RIGHT].x, viewports[Corners.RIGHT].y, viewports[Corners.RIGHT].z, viewports[Corners.RIGHT].w);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            // Offset
+            gl.useProgram(programOffsetBicubic);
+            gl.uniformMatrix4fv(mvpOffsetLocation, false, matrix);
+            gl.uniform1i(diffuseOffsetLocation, 0);
+
+            var offset = new Int32Array([100, -80]);
+            gl.uniform2iv(offsetUniformLocation, offset);
+
+            gl.viewport(viewports[Corners.LEFT].x, viewports[Corners.LEFT].y, viewports[Corners.LEFT].z, viewports[Corners.LEFT].w);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            // Delete WebGL resources
+            gl.deleteBuffer(vertexPosBuffer);
+            gl.deleteBuffer(vertexTexBuffer);
+            gl.deleteTexture(texture);
+            gl.deleteProgram(programOffsetBicubic);
+            gl.deleteProgram(programBicubic);
+            gl.deleteVertexArray(vertexArray);
+        });
+    })();
+    </script>
+
+</body>
+
+</html>
