@@ -27,6 +27,8 @@ WebGL 2 Sample Pack includes the following third-party code.
 
 ## OpenGL Samples Pack
 
+https://github.com/g-truc/ogl-samples
+
 Many samples were ported from the OpenGL Samples Pack.
 
 > The MIT License
@@ -105,11 +107,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-## noise3D
+## webgl-noise
 
 https://github.com/ashima/webgl-noise
 
-Some samples use noise3D.
+Some samples use webgl-noise.
 
 > Copyright (C) 2011 by Ashima Arts (Simplex noise)
 > Copyright (C) 2011 by Stefan Gustavson (Classic noise)
