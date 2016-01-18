@@ -15,7 +15,7 @@
 
 <body>
     <div id="info">WebGL 2 Samples - texture_immutable</div>
-    <div id="description">Immutable texture refers to the texture's allocation, not the content of the texture. Therefore, new pixel data can be uploaded, but not the size of the texture storage</div>
+    <p id="description">Immutable texture refers to the texture's allocation, not the content of the texture. Therefore, new pixel data can be uploaded, but not the size of the texture storage</p>
 
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
@@ -236,7 +236,7 @@
 
             // Immutable 3D texture
             gl.useProgram(program3D);
-            gl.uniform1i(diffuseLocation3D, 0);
+            gl.uniform1i(diffuseLocation3D, 1);
 
             gl.activeTexture(gl.TEXTURE1);
             // @todo: fix context lost error for 3D storage
@@ -271,16 +271,16 @@
             gl.bindTexture(gl.TEXTURE_3D, texture3D);
             gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_BASE_LEVEL, 0);
             gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAX_LEVEL, Math.log2(SIZE));
-            gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-            gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_NEAREST);
+            gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
             gl.texStorage3D(
-                gl.TEXTURE_3D,  // target
-                Math.log2(SIZE),              // levels
-                gl.R32F,        // internalformat
-                SIZE,           // width
-                SIZE,           // height
-                SIZE            // depth
+                gl.TEXTURE_3D,   // target
+                Math.log2(SIZE), // levels
+                gl.R32F,         // internalformat
+                SIZE,            // width
+                SIZE,            // height
+                SIZE             // depth
                 );
 
             gl.texSubImage3D(
