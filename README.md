@@ -23,6 +23,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[sampler_wrap](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:| :white_check_mark:|:white_check_mark:|
 |[sampler_filter](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_2d_array](http://webglsamples.org/WebGL2Samples/#texture_2d_array)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
+|[texture_etc2_eac](http://webglsamples.org/WebGL2Samples/#texture_etc2_eac)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[texture_format](http://webglsamples.org/WebGL2Samples/#texture_format)|:grey_question:|:white_check_mark:|:grey_question:|:white_check_mark:|
 |[texture_fetch](http://webglsamples.org/WebGL2Samples/#texture_fetch)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[texture_3d](http://webglsamples.org/WebGL2Samples/#texture_3d)|:white_check_mark:|:white_check_mark:|:grey_question:|:white_check_mark:|
