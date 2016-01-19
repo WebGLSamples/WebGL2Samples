@@ -31,7 +31,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[texture_lod](http://webglsamples.org/WebGL2Samples/#texture_lod)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[texture_offset](http://webglsamples.org/WebGL2Samples/#texture_offset)|:grey_question:|:white_check_mark:|:grey_question:|:white_check_mark:|
 |[texture_pixel_store](http://webglsamples.org/WebGL2Samples/#texture_pixel_store)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
-|[texture_srgb](http://webglsamples.org/WebGL2Samples/#texture_srgb)|:grey_question:|:white_check_mark:|:grey_question:|:white_check_mark:|
+|[texture_srgb](http://webglsamples.org/WebGL2Samples/#texture_srgb)|:x:D3D not supported|:white_check_mark:|:grey_question:|:white_check_mark:|
 |[transform_feedback_interleaved](http://webglsamples.org/WebGL2Samples/#transform_feedback_interleaved)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[transform_feedback_separated](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[fbo_rtt_texture_array](http://webglsamples.org/WebGL2Samples/#fbo_rtt_texture_array)|:x: crash|:white_check_mark:|:x: crash|:x: not working|
