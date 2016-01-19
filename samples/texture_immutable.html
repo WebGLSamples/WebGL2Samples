@@ -190,16 +190,14 @@
         gl.bindVertexArray(null);
 
         // -- Init 3D texture
-        // @todo: fix context lost error for 3D storage
+        // @todo: fix context lost error for 3D storage in Chrome OSX
         // var texture3D = create3DTexture();
-
-        // -- Initialize 3D texture data
 
         var imageUrl = '../assets/img/Di-3d.png';
         loadImage(imageUrl, function(image) {
             // -- Init 2D Texture
             var texture2D = gl.createTexture();
-            gl.activeTexture(gl.TEXTURE1);
+            gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, texture2D);
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -239,7 +237,7 @@
             gl.uniform1i(diffuseLocation3D, 1);
 
             gl.activeTexture(gl.TEXTURE1);
-            // @todo: fix context lost error for 3D storage
+            // @todo: fix context lost error for 3D storage in Chrome OSX
             // gl.bindTexture(gl.TEXTURE_3D, texture3D);
             gl.viewport(viewports[Corners.RIGHT].x, viewports[Corners.RIGHT].y, viewports[Corners.RIGHT].z, viewports[Corners.RIGHT].w);
             gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -248,7 +246,7 @@
             gl.deleteBuffer(vertexPosBuffer);
             gl.deleteBuffer(vertexTexBuffer);
             gl.deleteTexture(texture2D);
-            // @todo: fix context lost error for 3D storage
+            // @todo: fix context lost error for 3D storage in Chrome OSX
             // gl.deleteTexture(texture3D);
             gl.deleteProgram(program);
             gl.deleteProgram(program3D);
