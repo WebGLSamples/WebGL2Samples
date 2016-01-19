@@ -13,7 +13,7 @@
     <div id="info">WebGL 2 Samples - texture_derivative</div>
 
     <!-- WebGL 2 shaders -->
-    <script id="vs-x" type="x-shader/x-vertex">
+    <script id="vs" type="x-shader/x-vertex">
         #version 300 es
         precision highp float;
         precision highp int;
@@ -32,7 +32,7 @@
         }
     </script>
 
-    <script id="fs-x" type="x-shader/x-fragment">
+    <script id="fs" type="x-shader/x-fragment">
         #version 300 es
         precision highp float;
         precision highp int;
@@ -122,13 +122,9 @@
         }
 
         // -- Init program
-        var programX = createProgram(gl, getShaderSource('vs-x'), getShaderSource('fs-x'));
-        var mvpLocationX = gl.getUniformLocation(programX, 'MVP');
-        var diffuseLocationX = gl.getUniformLocation(programX, 'diffuse');
-
-        var programY = createProgram(gl, getShaderSource('vs-y'), getShaderSource('fs-y'));
-        var mvpLocationY = gl.getUniformLocation(programY, 'MVP');
-        var diffuseLocationY = gl.getUniformLocation(programY, 'diffuse');
+        var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
+        var mvpLocation = gl.getUniformLocation(program, 'MVP');
+        var diffuseLocation = gl.getUniformLocation(program, 'diffuse');
 
         // -- Init buffers: vec2 Position, vec2 Texcoord
         var positions = new Float32Array([
@@ -262,7 +258,7 @@
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_BASE_LEVEL, 0);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, LEVEL - 1);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
         for (var i = 0; i < LEVEL; ++i) {
             gl.texImage2D(gl.TEXTURE_2D, i, gl.RGB, SIZE, SIZE, 0, gl.RGB, gl.UNSIGNED_BYTE, data[i]);
         }
@@ -280,9 +276,9 @@
             0.0, 0.0, 0.0, 1.0
         ]);
 
-        gl.useProgram(programX);
-        gl.uniformMatrix4fv(mvpLocationX, false, matrix);
-        gl.uniform1i(diffuseLocationX, 0);
+        gl.useProgram(program);
+        gl.uniformMatrix4fv(mvpLocation, false, matrix);
+        gl.uniform1i(diffuseLocation, 0);
 
         gl.bindVertexArray(vertexArray);
         gl.activeTexture(gl.TEXTURE0);
@@ -293,8 +289,7 @@
         gl.deleteBuffer(vertexPosBuffer);
         gl.deleteBuffer(vertexTexBuffer);
         gl.deleteTexture(texture);
-        gl.deleteProgram(programX);
-        gl.deleteProgram(programY);
+        gl.deleteProgram(program);
         gl.deleteVertexArray(vertexArray);
 
     })();
