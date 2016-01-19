@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-fbo-srgb.cpp -->
+
+<head>
+    <title>WebGL 2 Samples - texture_srgb</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="utility.js"></script>
+</head>
+
+<body>
+    <div id="info">WebGL 2 Samples - texture_srgb</div>
+
+    <!-- Shader code is modified adapted from xissburg at http://xissburg.com/faster-gaussian-blur-in-glsl/ -->
+    <script id="vs" type="x-shader/x-vertex">
+        #version 300 es
+        #define POSITION_LOCATION 0
+        #define TEXCOORD_LOCATION 4
+
+        precision highp float;
+        precision highp int;
+
+        uniform mat4 mvp;
+
+        layout(location = POSITION_LOCATION) in vec2 position;
+        layout(location = TEXCOORD_LOCATION) in vec2 textureCoordinates;
+
+        out vec2 st;
+        out vec2 v_blurTexCoords[14];
+        out vec2 h_blurTexCoords[14];
+
+        void main()
+        {
+            st = textureCoordinates;
+            gl_Position = mvp * vec4(position, 0.0, 1.0) ;
+            v_blurTexCoords[ 0] = st + vec2(0.0, -0.050);
+            v_blurTexCoords[ 1] = st + vec2(0.0, -0.036);
+            v_blurTexCoords[ 2] = st + vec2(0.0, -0.020);
+            v_blurTexCoords[ 3] = st + vec2(0.0, -0.016);
+            v_blurTexCoords[ 4] = st + vec2(0.0, -0.012);
+            v_blurTexCoords[ 5] = st + vec2(0.0, -0.008);
+            v_blurTexCoords[ 6] = st + vec2(0.0, -0.004);
+            v_blurTexCoords[ 7] = st + vec2(0.0,  0.004);
+            v_blurTexCoords[ 8] = st + vec2(0.0,  0.008);
+            v_blurTexCoords[ 9] = st + vec2(0.0,  0.012);
+            v_blurTexCoords[10] = st + vec2(0.0,  0.016);
+            v_blurTexCoords[11] = st + vec2(0.0,  0.020);
+            v_blurTexCoords[12] = st + vec2(0.0,  0.036);
+            v_blurTexCoords[13] = st + vec2(0.0,  0.050);
+
+            h_blurTexCoords[ 0] = st + vec2(-0.050, 0.0);
+            h_blurTexCoords[ 1] = st + vec2(-0.036, 0.0);
+            h_blurTexCoords[ 2] = st + vec2(-0.020, 0.0);
+            h_blurTexCoords[ 3] = st + vec2(-0.016, 0.0);
+            h_blurTexCoords[ 4] = st + vec2(-0.012, 0.0);
+            h_blurTexCoords[ 5] = st + vec2(-0.008, 0.0);
+            h_blurTexCoords[ 6] = st + vec2(-0.004, 0.0);
+            h_blurTexCoords[ 7] = st + vec2( 0.004, 0.0);
+            h_blurTexCoords[ 8] = st + vec2( 0.008, 0.0);
+            h_blurTexCoords[ 9] = st + vec2( 0.012, 0.0);
+            h_blurTexCoords[10] = st + vec2( 0.016, 0.0);
+            h_blurTexCoords[11] = st + vec2( 0.020, 0.0);
+            h_blurTexCoords[12] = st + vec2( 0.036, 0.0);
+            h_blurTexCoords[13] = st + vec2( 0.050, 0.0);
+        }
+    </script>
+
+    <script id="fs" type="x-shader/x-fragment">
+        #version 300 es
+        #define FRAG_COLOR_LOCATION 0
+
+        precision highp float;
+        precision highp int;
+
+        struct Material
+        {
+            sampler2D diffuse;
+        };
+
+        uniform Material material;
+
+        in vec2 v_blurTexCoords[14];
+        in vec2 h_blurTexCoords[14];
+
+        in vec2 st;
+
+        layout(location = FRAG_COLOR_LOCATION) out vec4 color;
+
+        vec3 rgbToSrgb(in vec3 colorRGB, in float gammaCorrection)
+        {
+            vec3 clampedColorRGB = clamp(colorRGB, 0.0, 1.0);
+
+            return mix(
+                pow(clampedColorRGB, vec3(gammaCorrection)) * 1.055 - 0.055,
+                clampedColorRGB * 12.92,
+                lessThan(clampedColorRGB, vec3(0.0031308)));
+        }
+
+        // For all settings: 1.0 = 100% 0.5=50% 1.5 = 150%
+        vec3 contrastSaturationBrightness(vec3 color, float brt, float sat, float con)
+        {
+            const vec3 lumCoeff = vec3(0.2125, 0.7154, 0.0721);
+
+            vec3 brtColor = color * brt;
+            vec3 intensity = vec3(dot(brtColor, lumCoeff));
+            vec3 satColor = mix(intensity, brtColor, sat);
+            vec3 conColor = mix(vec3(0.5), satColor, con);
+            return conColor;
+        }
+
+        void main()
+        {
+            vec2 sampleCoord = fract(st.xy);
+
+            // *N.B*: Since we fetched in a sRGB texture format, fragment shader automatically converted
+            // from non-linear sRGB color space to linear RGB color space for us.
+            // This is useful since then we could work with the filtering math in linear space,
+            // then convert back to sRGB space for the color output.
+            // In this example, we will use a Gaussian filter for blurring.
+            vec4 colorRgb = vec4(texture(material.diffuse, st).rgb, 1.0);
+            colorRgb = mix(colorRgb, texture(material.diffuse, v_blurTexCoords[ 0]), sampleCoord.y);
+            colorRgb = mix(colorRgb, texture(material.diffuse, v_blurTexCoords[ 1]), sampleCoord.y);
+            colorRgb = mix(colorRgb, texture(material.diffuse, v_blurTexCoords[ 2]), sampleCoord.y);
+            colorRgb = mix(colorRgb, texture(material.diffuse, v_blurTexCoords[ 3]), sampleCoord.y);
+            colorRgb = mix(colorRgb, texture(material.diffuse, v_blurTexCoords[ 4]), sampleCoord.y);
+            colorRgb = mix(colorRgb, texture(material.diffuse, v_blurTexCoords[ 5]), sampleCoord.y);
+            colorRgb = mix(colorRgb, texture(material.diffuse, v_blurTexCoords[ 6]), sampleCoord.y);
+            colorRgb = mix(colorRgb, texture(material.diffuse, v_blurTexCoords[ 7]), sampleCoord.y);
+            colorRgb = mix(colorRgb, texture(material.diffuse, v_blurTexCoords[ 8]), sampleCoord.y);
+            colorRgb = mix(colorRgb, texture(material.diffuse, v_blurTexCoords[ 9]), sampleCoord.y);
+            colorRgb = mix(colorRgb, texture(material.diffuse, v_blurTexCoords[10]), sampleCoord.y);
+            colorRgb = mix(colorRgb, texture(material.diffuse, v_blurTexCoords[11]), sampleCoord.y);
+            colorRgb = mix(colorRgb, texture(material.diffuse, v_blurTexCoords[12]), sampleCoord.y);
+            colorRgb = mix(colorRgb, texture(material.diffuse, v_blurTexCoords[13]), sampleCoord.y);
+
+            colorRgb = mix(colorRgb, texture(material.diffuse, h_blurTexCoords[ 0]), sampleCoord.x);
+            colorRgb = mix(colorRgb, texture(material.diffuse, h_blurTexCoords[ 1]), sampleCoord.x);
+            colorRgb = mix(colorRgb, texture(material.diffuse, h_blurTexCoords[ 2]), sampleCoord.x);
+            colorRgb = mix(colorRgb, texture(material.diffuse, h_blurTexCoords[ 3]), sampleCoord.x);
+            colorRgb = mix(colorRgb, texture(material.diffuse, h_blurTexCoords[ 4]), sampleCoord.x);
+            colorRgb = mix(colorRgb, texture(material.diffuse, h_blurTexCoords[ 5]), sampleCoord.x);
+            colorRgb = mix(colorRgb, texture(material.diffuse, h_blurTexCoords[ 6]), sampleCoord.x);
+            colorRgb = mix(colorRgb, texture(material.diffuse, h_blurTexCoords[ 7]), sampleCoord.x);
+            colorRgb = mix(colorRgb, texture(material.diffuse, h_blurTexCoords[ 8]), sampleCoord.x);
+            colorRgb = mix(colorRgb, texture(material.diffuse, h_blurTexCoords[ 9]), sampleCoord.x);
+            colorRgb = mix(colorRgb, texture(material.diffuse, h_blurTexCoords[10]), sampleCoord.x);
+            colorRgb = mix(colorRgb, texture(material.diffuse, h_blurTexCoords[11]), sampleCoord.x);
+            colorRgb = mix(colorRgb, texture(material.diffuse, h_blurTexCoords[12]), sampleCoord.x);
+            colorRgb = mix(colorRgb, texture(material.diffuse, h_blurTexCoords[13]), sampleCoord.x);
+
+            float brightness = 1.0;
+            float saturation = 0.5;
+            float contrast = 1.0;
+            colorRgb = vec4(contrastSaturationBrightness(colorRgb.rgb, brightness, saturation, contrast), 1.0);
+            color = vec4(rgbToSrgb(colorRgb.rgb, 0.41666).rgb, 1.0);
+        }
+    </script>
+
+    <script>
+    (function() {
+        'use strict';
+
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.min(window.innerWidth, window.innerHeight);
+        canvas.height = canvas.width;
+        document.body.appendChild(canvas);
+
+        var gl = canvas.getContext( 'webgl2', { antialias: false } );
+        var isWebGL2 = !!gl;
+        if(!isWebGL2)
+        {
+            document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
+            return;
+        }
+
+        // -- Initialize program
+
+        var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
+
+        var uniformMvpLocation = gl.getUniformLocation(program,'mvp');
+        var uniformDiffuseLocation = gl.getUniformLocation(program,'material.diffuse');
+
+        // -- Initialize buffer
+
+        var positions = new Float32Array([
+            -1.0, -1.0,
+             1.0, -1.0,
+             1.0,  1.0,
+             1.0,  1.0,
+            -1.0,  1.0,
+            -1.0, -1.0
+        ]);
+        var vertexPosBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var texcoords = new Float32Array([
+            0.0, 1.0,
+            1.0, 1.0,
+            1.0, 0.0,
+            1.0, 0.0,
+            0.0, 0.0,
+            0.0, 1.0
+        ]);
+        var vertexTexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, texcoords, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER,null);
+
+        // -- Initialize vertex array
+
+        var vertexArray = gl.createVertexArray();
+        gl.bindVertexArray(vertexArray);
+
+        var vertexPosLocation = 0; // set with GLSL layout qualifier
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(vertexPosLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var vertexTexLocation = 4; // set with GLSL layout qualifier
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
+        gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(vertexTexLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        gl.bindVertexArray(null);
+
+        // -- Load texture then render
+
+        var imageUrl = '../assets/img/Di-3d.png';
+        var texture;
+        loadImage(imageUrl, function(image) {
+            texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(
+                gl.TEXTURE_2D,
+                0, // Level of details
+                gl.SRGB8, // Format
+                gl.RGB,
+                gl.UNSIGNED_BYTE, // Size of each channel
+                image
+            );
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+
+            render();
+        });
+
+       function render() {
+            // Clear color buffer
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            // Bind program
+            gl.useProgram(program);
+
+            var matrix = new Float32Array([
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 0.0, 1.0
+            ]);
+            gl.uniformMatrix4fv(uniformMvpLocation, false, matrix);
+            gl.uniform1i(uniformDiffuseLocation, 0);
+
+            gl.bindVertexArray(vertexArray);
+
+            gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
+
+            // Cleanup
+            gl.deleteBuffer(vertexPosBuffer);
+            gl.deleteBuffer(vertexTexBuffer);
+            gl.deleteVertexArray(vertexArray);
+            gl.deleteTexture(texture);
+            gl.deleteProgram(program);
+        }
+    })();
+    </script>
+
+</body>
+
+</html>
