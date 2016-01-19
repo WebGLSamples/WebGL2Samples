@@ -23,9 +23,14 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[sampler_wrap](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:| :white_check_mark:|:white_check_mark:|
 |[sampler_filter](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_derivative](http://webglsamples.org/WebGL2Samples/#texture_derivative)|:grey_question:|:white_check_mark:|:grey_question:|:white_check_mark:|
+|[texture_2d_array](http://webglsamples.org/WebGL2Samples/#texture_2d_array)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[texture_format](http://webglsamples.org/WebGL2Samples/#texture_format)|:grey_question:|:white_check_mark:|:grey_question:|:white_check_mark:|
 |[texture_fetch](http://webglsamples.org/WebGL2Samples/#texture_fetch)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
+|[texture_3d](http://webglsamples.org/WebGL2Samples/#texture_3d)|:white_check_mark:|:white_check_mark:|:grey_question:|:white_check_mark:|
+|[texture_immutable](http://webglsamples.org/WebGL2Samples/#texture_immutable)|:grey_question:|:white_check_mark: Need to update for texStorage3D|:grey_question:|:white_check_mark:|
 |[texture_integer](http://webglsamples.org/WebGL2Samples/#texture_integer)|:white_check_mark:|:grey_question:|:x: Error: Driver ran out of memory during upload|:grey_question:|
+|[texture_lod](http://webglsamples.org/WebGL2Samples/#texture_lod)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
+|[texture_offset](http://webglsamples.org/WebGL2Samples/#texture_offset)|:grey_question:|:white_check_mark:|:grey_question:|:white_check_mark:|
 |[texture_pixel_store](http://webglsamples.org/WebGL2Samples/#texture_pixel_store)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[transform_feedback_interleaved](http://webglsamples.org/WebGL2Samples/#transform_feedback_interleaved)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[transform_feedback_separated](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
