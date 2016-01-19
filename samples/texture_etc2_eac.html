@@ -125,6 +125,9 @@
         var KTX_HEADER_OFFSET = 68;
         
         var xhr = new XMLHttpRequest();
+        //The ktx file is generated using MailTextureCompressionTool http://malideveloper.arm.com/resources/tools/mali-gpu-texture-compression-tool/
+        //Other tools can be found here: https://www.khronos.org/opengles/sdk/tools/KTX/
+        //more detials about ktx file can be found here: https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/
         xhr.open('GET', '../assets/img/Di-3d.ktx', true);
         xhr.responseType = 'arraybuffer';
         xhr.onload = function(e) {
