@@ -73,5 +73,5 @@
             onload(mesh);
         };
         xhr.send();
-    }
+    };
 })();
