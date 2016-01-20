@@ -181,14 +181,14 @@
             gl.vertexAttribPointer(vertexNormalLocation, 3, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(vertexNormalLocation);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
-            
+
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexElementBuffer);
 
             gl.bindVertexArray(null);
-            
+
+            // -- Render preparation
             gl.enable(gl.DEPTH_TEST);
             
-            // -- Render preparation
             var numIndices = mesh.indices.length;
             
             var translate = vec3.create();
