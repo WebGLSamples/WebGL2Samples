@@ -15,7 +15,7 @@
 <body>
     <div id="info">WebGL 2 Samples - glsl_flat_smooth_interpolators<br/>Left: flat interpolator / Right: smooth interpolator</div>
 
-    <script id="vs" type="x-shader/x-vertex">
+    <script id="vs-smooth" type="x-shader/x-vertex">
         #version 300 es
         #define POSITION_LOCATION 0
         #define NORMAL_LOCATION 1
@@ -38,7 +38,7 @@
         }
     </script>
 
-    <script id="fs" type="x-shader/x-fragment">
+    <script id="fs-smooth" type="x-shader/x-fragment">
         #version 300 es
         #define FRAG_COLOR_LOCATION 0
 
@@ -51,7 +51,46 @@
         
         void main()
         {
-            //color = do
+            color = vec4(v_normal, 1.0);
+        }
+    </script>
+    
+    <script id="vs-flat" type="x-shader/x-vertex">
+        #version 300 es
+        #define POSITION_LOCATION 0
+        #define NORMAL_LOCATION 1
+
+        precision highp float;
+        precision highp int;
+
+        uniform mat4 mvp;
+        uniform mat4 mvNormal;
+
+        layout(location = POSITION_LOCATION) in vec3 position;
+        layout(location = NORMAL_LOCATION) in vec3 normal;
+
+        flat out vec3 v_normal;
+
+        void main()
+        {
+            v_normal = normalize((mvNormal * vec4(normal, 0)).xyz);
+            gl_Position = mvp * vec4(position, 1.0) ;
+        }
+    </script>
+
+    <script id="fs-flat" type="x-shader/x-fragment">
+        #version 300 es
+        #define FRAG_COLOR_LOCATION 0
+
+        precision highp float;
+        precision highp int;
+
+        flat in vec3 v_normal;
+
+        layout(location = FRAG_COLOR_LOCATION) out vec4 color;
+        
+        void main()
+        {
             color = vec4(v_normal, 1.0);
         }
     </script>
@@ -101,9 +140,9 @@
         };
 
         // -- Initialize program
-        var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
-        var uniformMvpLocation = gl.getUniformLocation(program, "mvp");
-        var uniformMvNormalLocation = gl.getUniformLocation(program, "mvNormal");
+        var programs = [createProgram(gl, getShaderSource('vs-flat'), getShaderSource('fs-flat')), createProgram(gl, getShaderSource('vs-smooth'), getShaderSource('fs-smooth'))];
+        var uniformMvpLocations = [gl.getUniformLocation(programs[VIEWPORTS.LEFT], "mvp"), gl.getUniformLocation(programs[VIEWPORTS.RIGHT], "mvp")];
+        var uniformMvNormalLocations = [gl.getUniformLocation(programs[VIEWPORTS.LEFT], "mvNormal"), gl.getUniformLocation(programs[VIEWPORTS.RIGHT], "mvNormal")];
         
         var vertexPosBuffer = gl.createBuffer();
         var vertexNormalBuffer = gl.createBuffer();
@@ -150,17 +189,9 @@
             
             gl.enable(gl.DEPTH_TEST);
             
-            render(mesh);
-        });
-        
-        function render(mesh) {
-            // Clear color buffer
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-
-            // Bind program
-            gl.useProgram(program);
-
+            // render
+            var numIndices = mesh.indices.length;
+            
             var translate = vec3.create();
             vec3.set(translate, 0, -18, -60);
             var scale = vec3.create();
@@ -168,27 +199,41 @@
             var modelView = mat4.create();
             mat4.translate(modelView, modelView, translate);
             mat4.scale(modelView, modelView, scale);
-            mat4.rotateY(modelView, modelView, 0.75);
             
+            var rotatationSpeedY= 0.01;
+   
             var perspective = mat4.create();
             mat4.perspective(perspective, 0.785, 1, 0.1, 1000);
             var mvp = mat4.create();
-            mat4.multiply(mvp, perspective, modelView);
-            gl.uniformMatrix4fv(uniformMvpLocation, false, mvp);
-            
-            mat4.invert(modelView, modelView);
-            mat4.transpose(modelView,modelView);
-            gl.uniformMatrix4fv(uniformMvNormalLocation, false, modelView);
+         
+            var mvNormal = mat4.create();
             
             gl.bindVertexArray(vertexArray);
+            
+            (function render() {
+                gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                
+                mat4.rotateY(modelView, modelView, rotatationSpeedY);
+                mat4.multiply(mvp, perspective, modelView);
+                
+                mat4.invert(mvNormal, modelView);
+                mat4.transpose(mvNormal, mvNormal);
 
-            for (var i = 0; i < VIEWPORTS.MAX; ++i) {
-                gl.viewport(viewport[i].x, viewport[i].y, viewport[i].width, viewport[i].height);
-                gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_SHORT, 0);
-            }
-
-            //requestAnimationFrame(render);
-        }
+                for (var i = 0; i < VIEWPORTS.MAX; ++i) {
+                    gl.useProgram(programs[i]);
+                    gl.uniformMatrix4fv(uniformMvpLocations[i], false, mvp);
+                    gl.uniformMatrix4fv(uniformMvNormalLocations[i], false, mvNormal);
+                    
+                    gl.viewport(viewport[i].x, viewport[i].y, viewport[i].width, viewport[i].height);
+                    gl.drawElements(gl.TRIANGLES, numIndices, gl.UNSIGNED_SHORT, 0);
+                }
+                
+                requestAnimationFrame(render);
+            })();
+        });
+        
+        
         
         window.onunload = function() {
             // -- Delete WebGL resources
@@ -196,7 +241,8 @@
             gl.deleteBuffer(vertexNormalBuffer);
             gl.deleteBuffer(vertexElementBuffer);
             gl.deleteVertexArray(vertexArray);
-            gl.deleteProgram(program);
+            gl.deleteProgram(programs[VIEWPORTS.LEFT]);
+            gl.deleteProgram(programs[VIEWPORTS.RIGHT]);
         };
     })();
     </script>
