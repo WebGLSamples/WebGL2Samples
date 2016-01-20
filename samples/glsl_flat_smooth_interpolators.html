@@ -28,7 +28,7 @@
         layout(location = POSITION_LOCATION) in vec3 position;
         layout(location = NORMAL_LOCATION) in vec3 normal;
 
-        flat out vec3 v_normal;
+        out vec3 v_normal;
 
         void main()
         {
@@ -47,7 +47,7 @@
         //const vec3 DIFFUSE = vec3 (1.0, 1.0, 1.0);
         //const vec3 LIGHT_POS = vec3 (-1.0, 1.0, 0.0);
 
-        flat in vec3 v_normal;
+        in vec3 v_normal;
 
         layout(location = FRAG_COLOR_LOCATION) out vec4 color;
         
@@ -112,8 +112,8 @@
         var vertexArray = gl.createVertexArray();
 
         // -- Load obj then render
-        //var objURL = '../assets/obj/di_model.obj';
-        var objURL = '../assets/obj/cow_smooth.obj';
+        var objURL = '../assets/obj/di_model_tri.obj';
+        //var objURL = '../assets/obj/cow_smooth.obj';
         loadObj(objURL, function(mesh) {
             // -- Initialize buffer
             var positions = new Float32Array(mesh.vertices); 
@@ -165,13 +165,13 @@
             gl.useProgram(program);
 
             var translate = vec3.create();
-            //vec3.set(translate, 0, -50, -150);
-            vec3.set(translate, 0, 0, -2);
+            vec3.set(translate, 0, -18, -60);
             var scale = vec3.create();
-            vec3.set(scale, 0.5, 0.5, 0.5);
+            vec3.set(scale, 0.3, 0.3, 0.3);
             var modelView = mat4.create();
-            mat4.scale(modelView, modelView, scale);
             mat4.translate(modelView, modelView, translate);
+            mat4.scale(modelView, modelView, scale);
+            
             var perspective = mat4.create();
             mat4.perspective(perspective, 0.785, 1, 0.1, 1000);
             var mvp = mat4.create();
