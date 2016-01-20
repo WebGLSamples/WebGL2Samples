@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-texture-derivative.cpp -->
+<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-texture-derivative.cpp and adapted from Mozilla's sample 5 https://github.com/mdn/webgl-examples/tree/gh-pages/tutorial/sample5 -->
 <html lang="en">
 
 <head>
@@ -7,6 +7,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
+    <script src="third-party/gl-matrix.js"></script>
 </head>
 
 <body>
@@ -18,17 +19,21 @@
         precision highp float;
         precision highp int;
 
-        uniform mat4 MVP;
+        uniform mat4 mvMatrix;
+        uniform mat4 pMatrix;
 
-        layout(location = 0) in vec2 position;
+        layout(location = 0) in vec3 position;
         layout(location = 1) in vec2 texcoord;
+        layout(location = 2) in vec4 color;
 
         out vec2 st;
+        out vec3 vPosition;
 
         void main()
         {
             st = texcoord;
-            gl_Position = MVP * vec4(position, 0.0, 1.0);
+            vPosition = vec3(mvMatrix * vec4(position, 1.0));
+            gl_Position = pMatrix * mvMatrix * vec4(position, 1.0);
         }
     </script>
 
@@ -36,10 +41,12 @@
         #version 300 es
         precision highp float;
         precision highp int;
+        precision highp sampler2D;
 
         uniform sampler2D diffuse;
 
         in vec2 st;
+        in vec3 vPosition;
 
         out vec4 color;
 
@@ -60,47 +67,21 @@
 
         void main()
         {
+            // vec2 size = vec2(textureSize(diffuse, 0));
+            vec2 sampleCoord = fract(st.xy);
             float level = textureLevel(diffuse, st);
 
+            // Compute LOD using gradient
             color = textureLod(diffuse, st, level);
+
+            // Compute flat normal using gradient
+            vec3 fdx = vec3(dFdx(vPosition.x), dFdx(vPosition.y), dFdx(vPosition.z));
+            vec3 fdy = vec3(dFdy(vPosition.x), dFdy(vPosition.y), dFdy(vPosition.z));
+
+            vec3 N = normalize(cross(fdx, fdy));
+            color = mix(color, vec4(N, 1.0), 0.5);
         }
 
-    </script>
-
-    <script id="vs-y" type="x-shader/x-vertex">
-        #version 300 es
-        precision highp float;
-        precision highp int;
-
-        uniform mat4 MVP;
-
-        layout(location = 0) in vec2 position;
-        layout(location = 1) in vec2 texcoord;
-
-        out vec2 st;
-
-        void main()
-        {
-            st = texcoord;
-            gl_Position = MVP * vec4(position, 0.0, 1.0);
-        }
-    </script>
-
-    <script id="fs-y" type="x-shader/x-fragment">
-        #version 300 es
-        precision highp float;
-        precision highp int;
-
-        uniform sampler2D diffuse;
-
-        in vec2 st;
-
-        out vec4 color;
-
-        void main()
-        {
-            color = texture(diffuse, st);
-        }
     </script>
 
     <script src="utility.js"></script>
@@ -123,17 +104,49 @@
 
         // -- Init program
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
-        var mvpLocation = gl.getUniformLocation(program, 'MVP');
+        var mvMatrixLocation = gl.getUniformLocation(program, 'mvMatrix');
+        var pMatrixLocation = gl.getUniformLocation(program, 'pMatrix');
         var diffuseLocation = gl.getUniformLocation(program, 'diffuse');
 
-        // -- Init buffers: vec2 Position, vec2 Texcoord
+        // -- Init buffers
+
+        positions
         var positions = new Float32Array([
-            -1.0, -1.0,
-             1.0, -1.0,
-             1.0,  1.0,
-             1.0,  1.0,
-            -1.0,  1.0,
-            -1.0, -1.0
+          // Front face
+          -1.0, -1.0,  1.0,
+           1.0, -1.0,  1.0,
+           1.0,  1.0,  1.0,
+          -1.0,  1.0,  1.0,
+
+          // Back face
+          -1.0, -1.0, -1.0,
+          -1.0,  1.0, -1.0,
+           1.0,  1.0, -1.0,
+           1.0, -1.0, -1.0,
+
+          // Top face
+          -1.0,  1.0, -1.0,
+          -1.0,  1.0,  1.0,
+           1.0,  1.0,  1.0,
+           1.0,  1.0, -1.0,
+
+          // Bottom face
+          -1.0, -1.0, -1.0,
+           1.0, -1.0, -1.0,
+           1.0, -1.0,  1.0,
+          -1.0, -1.0,  1.0,
+
+          // Right face
+           1.0, -1.0, -1.0,
+           1.0,  1.0, -1.0,
+           1.0,  1.0,  1.0,
+           1.0, -1.0,  1.0,
+
+          // Left face
+          -1.0, -1.0, -1.0,
+          -1.0, -1.0,  1.0,
+          -1.0,  1.0,  1.0,
+          -1.0,  1.0, -1.0
         ]);
         var vertexPosBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
@@ -141,17 +154,65 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         var texCoords = new Float32Array([
+
+            // Front face
+            0.0, 0.0,
             0.0, 1.0,
             1.0, 1.0,
             1.0, 0.0,
-            1.0, 0.0,
+
+            // Back face
             0.0, 0.0,
-            0.0, 1.0
+            1.0, 0.0,
+            1.0, 1.0,
+            0.0, 1.0,
+
+            // Top face
+            0.0, 0.0,
+            0.0, 1.0,
+            1.0, 1.0,
+            1.0, 0.0,
+
+            // Bottom face
+            0.0, 0.0,
+            0.0, 1.0,
+            1.0, 1.0,
+            1.0, 0.0,
+
+            // Right face
+            0.0, 0.0,
+            0.0, 1.0,
+            1.0, 1.0,
+            1.0, 0.0,
+
+            // Left face
+            0.0, 0.0,
+            0.0, 1.0,
+            1.0, 1.0,
+            1.0, 0.0
+
         ]);
         var vertexTexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        // Element buffer
+        var indexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+        var cubeVertexIndices = [
+          0,  1,  2,      0,  2,  3,    // front
+          4,  5,  6,      4,  6,  7,    // back
+          8,  9,  10,     8,  10, 11,   // top
+          12, 13, 14,     12, 14, 15,   // bottom
+          16, 17, 18,     16, 18, 19,   // right
+          20, 21, 22,     20, 22, 23    // left
+        ];
+
+        // Now send the element array to GL
+
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeVertexIndices), gl.STATIC_DRAW);
 
         // -- Init VertexArray
         var vertexArray = gl.createVertexArray();
@@ -160,7 +221,7 @@
         var vertexPosLocation = 0; // set with GLSL layout qualifier
         gl.enableVertexAttribArray(vertexPosLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-        gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(vertexPosLocation, 3, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         var vertexTexLocation = 1; // set with GLSL layout qualifier
@@ -169,129 +230,126 @@
         gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+
         gl.bindVertexArray(null);
 
         // -- Init Texture
 
-        var SIZE = 8;
-        var LEVEL = 4;
-        var colors = [
-            new Uint8Array([214,  37, 152]),         // 0, Pink C
-            new Uint8Array([239,  51,  64]),         // 1, Red 032 C
-            new Uint8Array([254,  80,   0]),         // 2, Orange 021 C
-            new Uint8Array([255, 215,   0]),         // 3, Yellow 012 C
-            new Uint8Array([0, 132, 61]),            // 4, 348 C (Green)
-            new Uint8Array([0, 133, 202]),           // 5, Process Blue C
-            new Uint8Array([16,   6, 159]),          // 6, Blue 072 C
-            new Uint8Array([78,  0, 142])            // 7, Medium Purple C
-        ];
+        var imageUrl = '../assets/img/Di-3d.png';
+        var texture;
+        loadImage(imageUrl, function(image) {
+            // -- Init 2D Texture
+            texture = gl.createTexture();
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-        var SET =
-        [
-            [
-                4, 0, 1, 2, 1, 7, 0, 7,
-                7, 1, 0, 5, 6, 7, 7, 3,
-                1, 5, 2, 5, 7, 2, 6, 1,
-                1, 3, 3, 3, 0, 2, 4, 0,
-                7, 5, 0, 6, 1, 2, 0, 3,
-                7, 2, 4, 1, 7, 3, 4, 3,
-                4, 3, 5, 1, 5, 2, 3, 6,
-                7, 2, 2, 2, 5, 5, 6, 6,
-            ],
-            [
-                0, 2, 3, 4, 1, 6, 5, 7,
-                5, 4, 0, 5, 3, 7, 2, 1,
-                6, 7, 1, 2, 5, 4, 3, 0,
-                1, 5, 4, 3, 7, 0, 6, 2,
-                3, 6, 7, 0, 2, 1, 4, 5,
-                2, 0, 5, 1, 4, 3, 7, 6,
-                4, 1, 2, 7, 6, 5, 0, 3,
-                7, 3, 6, 5, 0, 2, 1, 4,
-            ],
-            [
-                2, 3, 4, 5, 7, 2, 7, 5,
-                6, 7, 1, 3, 6, 6, 2, 0,
-                6, 7, 5, 7, 6, 6, 2, 4,
-                6, 3, 1, 7, 6, 6, 7, 1,
-                7, 0, 4, 3, 2, 2, 5, 1,
-                0, 1, 4, 5, 3, 5, 4, 1,
-                0, 0, 5, 5, 0, 4, 1, 1,
-                2, 2, 7, 5, 4, 1, 1, 4,
-            ],
-            [
-                0, 7, 6, 7, 3, 6, 7, 3,
-                2, 6, 3, 6, 1, 3, 6, 1,
-                3, 5, 4, 5, 0, 4, 5, 0,
-                1, 4, 0, 4, 2, 0, 4, 2,
-                2, 6, 3, 6, 1, 3, 6, 1,
-                3, 5, 4, 5, 0, 4, 5, 0,
-                2, 6, 3, 6, 1, 3, 6, 1,
-                6, 1, 5, 1, 4, 5, 1, 4,
-            ]
-        ];
+            // -- Allocate storage for the texture
+            gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGB8, 512, 512);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGB, gl.UNSIGNED_BYTE, image);
 
-        function buildColorChart(colors, set, size) {
-            var data = new Uint8Array(size * size * 3);
+            requestAnimationFrame(render);
 
-            for (var j = 0; j < size; ++j) {
-                for (var i = 0; i < size; ++i) {
-                    var texelIndex = i + j * size;
-                    var colorIndex = set[texelIndex];
-                    for (var c = 0; c < 3; ++c) {
-                        data[texelIndex * 3 + c] = colors[colorIndex][c];
-                    }
-                }
-            }
+        });
 
-            return data;
-        }
+        // -- Initialize render variables
+        var orientation = [0.0, 0.0, 0.0];
 
-        var data = new Array(LEVEL);
-
-        for (var l = 0; l < LEVEL; ++l) {
-            data[l] = buildColorChart(colors, SET[l], SIZE);
-        }
-
-        var texture = gl.createTexture();
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_BASE_LEVEL, 0);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, LEVEL - 1);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
-        for (var i = 0; i < LEVEL; ++i) {
-            gl.texImage2D(gl.TEXTURE_2D, i, gl.RGB, SIZE, SIZE, 0, gl.RGB, gl.UNSIGNED_BYTE, data[i]);
-        }
-
-        gl.generateMipmap(gl.TEXTURE_2D);
-
-        // -- Render
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-
-        var matrix = new Float32Array([
-            1.0, 0.0, 0.0, 0.0,
-            0.0, 1.0, 0.0, 0.0,
-            0.0, 0.0, 1.0, 0.0,
+        var modelMatrix = mat4.create([
+            0.5, 0.0, 0.0, 0.0,
+            0.0, 0.5, 0.0, 0.0,
+            0.0, 0.0, 0.5, 0.0,
             0.0, 0.0, 0.0, 1.0
         ]);
 
-        gl.useProgram(program);
-        gl.uniformMatrix4fv(mvpLocation, false, matrix);
-        gl.uniform1i(diffuseLocation, 0);
+        var viewMatrix = mat4.lookAt(
+            [4, 3, 300],
+            [0, 0, 0],
+            [0, 1, 0]
+            );
 
-        gl.bindVertexArray(vertexArray);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        var mvMatrix = mat4.multiply(viewMatrix, modelMatrix);
+        var perspectiveMatrix = mat4.perspective(0.45, 1, 0.1, 1000.0);
 
-        // Delete WebGL resources
-        gl.deleteBuffer(vertexPosBuffer);
-        gl.deleteBuffer(vertexTexBuffer);
-        gl.deleteTexture(texture);
-        gl.deleteProgram(program);
-        gl.deleteVertexArray(vertexArray);
+        // -- Mouse Behaviour
 
+        var mouseDown = false;
+        var lastMouseX = 0;
+        var lastMouseY = 0;
+
+        canvas.onmousedown = function(event) {
+            mouseDown = true;
+            lastMouseX = event.clientX;
+            lastMouseY = event.clientY;
+        };
+
+        canvas.onmouseup = function(event) {
+            mouseDown = false;
+        };
+
+        canvas.onmousemove = function(event) {
+            var newX = event.clientX;
+            var newY = event.clientY;
+
+            var deltaX = newX - lastMouseX;
+            var deltaY = newY - lastMouseY;
+
+            var m = mat4.identity();
+            mat4.rotateX(m, deltaX / 100.0, m);
+            mat4.rotateY(m, deltaY / 100.0, m);
+            mat4.scale(m, [(1 + deltaX / 1000.0), (1 + deltaX / 1000.0), (1 + deltaX / 1000.0)], m);
+
+            mat4.multiply(mvMatrix, m, mvMatrix);
+            lastMouseX = newX;
+            lastMouseY = newY;
+        };
+
+        function render() {
+
+            // -- Render
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            gl.enable(gl.DEPTH_TEST);
+
+            orientation[0] = 0.00020; // yaw
+            orientation[1] = 0.00010; // pitch
+            orientation[2] = 0.00005; // roll
+
+            mvMatrix = mat4.rotateX(mvMatrix, orientation[0] * Math.PI);
+            mvMatrix = mat4.rotateY(mvMatrix, orientation[1] * Math.PI);
+            mvMatrix = mat4.rotateZ(mvMatrix, orientation[2] * Math.PI);
+
+            gl.bindVertexArray(vertexArray);
+            gl.useProgram(program);
+            gl.uniformMatrix4fv(mvMatrixLocation, false, mvMatrix);
+            gl.uniformMatrix4fv(pMatrixLocation, false, perspectiveMatrix);
+            gl.uniform1i(diffuseLocation, 0);
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+
+            gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0, 1);
+
+            requestAnimationFrame(render);
+        }
+
+        document.onunload = function() {
+
+            // Delete WebGL resources
+            gl.deleteBuffer(vertexPosBuffer);
+            gl.deleteBuffer(vertexTexBuffer);
+            gl.deleteBuffer(indexBuffer);
+            gl.deleteTexture(texture);
+            gl.deleteProgram(program);
+            gl.deleteVertexArray(vertexArray);
+
+        };
     })();
     </script>
 
