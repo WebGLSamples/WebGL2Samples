@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-texture-lod.cpp -->
 <html lang="en">
 
 <head>
@@ -189,7 +188,7 @@
             
             gl.enable(gl.DEPTH_TEST);
             
-            // render
+            // -- Render preparation
             var numIndices = mesh.indices.length;
             
             var translate = vec3.create();
@@ -210,6 +209,7 @@
             
             gl.bindVertexArray(vertexArray);
             
+            // -- Render loop
             (function render() {
                 gl.clearColor(0.0, 0.0, 0.0, 1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT);
@@ -232,9 +232,7 @@
                 requestAnimationFrame(render);
             })();
         });
-        
-        
-        
+   
         window.onunload = function() {
             // -- Delete WebGL resources
             gl.deleteBuffer(vertexPosBuffer);
