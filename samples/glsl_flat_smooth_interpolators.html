@@ -24,6 +24,7 @@
         precision highp int;
 
         uniform mat4 mvp;
+        uniform mat4 mvNormal;
 
         layout(location = POSITION_LOCATION) in vec3 position;
         layout(location = NORMAL_LOCATION) in vec3 normal;
@@ -32,7 +33,7 @@
 
         void main()
         {
-            v_normal = normal;
+            v_normal = normalize((mvNormal * vec4(normal, 0)).xyz);
             gl_Position = mvp * vec4(position, 1.0) ;
         }
     </script>
@@ -43,9 +44,6 @@
 
         precision highp float;
         precision highp int;
-
-        //const vec3 DIFFUSE = vec3 (1.0, 1.0, 1.0);
-        //const vec3 LIGHT_POS = vec3 (-1.0, 1.0, 0.0);
 
         in vec3 v_normal;
 
@@ -105,6 +103,7 @@
         // -- Initialize program
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
         var uniformMvpLocation = gl.getUniformLocation(program, "mvp");
+        var uniformMvNormalLocation = gl.getUniformLocation(program, "mvNormal");
         
         var vertexPosBuffer = gl.createBuffer();
         var vertexNormalBuffer = gl.createBuffer();
@@ -113,7 +112,6 @@
 
         // -- Load obj then render
         var objURL = '../assets/obj/di_model_tri.obj';
-        //var objURL = '../assets/obj/cow_smooth.obj';
         loadObj(objURL, function(mesh) {
             // -- Initialize buffer
             var positions = new Float32Array(mesh.vertices); 
@@ -133,7 +131,6 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
             
             // -- Initialize vertex array
-            
             gl.bindVertexArray(vertexArray);
             var vertexPosLocation = 0; // set with GLSL layout qualifier
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
@@ -171,12 +168,17 @@
             var modelView = mat4.create();
             mat4.translate(modelView, modelView, translate);
             mat4.scale(modelView, modelView, scale);
+            mat4.rotateY(modelView, modelView, 0.75);
             
             var perspective = mat4.create();
             mat4.perspective(perspective, 0.785, 1, 0.1, 1000);
             var mvp = mat4.create();
             mat4.multiply(mvp, perspective, modelView);
             gl.uniformMatrix4fv(uniformMvpLocation, false, mvp);
+            
+            mat4.invert(modelView, modelView);
+            mat4.transpose(modelView,modelView);
+            gl.uniformMatrix4fv(uniformMvNormalLocation, false, modelView);
             
             gl.bindVertexArray(vertexArray);
 
