@@ -188,6 +188,7 @@
 
             // -- Render preparation
             gl.enable(gl.DEPTH_TEST);
+            gl.depthFunc(gl.LEQUAL);
             
             var numIndices = mesh.indices.length;
             
