@@ -12,7 +12,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 
 ## Samples
 
-|              | Chrome 49 Windows 10| Chrome 49 OSX 10.10| Firefox 45 Windows 10| Firefox 45 OSX 10.10|
+|              | Chrome 50 Windows 10| Chrome 49 OSX 10.10| Firefox 45 Windows 10| Firefox 45 OSX 10.10|
 |--------------|:-----------------:|:--------------------------------------:|:-----------------:|:-----------------------:|
 |[draw_image_space](http://webglsamples.org/WebGL2Samples/#draw_image_space)|:x: `gl_VertexID` not supported|:grey_question:|:x: `gl_VertexID` not supported|:grey_question:|
 |[draw_instanced](http://webglsamples.org/WebGL2Samples/#draw_instanced)|:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
