@@ -229,7 +229,7 @@
         gl.uniformMatrix4fv(mvpLocationTexture, false, IDENTITY);
         gl.drawArrays(gl.LINE_LOOP, 0, vertexCount);
         
-        // Blit framebuffers
+        // Blit framebuffers, no Multisample texture 2d in WebGL 2
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, framebuffers[FRAMEBUFFER.RENDERBUFFER]);
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebuffers[FRAMEBUFFER.COLORBUFFER]);
         gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 1.0]);
