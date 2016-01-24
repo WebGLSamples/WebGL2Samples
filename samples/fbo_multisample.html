@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
+<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-primitive-line-msaa.cpp -->
 <head>
     <title>WebGL 2 Samples - fbo_multisample</title>
     <meta charset="utf-8">
@@ -154,7 +154,7 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         // -- Init Texture
-        // simple sample, storing the multisample render result
+        // used for draw framebuffer storage
         var FRAMEBUFFER_SIZE = {
             x: canvas.width, 
             y: canvas.height
@@ -166,7 +166,7 @@
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
         gl.bindTexture(gl.TEXTURE_2D, null);
 
-        // -- Init Frame Buffer
+        // -- Init Frame Buffers
         var FRAMEBUFFER = {
             RENDERBUFFER: 0, 
             COLORBUFFER: 1
@@ -177,7 +177,6 @@
         ];
         var colorRenderbuffer = gl.createRenderbuffer();
         gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
-        //gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y);
         gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y);
         
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers[FRAMEBUFFER.RENDERBUFFER]);
@@ -221,7 +220,6 @@
         // -- Render
         
         // Pass 1
-        // enable multisample
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers[FRAMEBUFFER.RENDERBUFFER]);
         gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 1.0]);
         gl.useProgram(programs[PROGRAM.TEXTURE]);
@@ -241,9 +239,7 @@
             gl.COLOR_BUFFER_BIT, gl.NEAREST
         );
         
-        
-        
-        //Pass 2
+        // Pass 2
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.useProgram(programs[PROGRAM.SPLASH]);
         gl.uniform1i(diffuseLocation, 0);
@@ -262,78 +258,18 @@
         gl.uniformMatrix4fv(mvpLocation, false, mvp);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
         
+        // -- Delete WebGL resources
+        gl.deleteBuffer(vertexPosBuffer);
+        gl.deleteBuffer(vertexTexBuffer);
+        gl.deleteTexture(texture);
+        gl.deleteRenderbuffer(colorRenderbuffer);
+        gl.deleteFramebuffer(framebuffers[FRAMEBUFFER.RENDERBUFFER]);
+        gl.deleteFramebuffer(framebuffers[FRAMEBUFFER.COLORBUFFER]);
+        gl.deleteVertexArray(vertexArrays[PROGRAM.TEXTURE]);
+        gl.deleteVertexArray(vertexArrays[PROGRAM.SPLASH]);
+        gl.deleteProgram(programs[PROGRAM.TEXTURE]);
+        gl.deleteProgram(programs[PROGRAM.SPLASH]);
         
-        
-        // var mvp = mat4.create();
-        // var scaleVector3 = vec3.create();
-        
-        // (function render() {
-        //     gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        //     gl.clear(gl.COLOR_BUFFER_BIT);
-            
-        //     vec3.set(scaleVector3, scale, scale, scale);
-        //     var mvpCur = mat4.create();
-        //     mat4.scale(mvpCur, mvp, scaleVector3);
-            
-        //     gl.uniformMatrix4fv(mvpLocation, false, mvpCur);
-        //     gl.drawArrays(gl.TRIANGLES, 0, 6);
-            
-        //     //gl.uniformMatrix4fv(mvpLocationTexture, false, mvpCur);
-        //     //gl.drawArrays(gl.LINE_LOOP, 0, vertexCount);
-            
-        //     requestAnimationFrame(render);
-        // })();
-        /*
-        
-        var mvp = mat4.create();
-        
-        mat4.rotateZ(mvp, mvp, 0.523);
-        
-        var scaleVector3 = vec3.create();
-        
-            
-        gl.useProgram(program);
-        
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        
-        gl.uniform1i(diffuseLocation, 0);
-
-        gl.bindVertexArray(vertexArray);
-
-        
-
-        // -- Render loop
-        (function render() {
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            
-            vec3.set(scaleVector3, scale, scale, scale);
-            var mvpCur = mat4.create();
-            mat4.scale(mvpCur, mvp, scaleVector3);
-            
-            
-            gl.uniformMatrix4fv(mvpLocation, false, mvpCur);
-            
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
-            
-            requestAnimationFrame(render);
-        })();
-        */
-        
-        window.onunload = function() {
-            // -- Delete WebGL resources
-            gl.deleteBuffer(vertexPosBuffer);
-            gl.deleteBuffer(vertexTexBuffer);
-            gl.deleteTexture(texture);
-            gl.deleteRenderbuffer(colorRenderbuffer);
-            gl.deleteFramebuffer(framebuffers[FRAMEBUFFER.RENDERBUFFER]);
-            gl.deleteFramebuffer(framebuffers[FRAMEBUFFER.COLORBUFFER]);
-            gl.deleteVertexArray(vertexArrays[PROGRAM.TEXTURE]);
-            gl.deleteVertexArray(vertexArrays[PROGRAM.SPLASH]);
-            gl.deleteProgram(programs[PROGRAM.TEXTURE]);
-            gl.deleteProgram(programs[PROGRAM.SPLASH]);
-        };
     })();
     </script>
 
