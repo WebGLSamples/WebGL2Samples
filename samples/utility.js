@@ -63,4 +63,15 @@
             imgs.push(loadImage(urls[i], onImgLoad));
         }
     };
+    
+    window.loadObj = function(url, onload) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = 'text';
+        xhr.onload = function(e) {
+            var mesh = new OBJ.Mesh(this.response);
+            onload(mesh);
+        };
+        xhr.send();
+    };
 })();
