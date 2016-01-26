@@ -67,7 +67,6 @@
 
         void main()
         {
-            // vec2 size = vec2(textureSize(diffuse, 0));
             vec2 sampleCoord = fract(st.xy);
             float level = textureLevel(diffuse, st);
 
@@ -153,7 +152,6 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         var texCoords = new Float32Array([
-
             // Front face
             0.0, 0.0,
             0.0, 1.0,
@@ -189,7 +187,6 @@
             0.0, 1.0,
             1.0, 1.0,
             1.0, 0.0
-
         ]);
         var vertexTexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
@@ -309,12 +306,13 @@
         };
 
         function render() {
-
             // -- Render
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             gl.enable(gl.DEPTH_TEST);
+            gl.enable(gl.CULL_FACE);
+            gl.cullFace(gl.BACK);
 
             orientation[0] = 0.00020; // yaw
             orientation[1] = 0.00010; // pitch
@@ -339,7 +337,6 @@
         }
 
         document.onunload = function() {
-
             // Delete WebGL resources
             gl.deleteBuffer(vertexPosBuffer);
             gl.deleteBuffer(vertexTexBuffer);
