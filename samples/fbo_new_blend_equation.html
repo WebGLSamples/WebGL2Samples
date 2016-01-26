@@ -223,18 +223,18 @@
                 }
                 else if(i == Corners.TOP_RIGHT)
                 {
-                    gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
+                    gl.drawArrays(gl.TRIANGLES, 0, 6);
                 }
                 else if(i == Corners.BOTTOM_RIGHT)
                 {
                     gl.blendEquation(gl.MIN);
-                    gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
+                    gl.drawArrays(gl.TRIANGLES, 0, 6);
                     
                 }
                 else if(i == Corners.BOTTOM_LEFT)
                 {
                     gl.blendEquation(gl.MAX);
-                    gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
+                    gl.drawArrays(gl.TRIANGLES, 0, 6);
                 }
             }
 
