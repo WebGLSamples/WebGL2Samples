@@ -12,9 +12,9 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 
 ## Samples
 
-|              | Chrome 50 Windows 10| Chrome 49 OSX 10.10| Firefox 45 Windows 10| Firefox 45 OSX 10.10|
+|              | Chrome 50 Windows 10| Chrome 50 OSX 10.10| Firefox 45 Windows 10| Firefox 45 OSX 10.10|
 |--------------|:-----------------:|:--------------------------------------:|:-----------------:|:-----------------------:|
-|[draw_image_space](http://webglsamples.org/WebGL2Samples/#draw_image_space)|:x: `gl_VertexID` not supported|:grey_question:|:x: `gl_VertexID` not supported|:grey_question:|
+|[draw_image_space](http://webglsamples.org/WebGL2Samples/#draw_image_space)|:x: `gl_VertexID` not supported|:x: `gl_VertexID` not supported|:x: `gl_VertexID` not supported|:x: `gl_VertexID` not supported|
 |[draw_instanced](http://webglsamples.org/WebGL2Samples/#draw_instanced)|:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
 |[draw_range_arrays](http://webglsamples.org/WebGL2Samples/#draw_range_arrays)|:white_check_mark: | :white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[glsl_discard](http://webglsamples.org/WebGL2Samples/#glsl_discard)|:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
@@ -24,7 +24,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[sampler_wrap](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:| :white_check_mark:|:white_check_mark:|
 |[sampler_filter](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_2d_array](http://webglsamples.org/WebGL2Samples/#texture_2d_array)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
-|[texture_etc2_eac](http://webglsamples.org/WebGL2Samples/#texture_etc2_eac)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
+|[texture_etc2_eac](http://webglsamples.org/WebGL2Samples/#texture_etc2_eac)|:white_check_mark:|:x: not working|:white_check_mark:|:x: not working|
 |[texture_format](http://webglsamples.org/WebGL2Samples/#texture_format)|:white_check_mark:|:white_check_mark:|:x: texImage2D: Driver ran out of memory during upload for some formats|:white_check_mark:|
 |[texture_fetch](http://webglsamples.org/WebGL2Samples/#texture_fetch)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[texture_3d](http://webglsamples.org/WebGL2Samples/#texture_3d)|:white_check_mark:|:white_check_mark:|:x: drawArraysInstanced: Active texture 0 for target 0x806f is 'incomplete'|:white_check_mark:|
@@ -38,7 +38,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[transform_feedback_separated](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[fbo_rtt_texture_array](http://webglsamples.org/WebGL2Samples/#fbo_rtt_texture_array)|:x: crash|:white_check_mark:|:x: crash|:x: not working|
 |[fbo_blit](http://webglsamples.org/WebGL2Samples/#fbo_blit)|:white_check_mark:|:grey_question:|:x: `clearBufferfv` fail to clear currently bound draw framebuffer|:grey_question:|
-|[fbo_multisample](http://webglsamples.org/WebGL2Samples/#fbo_multisample)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
+|[fbo_multisample](http://webglsamples.org/WebGL2Samples/#fbo_multisample)|:white_check_mark:|:x: crashed|:white_check_mark:|:x: crashed|
 |[fbo_new_blend_equation](http://webglsamples.org/WebGL2Samples/#fbo_new_blend_equation)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 
 ## Running the Samples Locally
