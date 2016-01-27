@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<!-- Ported from the OpenGL ES 3.0: Programming Guide, Second Edition, Dan Ginsburg and Budirijanto Purnomo https://github.com/danginsburg/opengles3-book/blob/master/Chapter_14/ParticleSystemTransformFeedback/ParticleSystemTransformFeedback.c -->
+
+<html lang="en">
+
+<head>
+    <title>WebGL 2 Samples - sync_object</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="utility.js"></script>
+    <script src="third-party/gl-matrix.js"></script>
+    <script src="third-party/noise3D.js"></script>
+</head>
+
+<body>
+    <div id="info">WebGL 2 Samples - sync_object</div>
+    <p id="description">
+</p>
+
+    <!-- WebGL 2 shaders -->
+    <script id="vs-emit" type="x-shader/x-vertex">
+        #version 300 es
+        #define NUM_PARTICLES 200
+        #define POSITION_LOCATION 0
+        #define VELOCITY_LOCATION 1
+        #define SIZE_LOCATION 2
+        #define CURTIME_LOCATION 3
+        #define LIFETIME_LOCATION 4
+
+        precision highp float;
+        precision highp int;
+        precision highp sampler3D;
+
+        uniform float u_time;
+        uniform float u_emissionRate;
+        uniform sampler3D s_noiseTex;
+
+        layout(location = 0) in vec2 a_position;
+        layout(location = 1) in vec2 a_velocity;
+        layout(location = 2) in float a_size;
+        layout(location = 3) in float a_curtime;
+        layout(location = 4) in float a_lifetime;
+
+        out vec2 v_position;
+        out vec2 v_velocity;
+        out float v_size;
+        out float v_curtime;
+        out float v_lifetime;
+
+        float randomValue(inout float seed) {
+            float vertexId = 1.0;
+            vec3 texCoord = vec3(u_time, vertexId, seed);
+            seed += 0.1;
+            return texture(s_noiseTex, texCoord).r;
+        }
+
+        void main()
+        {
+            float seed = u_time;
+            float lifetime = a_curtime - u_time;
+            if (lifetime <= 0.0 && randomValue(seed) < u_emissionRate) {
+                // Generate a new particle
+                v_position = vec2(0.0, -1.0);
+                v_velocity = vec2(randomValue(seed) * 2.0 - 1.0, randomValue(seed) * 1.4 + 1.0);
+                v_size = randomValue(seed) * 20.0 + 60.0;
+                v_curtime = u_time;
+                v_lifetime = 2.0;
+            } else {
+                // Nothing has changed, just copy it to the output
+                v_position = a_position;
+                v_velocity = a_velocity;
+                v_size = a_size;
+                v_curtime = a_curtime;
+                v_lifetime = a_lifetime;
+            }
+            gl_Position = vec4(v_position, 0.0, 1.0);
+        }
+    </script>
+
+    <!-- Unsused -->
+    <script id="fs-emit" type="x-shader/x-fragment">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        out vec4 color;
+
+        void main()
+        {
+            color = vec4(1.0);
+        }
+    </script>
+
+    <script id="vs-draw" type="x-shader/x-vertex">
+        #version 300 es
+        #define NUM_PARTICLES 200
+        #define POSITION_LOCATION 0
+        #define VELOCITY_LOCATION 1
+        #define SIZE_LOCATION 2
+        #define CURTIME_LOCATION 3
+        #define LIFETIME_LOCATION 4
+
+        precision highp float;
+        precision highp int;
+
+        layout(location = 0) in vec2 a_position;
+        layout(location = 1) in vec2 a_velocity;
+        layout(location = 2) in float a_size;
+        layout(location = 3) in float a_curtime;
+        layout(location = 4) in float a_lifetime;
+
+        uniform float u_time;
+        uniform vec2 u_acceleration;
+
+        void main()
+        {
+            float deltaTime = u_time - a_curtime;
+            if (deltaTime <= a_lifetime) {
+                vec2 velocity = a_velocity + deltaTime * u_acceleration;
+                vec2 position = a_position + deltaTime * velocity;
+                gl_Position = vec4(position, 0.0, 1.0);
+                gl_PointSize = a_size * (1.0 - deltaTime / a_lifetime);
+            } else {
+                gl_Position = vec4(-1000, -1000, 0, 0);
+                gl_PointSize = 0.0;
+            }
+        }
+    </script>
+
+    <script id="fs-draw" type="x-shader/x-fragment">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        uniform vec4 u_color;
+        uniform sampler2D s_texture;
+
+        out vec4 color;
+
+        void main()
+        {
+            vec4 texColor = texture(s_texture, gl_PointCoord);
+            color = texColor * u_color;
+        }
+    </script>
+
+    <script>
+    (function () {
+        'use strict';
+
+        // -- Init Canvas
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.min(window.innerWidth, window.innerHeight);
+        canvas.height = canvas.width;
+        document.body.appendChild(canvas);
+
+        // -- Init WebGL Context
+        var gl = canvas.getContext('webgl2', { antialias: false });
+        var isWebGL2 = !!gl;
+        if(!isWebGL2)
+        {
+            document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
+            return;
+        }
+
+        canvas.addEventListener("webglcontextlost", function(event) {
+            event.preventDefault();
+        }, false);
+
+        // -- Declare variables for the particle system
+
+        var EMISSION_RATE = 0.3;
+        var NUM_PARTICLES = 2;
+        var ACCELERATION = -1.0;
+
+        var timeInMs = 0;
+        var currentSourceIdx = 0;
+        var emitSync;
+
+        // -- Init Program
+
+        var PROGRAM_EMIT = 0;
+        var PROGRAM_DRAW = 1;
+
+        var programs = initPrograms();
+
+        // Get uniform locations for the transform feedback program
+        var emitTimeLocation = gl.getUniformLocation(programs[PROGRAM_EMIT], 'u_time');
+        var emitEmissionRateLocation = gl.getUniformLocation(programs[PROGRAM_EMIT], 'u_emissionRate');
+        var emitNoiseSamplerLocation = gl.getUniformLocation(programs[PROGRAM_EMIT], 's_noiseTex');
+
+        // Get uniform locations for the draw program
+        var drawTimeLocation = gl.getUniformLocation(programs[PROGRAM_DRAW], 'u_time');
+        var drawAccelerationLocation = gl.getUniformLocation(programs[PROGRAM_DRAW], 'u_acceleration');
+        var draw2DSamplerLocation = gl.getUniformLocation(programs[PROGRAM_DRAW], 's_texture');
+        var drawColorLocation = gl.getUniformLocation(programs[PROGRAM_DRAW], 'u_color');
+
+        // -- Initialize particle data
+
+        var particles = new Array(NUM_PARTICLES);
+        for (var i = 0; i < NUM_PARTICLES; ++i) {
+            particles[i] = {
+                position: new Float32Array([0.0, 0.0]),
+                velocity: new Float32Array([0.0, 0.0]),
+                size: 0.0,
+                curtime: 0.0,
+                lifetime: 0.0
+            }
+        }
+
+        var PARTICLE_OBJ_SIZE = (8 * 7); // sizeof number = 8 bytes
+
+        // -- Init Buffer
+
+        var particleVBOs = [gl.createBuffer(), gl.createBuffer()];
+
+        for (var i = 0; i < 2; ++i) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i]);
+            gl.bufferData(gl.ARRAY_BUFFER, particles, gl.DYNAMIC_COPY);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        }
+
+        // -- Init Vertex Array
+        var particleVAOs = [gl.createVertexArray(), gl.createVertexArray()];
+
+        var POSITION_LOCATION = 0;
+        var VELOCITY_LOCATION = 1;
+        var SIZE_LOCATION = 2;
+        var CURTIME_LOCATION = 3;
+        var LIFETIME_LOCATION = 4;
+
+        // -- Init TransformFeedback
+        var transformFeedback = gl.createTransformFeedback();
+
+        // -- Initialize 3d noise texture
+
+        var SIZE = 32;
+        var data = new Float32Array(SIZE * SIZE * SIZE);
+        for (var k = 0; k < SIZE; ++k) {
+            for (var j = 0; j < SIZE; ++j) {
+                for (var i = 0; i < SIZE; ++i) {
+                    data[i + j * SIZE + k * SIZE * SIZE] = snoise([i, j, k]);
+                }
+            }
+        }
+
+        var texture3D = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_3D, texture3D);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_BASE_LEVEL, 0);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAX_LEVEL, Math.log2(SIZE));
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+        gl.texImage3D(
+            gl.TEXTURE_3D,  // target
+            0,              // level
+            gl.R32F,        // internalformat
+            SIZE,           // width
+            SIZE,           // height
+            SIZE,           // depth
+            0,              // border
+            gl.RED,         // format
+            gl.FLOAT,       // type
+            data            // pixel
+            );
+
+        gl.generateMipmap(gl.TEXTURE_3D);
+        gl.bindTexture(gl.TEXTURE_3D, null);
+
+        // -- Init 2D texture
+
+        var imageUrl = '../assets/img/dot.png';
+        var texture2D;
+        loadImage(imageUrl, function(image) {
+            texture2D = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture2D);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texImage2D(
+                gl.TEXTURE_2D,
+                0, // Level of details
+                gl.RGBA, // Format
+                gl.RGBA,
+                gl.UNSIGNED_BYTE, // Size of each channel
+                image
+            );
+
+            gl.generateMipmap(gl.TEXTURE_2D);
+
+
+            render();
+        });
+
+        function initPrograms() {
+            var programTransform = (function(gl, vertexShaderSourceTransform, fragmentShaderSourceTransform) {
+                function createShader(gl, source, type) {
+                    var shader = gl.createShader(type);
+                    gl.shaderSource(shader, source);
+                    gl.compileShader(shader);
+                    return shader;
+                }
+
+                var vshaderTransform = createShader(gl, vertexShaderSourceTransform, gl.VERTEX_SHADER);
+                var fshaderTransform = createShader(gl, fragmentShaderSourceTransform, gl.FRAGMENT_SHADER);
+
+                var programTransform = gl.createProgram();
+                gl.attachShader(programTransform, vshaderTransform);
+                gl.deleteShader(vshaderTransform);
+                gl.attachShader(programTransform, fshaderTransform);
+                gl.deleteShader(fshaderTransform);
+
+                var varyings = ['v_position', 'v_velocity', 'v_size', 'v_curtime', 'v_lifetime'];
+                gl.transformFeedbackVaryings(programTransform, varyings, gl.INTERLEAVED_ATTRIBS);
+                gl.linkProgram(programTransform);
+
+                // check
+                var log = gl.getProgramInfoLog(programTransform);
+                if (log) {
+                    console.log(log);
+                }
+
+                log = gl.getShaderInfoLog(vshaderTransform);
+                if (log) {
+                    console.log(log);
+                }
+
+                return programTransform;
+            })(gl, getShaderSource('vs-emit'), getShaderSource('fs-emit'));
+
+            var programFeedback = createProgram(gl, getShaderSource('vs-draw'), getShaderSource('fs-draw'));
+
+            var programs = [programTransform, programFeedback];
+            return programs;
+        }
+
+        function setupVertexAttributes(vaoId, vboId) {
+            gl.bindVertexArray(vaoId);
+            gl.bindBuffer(gl.ARRAY_BUFFER, vboId);
+
+            gl.vertexAttribPointer(POSITION_LOCATION, 2, gl.FLOAT, false, PARTICLE_OBJ_SIZE, 0);
+            gl.vertexAttribPointer(VELOCITY_LOCATION, 2, gl.FLOAT, false, PARTICLE_OBJ_SIZE, 8 * 2);
+            gl.vertexAttribPointer(SIZE_LOCATION, 1, gl.FLOAT, false, PARTICLE_OBJ_SIZE, 8 * 4);
+            gl.vertexAttribPointer(CURTIME_LOCATION, 1, gl.FLOAT, false, PARTICLE_OBJ_SIZE, 8 * 5);
+            gl.vertexAttribPointer(LIFETIME_LOCATION, 1, gl.FLOAT, false, PARTICLE_OBJ_SIZE, 8 * 6);
+
+            gl.enableVertexAttribArray(POSITION_LOCATION);
+            gl.enableVertexAttribArray(VELOCITY_LOCATION);
+            gl.enableVertexAttribArray(SIZE_LOCATION);
+            gl.enableVertexAttribArray(CURTIME_LOCATION);
+            gl.enableVertexAttribArray(LIFETIME_LOCATION);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            gl.bindVertexArray(null);
+        }
+
+        function emitParticles() {
+            var programEmit = programs[PROGRAM_EMIT];
+
+            // Toggle source and destination VBO
+            var sourceVBO = particleVBOs[currentSourceIdx];
+            var destinationVBO = particleVBOs[(currentSourceIdx + 1) % 2];
+
+            var sourceVAO = particleVAOs[currentSourceIdx];
+            var destinationVAO = particleVAOs[(currentSourceIdx + 1) % 2];
+
+            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
+
+            gl.useProgram(programEmit);
+
+            setupVertexAttributes(sourceVAO, sourceVBO);
+
+            // Set transform feedback buffer
+            gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, destinationVBO);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, destinationVBO);
+
+            // Turn off rasterization - we are not drawing
+            gl.enable(gl.RASTERIZER_DISCARD);
+
+            // Set uniforms
+            gl.uniform1f(emitTimeLocation, timeInMs);
+            gl.uniform1f(emitEmissionRateLocation, EMISSION_RATE);
+
+            // Bind 3D noise texture
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_3D, texture3D);
+            gl.uniform1i(emitNoiseSamplerLocation, 0);
+
+            // Emit particles using transform feedback
+            gl.beginTransformFeedback(gl.POINTS);
+            gl.drawArrays(gl.POINTS, 0, NUM_PARTICLES);
+            gl.endTransformFeedback();
+
+            // Create a sync object to ensure transform feedback results
+            // are completed before the draw that uses them.
+            // Sync object can't be reused so we create a new one for each synchronization operation.
+            //     Not recommended to use gl.finish unless neccessary for synchronizing all your operation as it could severely reduce the GPU performance. Instead use sync object as you can wait for partial completion of the GL command stream.
+            emitSync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+
+            // Restore state
+            gl.disable(gl.RASTERIZER_DISCARD);
+            gl.useProgram(null);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            gl.bindTexture(gl.TEXTURE_3D, null);
+
+            // Ping pong the buffers
+            currentSourceIdx = (currentSourceIdx + 1) % 2;
+        }
+
+        function render() {
+
+            gl.flush();
+            emitParticles();
+
+            // // Block the GL server until transform feedback results are completed
+            // gl.waitSync(emitSync, 0, gl.TIMEOUT_IGNORED);
+
+            // // gl.deleteSync() does not occur immediately as the sync object will
+            // // be deleted when no other command operation is waiting for it.
+            // // Therefore it's safe to call deleteSync() here.
+            // gl.deleteSync(emitSync);
+
+            // // Set the viewport
+            // gl.viewport(0, 0, canvas.width, canvas.height);
+
+            // // Clear color buffer
+            // gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            // gl.clear(gl.COLOR_BUFFER_BIT);
+
+            // gl.useProgram(programs[PROGRAM_DRAW]);
+
+            // setupVertexAttributes(particleVAOs[currentSourceIdx], particleVBOs[currentSourceIdx]);
+
+            // // Set uniforms
+            // gl.uniform1f(drawTimeLocation, timeInMs);
+            // gl.uniform4f(drawColorLocation, 1.0, 1.0, 1.0, 1.0);
+            // gl.uniform2f(drawAccelerationLocation, 0.0, ACCELERATION);
+
+            // // Enable blending
+            // gl.enable(gl.BLEND);
+            // gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+
+            // // Bind the texture
+            // gl.activeTexture(gl.TEXTURE0);
+            // gl.bindTexture(gl.TEXTURE_2D, texture2D);
+
+            // // Set the sampler texture unit to 0
+            // gl.uniform1i(draw2DSamplerLocation, 0);
+            // gl.drawArrays(gl.POINTS, 0, NUM_PARTICLES);
+
+            // requestAnimationFrame(render);
+        }
+
+        window.onunload = function() {
+            // -- Delete WebGL resources
+            // gl.deleteTransformFeedback(transformFeedback);
+            // gl.deleteBuffer(buffers[PROGRAM_EMIT]);
+            // gl.deleteBuffer(buffers[PROGRAM_DRAW]);
+            // gl.deleteProgram(programs[PROGRAM_EMIT]);
+            // gl.deleteProgram(programs[PROGRAM_DRAW]);
+            // gl.deleteVertexArray(vertexArrays[PROGRAM_EMIT]);
+            // gl.deleteVertexArray(vertexArrays[PROGRAM_DRAW]);
+        }
+    })();
+    </script>
+
+</body>
+
+</html>
