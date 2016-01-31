@@ -85,7 +85,7 @@
         var vertexArray = gl.createVertexArray();
         gl.bindVertexArray(vertexArray);
 
-        var vertexPosLocation = 0;  // set with GLSL layout qualifier
+        var vertexPosLocation = 0;
         gl.enableVertexAttribArray(vertexPosLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBufferDst);
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
