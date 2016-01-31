@@ -44,8 +44,8 @@
 
         // -- Init Canvas
         var canvas = document.createElement('canvas');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        canvas.width = Math.min(window.innerWidth, window.innerHeight);
+        canvas.height = canvas.width;
         document.body.appendChild(canvas);
 
         // -- Init WebGL Context
@@ -68,6 +68,14 @@
              1.0, -1.0,
              1.0,  1.0
         ]);
+        // var vertices = new Float32Array([
+        //     -1.0, -1.0,
+        //      1.0, -1.0,
+        //      1.0,  1.0,
+        //      1.0,  1.0,
+        //     -1.0,  1.0,
+        //     -1.0, -1.0
+        // ]);
         var vertexPosBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
@@ -78,10 +86,10 @@
         var MAX_UNSIGNED_SHORT = 65535;
         var num_vertices = 7;
         var indices = new Uint16Array([
-            0, 1, 2, MAX_UNSIGNED_SHORT, 2, 3, 0
+            0, 1, 2, MAX_UNSIGNED_SHORT, 2, 3, 1
         ]);
         // var indices = new Uint16Array([
-        //     0, 1, 2, 3
+        //     0, 1, 2, 2, 3, 1
         // ]);
         var vertexElementBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexElementBuffer);
@@ -108,8 +116,9 @@
 
         gl.bindVertexArray(vertexArray);
 
-        //gl.drawArrays(gl.TRIANGLES, 0, 3);
-        gl.drawElements(gl.TRIANGLES_STRIP, 4, gl.UNSIGNED_SHORT, 0);
+        //gl.drawArrays(gl.TRIANGLES, 0, 6);
+        gl.drawElements(gl.TRIANGLES_STRIP, 3, gl.UNSIGNED_SHORT, 0);
+        //gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 
         // -- Delete WebGL resources
         gl.deleteBuffer(vertexPosBuffer);
