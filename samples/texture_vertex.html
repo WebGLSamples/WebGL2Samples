@@ -80,8 +80,8 @@
             color = textureLod(diffuse, st, level);
 
             // Compute flat normal using gradient
-            vec3 fdx = vec3(dFdx(vPosition.x), dFdx(vPosition.y), dFdx(vPosition.z));
-            vec3 fdy = vec3(dFdy(vPosition.x), dFdy(vPosition.y), dFdy(vPosition.z));
+            vec3 fdx = dFdx(vPosition);
+            vec3 fdy = dFdy(vPosition);
 
             vec3 N = normalize(cross(fdx, fdy));
             color = mix(color, vec4(N, 1.0), 0.5);
