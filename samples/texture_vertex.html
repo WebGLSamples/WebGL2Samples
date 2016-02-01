@@ -125,7 +125,6 @@
         // -- Load obj then render
         var objURL = '../assets/obj/plane.obj';
         loadObj(objURL, function(mesh) {
-
             numIndices = mesh.indices.length;
 
             // -- Initialize buffer
@@ -192,7 +191,6 @@
                 gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGB, gl.UNSIGNED_BYTE, image);
 
                 requestAnimationFrame(render);
-
             });
         });
 
@@ -289,7 +287,6 @@
             gl.deleteTexture(texture);
             gl.deleteProgram(program);
             gl.deleteVertexArray(vertexArray);
-
         };
     })();
     </script>
