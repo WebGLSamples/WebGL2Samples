@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--check for more details about centroid: https://www.opengl.org/pipeline/article/vol003_6/-->
 <html lang="en">
 <head>
     <title>WebGL 2 Samples - glsl_centroid</title>
@@ -227,7 +228,7 @@
         var textures = [gl.createTexture(), gl.createTexture()];
         
         for (var i = 0; i < VIEWPORTS.MAX; ++i) {
-            gl.activeTexture(gl.TEXTURE0+i);
+            gl.activeTexture(gl.TEXTURE0 + i);
             gl.bindTexture(gl.TEXTURE_2D, textures[i]);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -238,7 +239,7 @@
         // -- Init Frame Buffers
         var FRAMEBUFFER = {
             RENDERBUFFER: 0, 
-            RENDERBUFFER_CENTROID: 1,
+            RENDERBUFFER_CENTROID: 1, 
             COLORBUFFER: 2, 
             COLORBUFFER_CENTROID: 3
         };
@@ -349,7 +350,8 @@
         gl.bindVertexArray(vertexArrays[PROGRAM.SPLASH]);
         
         var scaleVector3 = vec3.create();
-        vec3.set(scaleVector3, 8.0, 8.0, 8.0);
+        var invScaleFactor = 1 / scaleFactor - 2;
+        vec3.set(scaleVector3, invScaleFactor, invScaleFactor, invScaleFactor);
         var mvp = mat4.create();
         mat4.scale(mvp, IDENTITY, scaleVector3);
             
