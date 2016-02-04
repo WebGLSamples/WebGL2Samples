@@ -25,7 +25,6 @@
         void main()
         {
             gl_Position = MVP * vec4(position, 0.0, 1.0);
-            //v_color = vec4(10.0 * gl_Position.xy, 1.0 - gl_Position.x - gl_Position.y, 1.0);
             v_color = vec4(10.0 * gl_Position.xy, 0.5, 1.0);
         }
     </script>
@@ -73,7 +72,6 @@
         void main()
         {
             color = v_color;
-            //color = vec4(1.0, 0.0, 0.0, 1.0);
         }
     </script>
     
@@ -276,7 +274,7 @@
             gl.createVertexArray()
         ];
         
-        var vertexPosLocation = 0; // set with GLSL layout qualifier
+        var vertexPosLocation = 0
         
         gl.bindVertexArray(vertexArrays[PROGRAM.TEXTURE]);
         gl.enableVertexAttribArray(vertexPosLocation);
@@ -299,7 +297,7 @@
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        var vertexTexLocation = 1; // set with GLSL layout qualifier
+        var vertexTexLocation = 1;
         gl.enableVertexAttribArray(vertexTexLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
         gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, 0, 0);
