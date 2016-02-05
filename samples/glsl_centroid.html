@@ -20,13 +20,14 @@
         uniform mat4 MVP;
 
         layout(location = 0) in vec2 position;
+        layout(location = 1) in float data;
         
-        out vec4 v_color;
+        out float v_attribute;
 
         void main()
         {
             gl_Position = MVP * vec4(position, 0.0, 1.0);
-            v_color = vec4(10.0 * gl_Position.xy, 0.5, 1.0);
+            v_attribute = data;
         }
     </script>
 
@@ -35,12 +36,17 @@
         precision highp float;
         precision highp int;
 
-        in vec4 v_color;
-        out vec4 color;
+        in float v_attribute;
+        vec4 color;
 
         void main()
         {
-            color = v_color;
+            const vec4 blue   = vec4( 0.0, 0.0, 1.0, 1.0 );
+            const vec4 yellow = vec4( 1.0, 1.0, 0.0, 1.0 );
+            //color = vec4(sqrt(v_attribute), 1.0, 0.0, 1.0);
+            //color = mix(blue, yellow, sqrt(v_attribute));
+            //color = v_attribute >= 0.0 ? blue : yellow;
+            color = vec4(1.0, 1.0, 1.0, 1.0);
         }
     </script>
     
@@ -52,13 +58,14 @@
         uniform mat4 MVP;
 
         layout(location = 0) in vec2 position;
+        layout(location = 1) in float data;
         
-        centroid out vec4 v_color;
+        centroid out float v_attribute;
 
         void main()
         {
             gl_Position = MVP * vec4(position, 0.0, 1.0);
-            v_color = vec4(10.0 * gl_Position.xy, 0.5, 1.0);
+            v_attribute = data;
         }
     </script>
     
@@ -67,12 +74,16 @@
         precision highp float;
         precision highp int;
 
-        centroid in vec4 v_color;
+        centroid in float v_attribute;
         out vec4 color;
 
         void main()
         {
-            color = v_color;
+            const vec4 blue   = vec4( 0.0, 0.0, 1.0, 1.0 );
+            const vec4 yellow = vec4( 1.0, 1.0, 0.0, 1.0 );
+            //color = vec4(sqrt(v_attribute), 1.0, 0.0, 1.0);
+            //color = mix(blue, yellow, sqrt(v_attribute));
+            color = v_attribute >= 0.0 ? blue : yellow;
         }
     </script>
     
@@ -179,21 +190,43 @@
         var diffuseLocation = gl.getUniformLocation(programs[PROGRAM.SPLASH], 'diffuse');
         
         // -- Init primitive data
-        var vertexCount = 3;
-        var scaleFactor = 0.1;
+        //var vertexCount = 3;
+        var vertexCount = 6;
+        var scaleFactor = 0.01;
+        var positions = new Float32Array([
+            // //scaleFactor * 0.0, scaleFactor * 0.8, 
+            // scaleFactor * -0.8, scaleFactor * 0.8, 
+            // //scaleFactor * -1.0, scaleFactor * -0.4, 
+            // scaleFactor * -0.8, scaleFactor * -0.4, 
+            // scaleFactor * 1.0, scaleFactor * -0.8,
+            
+            scaleFactor * -0.8, scaleFactor * -1.0,
+            scaleFactor *  1.0, scaleFactor * -1.0,
+            scaleFactor *  1.0, scaleFactor *  1.0,
+            scaleFactor *  1.0, scaleFactor *  1.0,
+            scaleFactor * -0.8, scaleFactor *  1.0,
+            scaleFactor * -0.8, scaleFactor * -1.0
+        ]);
+        
         var data = new Float32Array([
-            scaleFactor * 0.0, scaleFactor * 0.8, 
-            scaleFactor * -1.0, scaleFactor * -0.4, 
-            scaleFactor * 1.0, scaleFactor * -0.8
+            //0.0, 0.0, 1.0
+            0, 1, 1, 1, 0, 0
         ]);
         
         // -- Init buffers
+        var vertexPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        
         var vertexDataBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexDataBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         
-        var positions = new Float32Array([
+        // Draw the rect texture
+        // This can be discarded when gl_VertexID is available
+        var textureVertexPositions = new Float32Array([
             -1.0, -1.0,
              1.0, -1.0,
              1.0,  1.0,
@@ -201,12 +234,12 @@
             -1.0,  1.0,
             -1.0, -1.0
         ]);
-        var vertexPosBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+        var texVertexPosBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, texVertexPosBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, textureVertexPositions, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        var texCoords = new Float32Array([
+        var textureVertexTexCoords = new Float32Array([
             0.0, 1.0,
             1.0, 1.0,
             1.0, 0.0,
@@ -214,9 +247,9 @@
             0.0, 0.0,
             0.0, 1.0
         ]);
-        var vertexTexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
+        var texVertexTexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, texVertexTexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, textureVertexTexCoords, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         // -- Init Texture
@@ -275,32 +308,41 @@
             gl.createVertexArray()
         ];
         
-        var vertexPosLocation = 0
+        var vertexPosLocation = 0;
+        var vertexDataLocation = 1;
         
         gl.bindVertexArray(vertexArrays[PROGRAM.TEXTURE]);
         gl.enableVertexAttribArray(vertexPosLocation);
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexDataBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.enableVertexAttribArray(vertexDataLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexDataBuffer);
+        gl.vertexAttribPointer(vertexDataLocation, 1, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindVertexArray(null);
         
         gl.bindVertexArray(vertexArrays[PROGRAM.TEXTURE_CENTROID]);
         gl.enableVertexAttribArray(vertexPosLocation);
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexDataBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.enableVertexAttribArray(vertexDataLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexDataBuffer);
+        gl.vertexAttribPointer(vertexDataLocation, 1, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindVertexArray(null);
         
         gl.bindVertexArray(vertexArrays[PROGRAM.SPLASH]);
 
         gl.enableVertexAttribArray(vertexPosLocation);
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, texVertexPosBuffer);
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         var vertexTexLocation = 1;
         gl.enableVertexAttribArray(vertexTexLocation);
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, texVertexTexBuffer);
         gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
@@ -318,7 +360,7 @@
             
             // render buffers
             gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers[i]);
-            gl.clearBufferfv(gl.COLOR, 0, [1, 1, 0, 1]);
+            gl.clearBufferfv(gl.COLOR, 0, [0, 0, 0, 1]);
             gl.useProgram(programs[i]);
             gl.bindVertexArray(vertexArrays[i]);
             
@@ -350,7 +392,7 @@
         gl.bindVertexArray(vertexArrays[PROGRAM.SPLASH]);
         
         var scaleVector3 = vec3.create();
-        var invScaleFactor = 1 / scaleFactor - 2;
+        var invScaleFactor = 0.8 / scaleFactor;
         vec3.set(scaleVector3, invScaleFactor, invScaleFactor, invScaleFactor);
         var mvp = mat4.create();
         mat4.scale(mvp, IDENTITY, scaleVector3);
@@ -369,8 +411,9 @@
         }
         
         // -- Delete WebGL resources
-        gl.deleteBuffer(vertexPosBuffer);
-        gl.deleteBuffer(vertexTexBuffer);
+        gl.deleteBuffer(texVertexPosBuffer);
+        gl.deleteBuffer(texVertexTexBuffer);
+        gl.deleteBuffer(vertexPositionBuffer);
         gl.deleteBuffer(vertexDataBuffer);
         
         gl.deleteTexture(textures[PROGRAM.TEXTURE]);
