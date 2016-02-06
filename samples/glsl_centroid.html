@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<!--check for more details about centroid: https://www.opengl.org/pipeline/article/vol003_6/-->
+<html lang="en">
+<head>
+    <title>WebGL 2 Samples - glsl_centroid</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="info">WebGL 2 Samples - glsl_centroid<br/>LEFT: non-centroid, RIGHT: centroid</div>
+
+    <!-- WebGL 2 shaders -->
+    <script id="vs-render" type="x-shader/x-vertex">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        uniform mat4 MVP;
+
+        layout(location = 0) in vec2 position;
+        layout(location = 1) in float data;
+        
+        out float v_attribute;
+
+        void main()
+        {
+            gl_Position = MVP * vec4(position, 0.0, 1.0);
+            v_attribute = data;
+        }
+    </script>
+
+    <script id="fs-render" type="x-shader/x-fragment">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        in float v_attribute;
+        out vec4 color;
+
+        void main()
+        {
+            const vec4 blue   = vec4( 0.0, 0.0, 1.0, 1.0 );
+            const vec4 yellow = vec4( 1.0, 1.0, 0.0, 1.0 );
+            color = v_attribute >= 0.0 ? mix(blue, yellow, sqrt(v_attribute)) : yellow;
+        }
+    </script>
+    
+    <script id="vs-render-centroid" type="x-shader/x-vertex">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        uniform mat4 MVP;
+
+        layout(location = 0) in vec2 position;
+        layout(location = 1) in float data;
+        
+        centroid out float v_attribute;
+
+        void main()
+        {
+            gl_Position = MVP * vec4(position, 0.0, 1.0);
+            v_attribute = data;
+        }
+    </script>
+    
+    <script id="fs-render-centroid" type="x-shader/x-fragment">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        centroid in float v_attribute;
+        out vec4 color;
+
+        void main()
+        {
+            const vec4 blue   = vec4( 0.0, 0.0, 1.0, 1.0 );
+            const vec4 yellow = vec4( 1.0, 1.0, 0.0, 1.0 );
+            color = v_attribute >= 0.0 ? mix(blue, yellow, sqrt(v_attribute)) : yellow;
+        }
+    </script>
+    
+    <script id="vs-splash" type="x-shader/x-vertex">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        uniform mat4 MVP;
+
+        layout(location = 0) in vec2 position;
+        layout(location = 1) in vec2 texcoord;
+
+        out vec2 uv;
+
+        void main()
+        {
+            uv = texcoord;
+            gl_Position = MVP * vec4(position, 0.0, 1.0);
+        }
+    </script>
+
+    <script id="fs-splash" type="x-shader/x-fragment">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        uniform sampler2D diffuse;
+
+        in vec2 uv;
+
+        out vec4 color;
+
+        void main()
+        {
+            color = texture(diffuse, uv);
+        }
+    </script>
+
+    <script src="third-party/gl-matrix-min.js"></script>
+    <script src="utility.js"></script>
+    <script>
+    (function () {
+        'use strict';
+
+        var canvas = document.createElement('canvas');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        document.body.appendChild(canvas);
+
+        var gl = canvas.getContext( 'webgl2', { antialias: false } );
+        var isWebGL2 = !!gl;
+        if(!isWebGL2) {
+            document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
+            return;
+        }
+        
+        // -- Divide viewport
+        var canvasSize = {
+            x: canvas.width,
+            y: canvas.height
+        };
+
+        var VIEWPORTS = {
+            LEFT: 0,
+            RIGHT: 1,
+            MAX: 2
+        };
+
+        var viewport = new Array(VIEWPORTS.MAX);
+
+        viewport[VIEWPORTS.LEFT] = {
+            x: 0,
+            y: canvasSize.y - canvasSize.x / 2 - 50,
+            width: canvasSize.x / 2,
+            height: canvasSize.x / 2
+        };
+
+        viewport[VIEWPORTS.RIGHT] = {
+            x: canvasSize.x / 2,
+            y: canvasSize.y - canvasSize.x / 2 - 50,
+            width: canvasSize.x / 2,
+            height: canvasSize.x / 2
+        };
+
+        // -- Init program
+        var PROGRAM = {
+            TEXTURE: 0,
+            TEXTURE_CENTROID: 1,
+            SPLASH: 2,
+            MAX: 3
+        };
+        
+        var programs = [
+            createProgram(gl, getShaderSource('vs-render'), getShaderSource('fs-render')),
+            createProgram(gl, getShaderSource('vs-render-centroid'), getShaderSource('fs-render-centroid')),
+            createProgram(gl, getShaderSource('vs-splash'), getShaderSource('fs-splash')) 
+        ];
+        var mvpLocationTextures = [
+            gl.getUniformLocation(programs[PROGRAM.TEXTURE], 'MVP'),
+            gl.getUniformLocation(programs[PROGRAM.TEXTURE_CENTROID], 'MVP')
+        ];
+        var mvpLocation = gl.getUniformLocation(programs[PROGRAM.SPLASH], 'MVP');
+        var diffuseLocation = gl.getUniformLocation(programs[PROGRAM.SPLASH], 'diffuse');
+        
+        // -- Init primitive data
+        var vertexCount = 3;
+        var scaleFactor = 0.1;
+        var positions = new Float32Array([
+            scaleFactor * 0.0, scaleFactor * 0.8, 
+            scaleFactor * -0.8, scaleFactor * -0.4, 
+            scaleFactor * 1.0, scaleFactor * -0.8,
+        ]);
+        
+        var data = new Float32Array([
+            0.0, 0.0, 1.0
+        ]);
+        
+        // -- Init buffers
+        var vertexPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        
+        var vertexDataBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexDataBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        
+        // Draw the rect texture
+        // This can be discarded when gl_VertexID is available
+        var textureVertexPositions = new Float32Array([
+            -1.0, -1.0,
+             1.0, -1.0,
+             1.0,  1.0,
+             1.0,  1.0,
+            -1.0,  1.0,
+            -1.0, -1.0
+        ]);
+        var texVertexPosBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, texVertexPosBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, textureVertexPositions, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var textureVertexTexCoords = new Float32Array([
+            0.0, 1.0,
+            1.0, 1.0,
+            1.0, 0.0,
+            1.0, 0.0,
+            0.0, 0.0,
+            0.0, 1.0
+        ]);
+        var texVertexTexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, texVertexTexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, textureVertexTexCoords, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        // -- Init Texture
+        // used for draw framebuffer storage
+        var FRAMEBUFFER_SIZE = {
+            x: canvas.width,
+            y: canvas.height
+        };
+        var textures = [gl.createTexture(), gl.createTexture()];
+        
+        for (var i = 0; i < VIEWPORTS.MAX; ++i) {
+            gl.activeTexture(gl.TEXTURE0 + i);
+            gl.bindTexture(gl.TEXTURE_2D, textures[i]);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+        }
+        
+        // -- Init Frame Buffers
+        var FRAMEBUFFER = {
+            RENDERBUFFER: 0, 
+            RENDERBUFFER_CENTROID: 1, 
+            COLORBUFFER: 2, 
+            COLORBUFFER_CENTROID: 3
+        };
+        var framebuffers = [
+            gl.createFramebuffer(),
+            gl.createFramebuffer(),
+            gl.createFramebuffer(),
+            gl.createFramebuffer()
+        ];
+        
+        // non-centroid
+        var colorRenderbuffer = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
+        gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y);
+        
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers[FRAMEBUFFER.RENDERBUFFER]);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+     
+        // centroid
+        var colorRenderbufferCentroid = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbufferCentroid);
+        gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y);
+        
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers[FRAMEBUFFER.RENDERBUFFER_CENTROID]);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbufferCentroid);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        // -- Init VertexArray
+        var vertexArrays = [
+            gl.createVertexArray(),
+            gl.createVertexArray(),
+            gl.createVertexArray()
+        ];
+        
+        var vertexPosLocation = 0;
+        var vertexDataLocation = 1;
+        
+        gl.bindVertexArray(vertexArrays[PROGRAM.TEXTURE]);
+        gl.enableVertexAttribArray(vertexPosLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
+        gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.enableVertexAttribArray(vertexDataLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexDataBuffer);
+        gl.vertexAttribPointer(vertexDataLocation, 1, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.bindVertexArray(null);
+        
+        gl.bindVertexArray(vertexArrays[PROGRAM.TEXTURE_CENTROID]);
+        gl.enableVertexAttribArray(vertexPosLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
+        gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.enableVertexAttribArray(vertexDataLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexDataBuffer);
+        gl.vertexAttribPointer(vertexDataLocation, 1, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.bindVertexArray(null);
+        
+        gl.bindVertexArray(vertexArrays[PROGRAM.SPLASH]);
+
+        gl.enableVertexAttribArray(vertexPosLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, texVertexPosBuffer);
+        gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var vertexTexLocation = 1;
+        gl.enableVertexAttribArray(vertexTexLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, texVertexTexBuffer);
+        gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        gl.bindVertexArray(null);
+        
+        // -- Render
+        
+        // Pass 1
+        var IDENTITY = mat4.create();
+        for (i = 0; i < VIEWPORTS.MAX; ++i) {
+            // color buffers
+            gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers[i+2]);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, textures[i], 0);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            
+            // render buffers
+            gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers[i]);
+            gl.clearBufferfv(gl.COLOR, 0, [0, 0, 0, 1]);
+            gl.useProgram(programs[i]);
+            gl.bindVertexArray(vertexArrays[i]);
+            
+            gl.uniformMatrix4fv(mvpLocationTextures[i], false, IDENTITY);
+            gl.drawArrays(gl.TRIANGLES, 0, vertexCount);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            
+            // Blit framebuffers, no Multisample texture 2d in WebGL 2
+            // centroid will only work with multisample
+            gl.bindFramebuffer(gl.READ_FRAMEBUFFER, framebuffers[i]);
+            
+            // color buffers
+            gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebuffers[i + 2]);
+            gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 1.0]);
+            gl.blitFramebuffer(
+                0, 0, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y, 
+                0, 0, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y, 
+                gl.COLOR_BUFFER_BIT, gl.NEAREST
+            );
+            
+            gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
+            gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+        }
+        
+        // Pass 2
+        gl.useProgram(programs[PROGRAM.SPLASH]);
+ 
+        gl.bindVertexArray(vertexArrays[PROGRAM.SPLASH]);
+        
+        var scaleVector3 = vec3.create();
+        var invScaleFactor = 0.8 / scaleFactor;
+        vec3.set(scaleVector3, invScaleFactor, invScaleFactor, invScaleFactor);
+        var mvp = mat4.create();
+        mat4.scale(mvp, IDENTITY, scaleVector3);
+            
+        for (i = 0; i < VIEWPORTS.MAX; ++i) {
+            gl.uniform1i(diffuseLocation, i);
+            
+            gl.activeTexture(gl.TEXTURE0+i);
+            gl.bindTexture(gl.TEXTURE_2D, textures[i]);
+            
+            gl.viewport(viewport[i].x, viewport[i].y, viewport[i].width, viewport[i].height);
+            gl.uniformMatrix4fv(mvpLocation, false, mvp);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+            
+            gl.bindTexture(gl.TEXTURE_2D, null);
+        }
+        
+        // -- Delete WebGL resources
+        gl.deleteBuffer(texVertexPosBuffer);
+        gl.deleteBuffer(texVertexTexBuffer);
+        gl.deleteBuffer(vertexPositionBuffer);
+        gl.deleteBuffer(vertexDataBuffer);
+        
+        gl.deleteTexture(textures[PROGRAM.TEXTURE]);
+        gl.deleteTexture(textures[PROGRAM.TEXTURE_CENTROID]);
+        
+        gl.deleteRenderbuffer(colorRenderbuffer);
+        gl.deleteRenderbuffer(colorRenderbufferCentroid);
+        
+        gl.deleteFramebuffer(framebuffers[FRAMEBUFFER.RENDERBUFFER]);
+        gl.deleteFramebuffer(framebuffers[FRAMEBUFFER.COLORBUFFER]);
+        
+        gl.deleteFramebuffer(framebuffers[FRAMEBUFFER.RENDERBUFFER_CENTROID]);
+        gl.deleteFramebuffer(framebuffers[FRAMEBUFFER.COLORBUFFER_CENTROID]);
+        
+        gl.deleteVertexArray(vertexArrays[PROGRAM.TEXTURE]);
+        gl.deleteVertexArray(vertexArrays[PROGRAM.TEXTURE_CENTROID]);
+        gl.deleteVertexArray(vertexArrays[PROGRAM.SPLASH]);
+        
+        gl.deleteProgram(programs[PROGRAM.TEXTURE]);
+        gl.deleteProgram(programs[PROGRAM.TEXTURE_CENTROID]);
+        gl.deleteProgram(programs[PROGRAM.SPLASH]);
+        
+    })();
+    </script>
+
+</body>
+
+</html>
