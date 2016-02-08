@@ -32,7 +32,6 @@
         precision highp sampler3D;
 
         uniform float u_time;
-        uniform float u_emissionRate;
         uniform vec2 u_acceleration;
 
         layout(location = POSITION_LOCATION) in vec2 a_position;
@@ -52,11 +51,10 @@
 
         void main()
         {
-            float deltaTime = u_time - a_spawntime;
-            if (deltaTime > a_lifetime) {
+            if (a_spawntime == 0.0 || a_position.y < -0.5) {
                 // Generate a new particle
-                v_position = a_position;
-                v_velocity = vec2(rand(vec2(a_ID, 0.0)), rand(vec2(a_ID, a_ID)));
+                v_position = vec2(0.0, 0.0);
+                v_velocity = vec2(rand(vec2(a_ID, 0.0)) - 0.5, rand(vec2(a_ID, a_ID)));
                 v_spawntime = u_time;
                 v_lifetime = 1.0;
             } else {
@@ -153,7 +151,6 @@
 
         // -- Declare variables for the particle system
 
-        var EMISSION_RATE = 0.3;
         var NUM_PARTICLES = 200;
         var ACCELERATION = -1.0;
 
@@ -170,8 +167,6 @@
 
         // Get uniform locations for the transform feedback program
         var emitTimeLocation = gl.getUniformLocation(programs[PROGRAM_EMIT], 'u_time');
-        var emitEmissionRateLocation = gl.getUniformLocation(programs[PROGRAM_EMIT], 'u_emissionRate');
-        var emitNoiseSamplerLocation = gl.getUniformLocation(programs[PROGRAM_EMIT], 's_noiseTex');
         var emitAccelerationLocation = gl.getUniformLocation(programs[PROGRAM_EMIT], 'u_acceleration');
 
         // Get uniform locations for the draw program
@@ -197,7 +192,7 @@
         };
 
         for (var i = 0; i < NUM_PARTICLES; ++i) {
-            particlePositions[i * 2] = -0.5;
+            particlePositions[i * 2] = 0.0;
             particlePositions[i * 2 + 1] = 0.0;
             particleVelocities[i * 2] = 0.0;
             particleVelocities[i * 2 + 1] = 0.0;
@@ -344,7 +339,6 @@
 
             // Set uniforms
             gl.uniform1f(emitTimeLocation, time);
-            gl.uniform1f(emitEmissionRateLocation, EMISSION_RATE);
             gl.uniform2f(emitAccelerationLocation, 0.0, ACCELERATION);
 
             // Emit particles using transform feedback
