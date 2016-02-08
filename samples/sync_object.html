@@ -190,14 +190,14 @@
             MAX: 5
         };
 
-        for (var i = 0; i < NUM_PARTICLES; ++i) {
-            particlePositions[i * 2] = 0.0;
-            particlePositions[i * 2 + 1] = 0.0;
-            particleVelocities[i * 2] = 0.0;
-            particleVelocities[i * 2 + 1] = 0.0;
-            particleSpawntime[i] = 0.0;
-            particleLifetime[i] = 0.0;
-            particleIDs[i] = i;
+        for (var p = 0; p < NUM_PARTICLES; ++p) {
+            particlePositions[p * 2] = 0.0;
+            particlePositions[p * 2 + 1] = 0.0;
+            particleVelocities[p * 2] = 0.0;
+            particleVelocities[p * 2 + 1] = 0.0;
+            particleSpawntime[p] = 0.0;
+            particleLifetime[p] = 0.0;
+            particleIDs[p] = p;
         }
 
         // -- Init Buffer
@@ -309,17 +309,15 @@
         }
 
         function emitParticles() {
-
             time = Date.now();
 
             var programEmit = programs[PROGRAM_EMIT];
 
             // Toggle source and destination VBO
             var sourceVBO = particleVBOs[currentSourceIdx];
-            var destinationVBO = particleVBOs[(currentSourceIdx + 1) % 2];
-
             var sourceVAO = particleVAOs[currentSourceIdx];
-            var destinationVAO = particleVAOs[(currentSourceIdx + 1) % 2];
+
+            var destinationVBO = particleVBOs[(currentSourceIdx + 1) % 2];
 
             gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
 
@@ -361,34 +359,12 @@
             gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 3, null);
             gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
 
-
             // Ping pong the buffers
             currentSourceIdx = (currentSourceIdx + 1) % 2;
         }
 
-
-        // -- Initialize render variables
-        var orientation = [0.0, 0.0, 0.0];
-
-        var modelMatrix = mat4.create([
-            0.5, 0.0, 0.0, 0.0,
-            0.0, 0.5, 0.0, 0.0,
-            0.0, 0.0, 0.5, 0.0,
-            0.0, 0.0, 0.0, 1.0
-        ]);
-
-        var viewMatrix = mat4.lookAt(
-            [4, 3, 300],
-            [0, 0, 0],
-            [0, 1, 0]
-            );
-
-        var mvMatrix = new Float32Array(mat4.multiply(viewMatrix, modelMatrix));
-        var perspectiveMatrix = new Float32Array(mat4.perspective(0.45, 1, 1, 1000.0));
-
         function render() {
-
-            // Spawn particle
+            // Spawn particles
             emitParticles();
 
             time = Date.now();
@@ -438,7 +414,7 @@
             }
             gl.deleteVertexArray(particleVAOs[PROGRAM_EMIT]);
             gl.deleteVertexArray(particleVAOs[PROGRAM_DRAW]);
-        }
+        };
     })();
     </script>
 
