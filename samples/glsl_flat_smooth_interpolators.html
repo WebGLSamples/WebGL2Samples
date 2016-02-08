@@ -166,7 +166,6 @@
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexElementBuffer);
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
             
             // -- Initialize vertex array
             gl.bindVertexArray(vertexArray);
@@ -203,7 +202,7 @@
             var rotatationSpeedY= 0.01;
    
             var perspective = mat4.create();
-            mat4.perspective(perspective, 0.785, 1, 0.1, 1000);
+            mat4.perspective(perspective, 0.785, 1, 1, 1000);
             var mvp = mat4.create();
          
             var mvNormal = mat4.create();
