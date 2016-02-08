@@ -15,8 +15,7 @@
 
 <body>
     <div id="info">WebGL 2 Samples - sync_object</div>
-    <p id="description">
-</p>
+    <p id="description">Sync objects can be used to synchronize execution between the GL server and the client. In this example, a fenceSync() is created during each transform feedback pass since it can't be reused, then we use waitSync() for all the GL commands in the server to complete before the render pass. gl.deleteSync() does not occur immediately as the sync object will be deleted when no other command operation is waiting for it. Therefore it's safe to call deleteSync() right after waitSync().</p>
 
     <!-- WebGL 2 shaders -->
     <script id="vs-emit" type="x-shader/x-vertex">
