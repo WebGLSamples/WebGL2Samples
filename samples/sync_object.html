@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Ported from the OpenGL ES 3.0: Programming Guide, Second Edition, Dan Ginsburg and Budirijanto Purnomo https://github.com/danginsburg/opengles3-book/blob/master/Chapter_14/ParticleSystemTransformFeedback/ParticleSystemTransformFeedback.c -->
+<!-- Adapted from the OpenGL ES 3.0: Programming Guide, Second Edition, Dan Ginsburg and Budirijanto Purnomo https://github.com/danginsburg/opengles3-book/blob/master/Chapter_14/ParticleSystemTransformFeedback/ParticleSystemTransformFeedback.c -->
 
 <html lang="en">
 
@@ -21,13 +21,11 @@
     <!-- WebGL 2 shaders -->
     <script id="vs-emit" type="x-shader/x-vertex">
         #version 300 es
-        #define NUM_PARTICLES 200
         #define POSITION_LOCATION 0
-        #define TEXPOSITION_LOCATION 1
-        #define VELOCITY_LOCATION 2
-        #define CURTIME_LOCATION 3
-        #define LIFETIME_LOCATION 4
-        #define VERTEXID_LOCATION 5
+        #define VELOCITY_LOCATION 1
+        #define SPAWNTIME_LOCATION 2
+        #define LIFETIME_LOCATION 3
+        #define ID_LOCATION 4
 
         precision highp float;
         precision highp int;
@@ -35,48 +33,40 @@
 
         uniform float u_time;
         uniform float u_emissionRate;
+        uniform vec2 u_acceleration;
         uniform sampler3D s_noiseTex;
 
-        layout(location = 0) in vec2 a_position;
-        layout(location = 1) in vec2 a_texposition;
-        layout(location = 2) in vec2 a_velocity;
-        layout(location = 3) in float a_curtime;
-        layout(location = 4) in float a_lifetime;
-        layout(location = 5) in float a_vertexId;
+        layout(location = POSITION_LOCATION) in vec2 a_position;
+        layout(location = VELOCITY_LOCATION) in vec2 a_velocity;
+        layout(location = SPAWNTIME_LOCATION) in float a_spawntime;
+        layout(location = LIFETIME_LOCATION) in float a_lifetime;
+        layout(location = ID_LOCATION) in float a_ID;
 
         out vec2 v_position;
-        out vec2 v_texposition;
         out vec2 v_velocity;
-        out float v_curtime;
+        out float v_spawntime;
         out float v_lifetime;
 
-        // Using our random noise texture3D to generate a new rand between 0 and 1
-        float randomValue(inout float seed) {
-            float vertexId = a_vertexId;
-            vec3 texCoord = vec3(u_time, vertexId, seed);
-            seed += 0.1;
-            return texture(s_noiseTex, texCoord).r;
+        float rand(vec2 co){
+            return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
         }
 
         void main()
         {
-            float seed = u_time;
-            // First time initializing the particle attributes
-            float lifetime = a_curtime - u_time;
-            if (lifetime <= 0.0 && randomValue(seed) < u_emissionRate) {
+            float deltaTime = u_time - a_spawntime;
+            if (deltaTime > a_lifetime) {
                 // Generate a new particle
-                v_position = vec2(0.0, 0.0);
-                v_velocity = vec2(0.0, 0.0);
-                v_curtime = u_time;
-                v_lifetime = 1.0;
+                v_position = a_position;//vec2(rand(vec2(a_ID, a_ID)), rand(vec2(a_ID, a_ID)));
+                v_velocity = vec2(rand(vec2(a_ID, 0.0)), rand(vec2(a_ID, a_ID)));
+                v_spawntime = u_time;
+                v_lifetime = 2.0;
             } else {
-                // Nothing has changed, just copy it to the output
-                v_position = a_position;
-                v_texposition = a_texposition;
-                v_velocity = a_velocity;
-                v_curtime = a_curtime;
+                v_velocity = a_velocity + 0.01 * u_acceleration;
+                v_position = a_position + 0.01 * v_velocity;
+                v_spawntime = a_spawntime;
                 v_lifetime = a_lifetime;
             }
+
         }
     </script>
 
@@ -96,42 +86,36 @@
 
     <script id="vs-draw" type="x-shader/x-vertex">
         #version 300 es
-        #define NUM_PARTICLES 200
         #define POSITION_LOCATION 0
-        #define TEXPOSITION_LOCATION 1
-        #define VELOCITY_LOCATION 2
-        #define CURTIME_LOCATION 3
-        #define LIFETIME_LOCATION 4
-        #define VERTEXID_LOCATION 5
+        #define VELOCITY_LOCATION 1
+        #define SPAWNTIME_LOCATION 2
+        #define LIFETIME_LOCATION 3
 
         precision highp float;
         precision highp int;
 
-        layout(location = 0) in vec2 a_position;
-        layout(location = 1) in vec2 a_texposition;
-        layout(location = 2) in vec2 a_velocity;
-        layout(location = 3) in float a_curtime;
-        layout(location = 4) in float a_lifetime;
-        layout(location = 5) in float a_vertexId;
-
         uniform float u_time;
         uniform vec2 u_acceleration;
-        uniform mat4 m_modelView;
-        uniform mat4 m_perspective;
 
-        out vec2 st;
+        out vec2 v_position;
+        out vec2 v_velocity;
+        out float v_spawntime;
+        out float v_lifetime;
+
+        layout(location = POSITION_LOCATION) in vec2 a_position;
+        layout(location = VELOCITY_LOCATION) in vec2 a_velocity;
+        layout(location = SPAWNTIME_LOCATION) in float a_spawntime;
+        layout(location = LIFETIME_LOCATION) in float a_lifetime;
 
         void main()
         {
-            st = a_texposition;
-            float deltaTime = u_time - a_curtime;
+            float deltaTime = u_time - a_spawntime;
             if (deltaTime <= a_lifetime) {
-                vec2 velocity = a_velocity + deltaTime * u_acceleration;
-                vec2 position = a_position + deltaTime * velocity;
-                gl_Position = m_perspective * m_modelView * vec4(position, 0.0, 1.0);
+                gl_Position = vec4(a_position, 0.0, 1.0);
             } else {
-                gl_Position = m_perspective * m_modelView * vec4(-1000, -1000, 0.0, 1.0);
+                gl_Position = vec4(0, 0, 0, 1);
             }
+            gl_PointSize = 5.0;
         }
     </script>
 
@@ -141,16 +125,12 @@
         precision highp int;
 
         uniform vec4 u_color;
-        uniform sampler2D s_texture;
-
-        in vec2 st;
 
         out vec4 color;
 
         void main()
         {
-            vec4 texColor = texture(s_texture, st);
-            color = texColor;
+            color = u_color;
         }
     </script>
 
@@ -183,10 +163,9 @@
         var NUM_PARTICLES = 200;
         var ACCELERATION = -1.0;
 
-        var time = 0;
+        var time = Date.now();
         var currentSourceIdx = 0;
         var emitSync;
-        var lastTime = Date.now();
 
         // -- Init Program
 
@@ -199,85 +178,38 @@
         var emitTimeLocation = gl.getUniformLocation(programs[PROGRAM_EMIT], 'u_time');
         var emitEmissionRateLocation = gl.getUniformLocation(programs[PROGRAM_EMIT], 'u_emissionRate');
         var emitNoiseSamplerLocation = gl.getUniformLocation(programs[PROGRAM_EMIT], 's_noiseTex');
+        var emitAccelerationLocation = gl.getUniformLocation(programs[PROGRAM_EMIT], 'u_acceleration');
 
         // Get uniform locations for the draw program
-        var mvMatrixLocation = gl.getUniformLocation(programs[PROGRAM_DRAW], 'm_modelView');
-        var pMatrixLocation = gl.getUniformLocation(programs[PROGRAM_DRAW], 'm_perspective');
         var drawTimeLocation = gl.getUniformLocation(programs[PROGRAM_DRAW], 'u_time');
         var drawAccelerationLocation = gl.getUniformLocation(programs[PROGRAM_DRAW], 'u_acceleration');
-        var draw2DSamplerLocation = gl.getUniformLocation(programs[PROGRAM_DRAW], 's_texture');
         var drawColorLocation = gl.getUniformLocation(programs[PROGRAM_DRAW], 'u_color');
 
         // -- Initialize particle data
 
-        var particlePositions = new Float32Array(NUM_PARTICLES * 8);
-        var particleTexPositions = new Float32Array(NUM_PARTICLES * 8);
-        var particleVelocities = new Float32Array(NUM_PARTICLES * 8);
-        var particleCurtime = new Float32Array(NUM_PARTICLES * 8);
-        var particleLifetime = new Float32Array(NUM_PARTICLES * 8);
-        var vertexIds = new Float32Array(NUM_PARTICLES * 8);
+        var particlePositions = new Float32Array(NUM_PARTICLES * 2);
+        var particleVelocities = new Float32Array(NUM_PARTICLES * 2);
+        var particleSpawntime = new Float32Array(NUM_PARTICLES);
+        var particleLifetime = new Float32Array(NUM_PARTICLES);
+        var particleIDs = new Float32Array(NUM_PARTICLES);
 
         var Particle = {
             POSITION: 0,
-            TEXPOSITION: 1,
-            VELOCITY: 2,
-            CUR_TIME: 3,
-            LIFE_TIME: 4,
-            VERTEXID: 5,
-            MAX: 6
+            VELOCITY: 1,
+            SPAWN_TIME: 2,
+            LIFE_TIME: 3,
+            ID: 4,
+            MAX: 5
         };
 
-        time = Date.now();
-        console.log('curtime ' + time);
         for (var i = 0; i < NUM_PARTICLES; ++i) {
-            particlePositions[i * 8] = -0.5;
-            particlePositions[i * 8 + 1] = -0.5;
-            particlePositions[i * 8 + 2] = 0.5;
-            particlePositions[i * 8 + 3] = -0.5;
-            particlePositions[i * 8 + 4] = 0.5;
-            particlePositions[i * 8 + 5] = 0.5;
-            particlePositions[i * 8 + 6] = -0.5;
-            particlePositions[i * 8 + 7] = 0.5;
-            particleTexPositions[i * 8] = 0.0;
-            particleTexPositions[i * 8 + 1] = 0.0;
-            particleTexPositions[i * 8 + 2] = 1.0;
-            particleTexPositions[i * 8 + 3] = 0.0;
-            particleTexPositions[i * 8 + 4] = 1.0;
-            particleTexPositions[i * 8 + 5] = 1.0;
-            particleTexPositions[i * 8 + 6] = 0.0;
-            particleTexPositions[i * 8 + 7] = 1.0;
-            particleVelocities[i * 8] = 0.0;
-            particleVelocities[i * 8 + 1] = 1.0;
-            particleVelocities[i * 8 + 2] = 0.0;
-            particleVelocities[i * 8 + 3] = 1.0;
-            particleVelocities[i * 8 + 4] = 0.0;
-            particleVelocities[i * 8 + 5] = 1.0;
-            particleVelocities[i * 8 + 6] = 0.0;
-            particleVelocities[i * 8 + 7] = 1.0;
-            particleCurtime[i * 8] = time;
-            particleCurtime[i * 8 + 1] = time;
-            particleCurtime[i * 8 + 2] = time;
-            particleCurtime[i * 8 + 3] = time;
-            particleCurtime[i * 8 + 4] = time;
-            particleCurtime[i * 8 + 5] = time;
-            particleCurtime[i * 8 + 6] = time;
-            particleCurtime[i * 8 + 7] = time;
-            particleLifetime[i * 8] = 0.0;
-            particleLifetime[i * 8 + 1] = 0.0;
-            particleLifetime[i * 8 + 2] = 0.0;
-            particleLifetime[i * 8 + 3] = 0.0;
-            particleLifetime[i * 8 + 4] = 0.0;
-            particleLifetime[i * 8 + 5] = 0.0;
-            particleLifetime[i * 8 + 6] = 0.0;
-            particleLifetime[i * 8 + 7] = 0.0;
-            vertexIds[i * 8] = i;
-            vertexIds[i * 8 + 1] = i;
-            vertexIds[i * 8 + 2] = i;
-            vertexIds[i * 8 + 3] = i;
-            vertexIds[i * 8 + 4] = i;
-            vertexIds[i * 8 + 5] = i;
-            vertexIds[i * 8 + 6] = i;
-            vertexIds[i * 8 + 7] = i;
+            particlePositions[i * 2] = 0.0;
+            particlePositions[i * 2 + 1] = 0.0;
+            particleVelocities[i * 2] = 0.0;
+            particleVelocities[i * 2 + 1] = 0.0;
+            particleSpawntime[i] = 0.0;
+            particleLifetime[i] = 0.0;
+            particleIDs[i] = i;
         }
 
         // -- Init Buffer
@@ -291,49 +223,29 @@
             }
 
             gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][Particle.POSITION]);
-            gl.bufferData(gl.ARRAY_BUFFER, particlePositions, gl.DYNAMIC_COPY);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][Particle.TEXPOSITION]);
-            gl.bufferData(gl.ARRAY_BUFFER, particleTexPositions, gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, particlePositions, gl.STATIC_DRAW);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][Particle.VELOCITY]);
             gl.bufferData(gl.ARRAY_BUFFER, particleVelocities, gl.DYNAMIC_COPY);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][Particle.CUR_TIME]);
-            gl.bufferData(gl.ARRAY_BUFFER, particleCurtime, gl.DYNAMIC_COPY);
+            gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][Particle.SPAWN_TIME]);
+            gl.bufferData(gl.ARRAY_BUFFER, particleSpawntime, gl.DYNAMIC_COPY);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][Particle.LIFE_TIME]);
             gl.bufferData(gl.ARRAY_BUFFER, particleLifetime, gl.DYNAMIC_COPY);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][Particle.VERTEXID]);
-            gl.bufferData(gl.ARRAY_BUFFER, vertexIds, gl.STATIC_DRAW);
+            gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][Particle.ID]);
+            gl.bufferData(gl.ARRAY_BUFFER, particleIDs, gl.STATIC_DRAW);
         }
-
-
-        var indices = new Uint16Array(NUM_PARTICLES * 6 * 4);
-        var idx = 0;
-        for (var i = 0; i < NUM_PARTICLES * 4; ++i) {
-            indices[idx++] = i * 4;
-            indices[idx++] = i * 4 + 1;
-            indices[idx++] = i * 4 + 3;
-            indices[idx++] = i * 4 + 1;
-            indices[idx++] = i * 4 + 2;
-            indices[idx++] = i * 4 + 3;
-        }
-        var indexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
-
 
         // -- Init Vertex Array
         var particleVAOs = [gl.createVertexArray(), gl.createVertexArray()];
 
         var POSITION_LOCATION = 0;
-        var TEXPOSITION_LOCATION = 1;
-        var VELOCITY_LOCATION = 2;
-        var CURTIME_LOCATION = 3;
-        var LIFETIME_LOCATION = 4;
-        var VERTEXID_LOCATION = 5;
+        var VELOCITY_LOCATION = 1;
+        var SPAWNTIME_LOCATION = 2;
+        var LIFETIME_LOCATION = 3;
+        var ID_LOCATION = 4;
 
         // -- Init TransformFeedback
         var transformFeedback = gl.createTransformFeedback();
@@ -371,33 +283,12 @@
             data            // pixel
             );
 
-        gl.generateMipmap(gl.TEXTURE_3D);
         gl.bindTexture(gl.TEXTURE_3D, null);
 
-        // -- Init 2D texture
-
-        var imageUrl = '../assets/img/dot.png';
-        var texture2D;
-        loadImage(imageUrl, function(image) {
-            texture2D = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, texture2D);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-            gl.texImage2D(
-                gl.TEXTURE_2D,
-                0, // Level of details
-                gl.RGBA, // Format
-                gl.RGBA,
-                gl.UNSIGNED_BYTE, // Size of each channel
-                image
-            );
-
-            emitParticles();
-            render();
-        });
+        render();
 
         function initPrograms() {
-            var programTransform = (function(gl, vertexShaderSourceTransform, fragmentShaderSourceTransform) {
+            var programEmit = (function(gl, vertexShaderSourceTransform, fragmentShaderSourceTransform) {
                 function createShader(gl, source, type) {
                     var shader = gl.createShader(type);
                     gl.shaderSource(shader, source);
@@ -408,18 +299,19 @@
                 var vshaderTransform = createShader(gl, vertexShaderSourceTransform, gl.VERTEX_SHADER);
                 var fshaderTransform = createShader(gl, fragmentShaderSourceTransform, gl.FRAGMENT_SHADER);
 
-                var programTransform = gl.createProgram();
-                gl.attachShader(programTransform, vshaderTransform);
+                var programEmit = gl.createProgram();
+                gl.attachShader(programEmit, vshaderTransform);
                 gl.deleteShader(vshaderTransform);
-                gl.attachShader(programTransform, fshaderTransform);
+                gl.attachShader(programEmit, fshaderTransform);
                 gl.deleteShader(fshaderTransform);
 
-                var varyings = ['v_position', 'v_velocity', 'v_curtime', 'v_lifetime'];
-                gl.transformFeedbackVaryings(programTransform, varyings, gl.SEPARATE_ATTRIBS);
-                gl.linkProgram(programTransform);
+                // Is only limited to 4 varyings?
+                var varyings = ['v_position', 'v_velocity', 'v_spawntime', 'v_lifetime'];
+                gl.transformFeedbackVaryings(programEmit, varyings, gl.SEPARATE_ATTRIBS);
+                gl.linkProgram(programEmit);
 
                 // check
-                var log = gl.getProgramInfoLog(programTransform);
+                var log = gl.getProgramInfoLog(programEmit);
                 if (log) {
                     console.log(log);
                 }
@@ -429,12 +321,12 @@
                     console.log(log);
                 }
 
-                return programTransform;
+                return programEmit;
             })(gl, getShaderSource('vs-emit'), getShaderSource('fs-emit'));
 
-            var programFeedback = createProgram(gl, getShaderSource('vs-draw'), getShaderSource('fs-draw'));
+            var programDraw = createProgram(gl, getShaderSource('vs-draw'), getShaderSource('fs-draw'));
 
-            var programs = [programTransform, programFeedback];
+            var programs = [programEmit, programDraw];
             return programs;
         }
 
@@ -444,29 +336,23 @@
             gl.bindBuffer(gl.ARRAY_BUFFER, vboArray[Particle.POSITION]);
             gl.vertexAttribPointer(POSITION_LOCATION, 2, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, vboArray[Particle.TEXPOSITION]);
-            gl.vertexAttribPointer(TEXPOSITION_LOCATION, 2, gl.FLOAT, false, 0, 0);
-
             gl.bindBuffer(gl.ARRAY_BUFFER, vboArray[Particle.VELOCITY]);
             gl.vertexAttribPointer(VELOCITY_LOCATION, 2, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, vboArray[Particle.CUR_TIME]);
-            gl.vertexAttribPointer(CURTIME_LOCATION, 1, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, vboArray[Particle.SPAWN_TIME]);
+            gl.vertexAttribPointer(SPAWNTIME_LOCATION, 1, gl.FLOAT, false, 0, 0);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, vboArray[Particle.LIFE_TIME]);
             gl.vertexAttribPointer(LIFETIME_LOCATION, 1, gl.FLOAT, false, 0, 0);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, vboArray[Particle.VERTEXID]);
-            gl.vertexAttribPointer(VERTEXID_LOCATION, 1, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, vboArray[Particle.ID]);
+            gl.vertexAttribPointer(ID_LOCATION, 1, gl.FLOAT, false, 0, 0);
 
             gl.enableVertexAttribArray(POSITION_LOCATION);
-            gl.enableVertexAttribArray(TEXPOSITION_LOCATION);
             gl.enableVertexAttribArray(VELOCITY_LOCATION);
-            gl.enableVertexAttribArray(CURTIME_LOCATION);
+            gl.enableVertexAttribArray(SPAWNTIME_LOCATION);
             gl.enableVertexAttribArray(LIFETIME_LOCATION);
-            gl.enableVertexAttribArray(VERTEXID_LOCATION);
-
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+            gl.enableVertexAttribArray(ID_LOCATION);
         }
 
         function emitParticles() {
@@ -482,15 +368,16 @@
             var sourceVAO = particleVAOs[currentSourceIdx];
             var destinationVAO = particleVAOs[(currentSourceIdx + 1) % 2];
 
+            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
+
             gl.useProgram(programEmit);
 
             setupVertexAttributes(sourceVAO, sourceVBO);
 
             // Set transform feedback buffer
-            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
             gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, destinationVBO[Particle.POSITION]);
             gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, destinationVBO[Particle.VELOCITY]);
-            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 2, destinationVBO[Particle.CUR_TIME]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 2, destinationVBO[Particle.SPAWN_TIME]);
             gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 3, destinationVBO[Particle.LIFE_TIME]);
 
             // Turn off rasterization - we are not drawing
@@ -499,6 +386,7 @@
             // Set uniforms
             gl.uniform1f(emitTimeLocation, time);
             gl.uniform1f(emitEmissionRateLocation, EMISSION_RATE);
+            gl.uniform2f(emitAccelerationLocation, 0.0, ACCELERATION);
 
             // Bind 3D noise texture
             gl.activeTexture(gl.TEXTURE0);
@@ -506,8 +394,8 @@
             gl.uniform1i(emitNoiseSamplerLocation, 0);
 
             // Emit particles using transform feedback
-            gl.beginTransformFeedback(gl.TRIANGLES);
-            gl.drawArrays(gl.TRIANGLES, 0, NUM_PARTICLES);
+            gl.beginTransformFeedback(gl.POINTS);
+            gl.drawArrays(gl.POINTS, 0, NUM_PARTICLES);
             gl.endTransformFeedback();
 
             // Create a sync object to ensure transform feedback results
@@ -519,13 +407,14 @@
             // Restore state
             gl.disable(gl.RASTERIZER_DISCARD);
             gl.useProgram(null);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            gl.bindTexture(gl.TEXTURE_3D, null);
             gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
             gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, null);
             gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 2, null);
             gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 3, null);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-            gl.bindTexture(gl.TEXTURE_3D, null);
             gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
+
 
             // Ping pong the buffers
             currentSourceIdx = (currentSourceIdx + 1) % 2;
@@ -536,9 +425,9 @@
         var orientation = [0.0, 0.0, 0.0];
 
         var modelMatrix = mat4.create([
-            0.2, 0.0, 0.0, 0.0,
-            0.0, 0.2, 0.0, 0.0,
-            0.0, 0.0, 0.2, 0.0,
+            0.5, 0.0, 0.0, 0.0,
+            0.0, 0.5, 0.0, 0.0,
+            0.0, 0.0, 0.5, 0.0,
             0.0, 0.0, 0.0, 1.0
         ]);
 
@@ -548,25 +437,26 @@
             [0, 1, 0]
             );
 
-        var mvMatrix = mat4.multiply(viewMatrix, modelMatrix);
-        var perspectiveMatrix = mat4.perspective(0.45, 1, 1, 1000.0);
+        var mvMatrix = new Float32Array(mat4.multiply(viewMatrix, modelMatrix));
+        var perspectiveMatrix = new Float32Array(mat4.perspective(0.45, 1, 1, 1000.0));
 
         function render() {
 
+            // Spawn particle
+            emitParticles();
+
             time = Date.now();
 
-            if (gl.isSync(emitSync)) {
-                // Block the GL server until transform feedback results are completed
-                gl.waitSync(emitSync, 0, gl.TIMEOUT_IGNORED);
+            // Block the GL server until transform feedback results are completed
+            gl.waitSync(emitSync, 0, gl.TIMEOUT_IGNORED);
 
-                // gl.deleteSync() does not occur immediately as the sync object will
-                // be deleted when no other command operation is waiting for it.
-                // Therefore it's safe to call deleteSync() here.
-                gl.deleteSync(emitSync);
-            }
+            // gl.deleteSync() does not occur immediately as the sync object will
+            // be deleted when no other command operation is waiting for it.
+            // Therefore it's safe to call deleteSync() here.
+            gl.deleteSync(emitSync);
 
             // Set the viewport
-            gl.viewport(0, 0, canvas.width, canvas.height);
+            gl.viewport(0, 0, canvas.width, canvas.height - 10);
 
             // Clear color buffer
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -577,36 +467,31 @@
             gl.useProgram(programs[PROGRAM_DRAW]);
 
             // Set uniforms
-            gl.uniformMatrix4fv(mvMatrixLocation, false, mvMatrix);
-            gl.uniformMatrix4fv(pMatrixLocation, false, perspectiveMatrix);
             gl.uniform1f(drawTimeLocation, time);
-            gl.uniform4f(drawColorLocation, 1.0, 0.0, 1.0, 1.0);
+            gl.uniform4f(drawColorLocation, 0.0, 1.0, 1.0, 1.0);
             gl.uniform2f(drawAccelerationLocation, 0.0, ACCELERATION);
 
             // Enable blending
-            // gl.enable(gl.BLEND);
-            // gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 
-            // Bind the texture
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, texture2D);
-
-            // Set the sampler texture unit to 0
-            gl.uniform1i(draw2DSamplerLocation, 0);
-            gl.drawElements(gl.TRIANGLES, NUM_PARTICLES * 6 * 4, gl.UNSIGNED_BYTE, 0);
+            gl.drawArrays(gl.POINTS, 0, NUM_PARTICLES);
 
             requestAnimationFrame(render);
         }
 
         window.onunload = function() {
             // -- Delete WebGL resources
-            // gl.deleteTransformFeedback(transformFeedback);
-            // gl.deleteBuffer(buffers[PROGRAM_EMIT]);
-            // gl.deleteBuffer(buffers[PROGRAM_DRAW]);
-            // gl.deleteProgram(programs[PROGRAM_EMIT]);
-            // gl.deleteProgram(programs[PROGRAM_DRAW]);
-            // gl.deleteVertexArray(vertexArrays[PROGRAM_EMIT]);
-            // gl.deleteVertexArray(vertexArrays[PROGRAM_DRAW]);
+            gl.deleteTransformFeedback(transformFeedback);
+            gl.deleteProgram(programs[PROGRAM_EMIT]);
+            gl.deleteProgram(programs[PROGRAM_DRAW]);
+            for (var i = 0; i < 2; ++i) {
+                for (var j = 0; j < Particle.MAX; ++j) {
+                    gl.deleteBuffer(particleVBOs[i][j]);
+                }
+            }
+            gl.deleteVertexArray(particleVAOs[PROGRAM_EMIT]);
+            gl.deleteVertexArray(particleVAOs[PROGRAM_DRAW]);
         }
     })();
     </script>
