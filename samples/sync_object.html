@@ -34,7 +34,6 @@
         uniform float u_time;
         uniform float u_emissionRate;
         uniform vec2 u_acceleration;
-        uniform sampler3D s_noiseTex;
 
         layout(location = POSITION_LOCATION) in vec2 a_position;
         layout(location = VELOCITY_LOCATION) in vec2 a_velocity;
@@ -56,10 +55,10 @@
             float deltaTime = u_time - a_spawntime;
             if (deltaTime > a_lifetime) {
                 // Generate a new particle
-                v_position = a_position;//vec2(rand(vec2(a_ID, a_ID)), rand(vec2(a_ID, a_ID)));
+                v_position = a_position;
                 v_velocity = vec2(rand(vec2(a_ID, 0.0)), rand(vec2(a_ID, a_ID)));
                 v_spawntime = u_time;
-                v_lifetime = 2.0;
+                v_lifetime = 1.0;
             } else {
                 v_velocity = a_velocity + 0.01 * u_acceleration;
                 v_position = a_position + 0.01 * v_velocity;
@@ -97,11 +96,6 @@
         uniform float u_time;
         uniform vec2 u_acceleration;
 
-        out vec2 v_position;
-        out vec2 v_velocity;
-        out float v_spawntime;
-        out float v_lifetime;
-
         layout(location = POSITION_LOCATION) in vec2 a_position;
         layout(location = VELOCITY_LOCATION) in vec2 a_velocity;
         layout(location = SPAWNTIME_LOCATION) in float a_spawntime;
@@ -110,12 +104,12 @@
         void main()
         {
             float deltaTime = u_time - a_spawntime;
-            if (deltaTime <= a_lifetime) {
+            if (deltaTime < a_lifetime) {
                 gl_Position = vec4(a_position, 0.0, 1.0);
             } else {
                 gl_Position = vec4(0, 0, 0, 1);
             }
-            gl_PointSize = 5.0;
+            gl_PointSize = 10.0;
         }
     </script>
 
@@ -203,7 +197,7 @@
         };
 
         for (var i = 0; i < NUM_PARTICLES; ++i) {
-            particlePositions[i * 2] = 0.0;
+            particlePositions[i * 2] = -0.5;
             particlePositions[i * 2 + 1] = 0.0;
             particleVelocities[i * 2] = 0.0;
             particleVelocities[i * 2 + 1] = 0.0;
@@ -249,41 +243,6 @@
 
         // -- Init TransformFeedback
         var transformFeedback = gl.createTransformFeedback();
-
-        // -- Initialize 3d noise texture
-
-        var SIZE = 32;
-        var data = new Float32Array(SIZE * SIZE * SIZE);
-        for (var k = 0; k < SIZE; ++k) {
-            for (var j = 0; j < SIZE; ++j) {
-                for (var i = 0; i < SIZE; ++i) {
-                    data[i + j * SIZE + k * SIZE * SIZE] = snoise([i, j, k]);
-                }
-            }
-        }
-
-        var texture3D = gl.createTexture();
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_3D, texture3D);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_BASE_LEVEL, 0);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAX_LEVEL, Math.log2(SIZE));
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-        gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-        gl.texImage3D(
-            gl.TEXTURE_3D,  // target
-            0,              // level
-            gl.R32F,        // internalformat
-            SIZE,           // width
-            SIZE,           // height
-            SIZE,           // depth
-            0,              // border
-            gl.RED,         // format
-            gl.FLOAT,       // type
-            data            // pixel
-            );
-
-        gl.bindTexture(gl.TEXTURE_3D, null);
 
         render();
 
@@ -388,11 +347,6 @@
             gl.uniform1f(emitEmissionRateLocation, EMISSION_RATE);
             gl.uniform2f(emitAccelerationLocation, 0.0, ACCELERATION);
 
-            // Bind 3D noise texture
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_3D, texture3D);
-            gl.uniform1i(emitNoiseSamplerLocation, 0);
-
             // Emit particles using transform feedback
             gl.beginTransformFeedback(gl.POINTS);
             gl.drawArrays(gl.POINTS, 0, NUM_PARTICLES);
@@ -408,7 +362,6 @@
             gl.disable(gl.RASTERIZER_DISCARD);
             gl.useProgram(null);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
-            gl.bindTexture(gl.TEXTURE_3D, null);
             gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
             gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, null);
             gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 2, null);
