@@ -62,7 +62,6 @@
                 v_spawntime = a_spawntime;
                 v_lifetime = a_lifetime;
             }
-
         }
     </script>
 
@@ -104,7 +103,7 @@
             if (deltaTime < a_lifetime) {
                 gl_Position = vec4(a_position, 0.0, 1.0);
             } else {
-                gl_Position = vec4(0, 0, 0, 1);
+                gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
             }
             gl_PointSize = 10.0;
         }
