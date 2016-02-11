@@ -230,6 +230,7 @@
             // -- Allocate storage for the texture
             gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGB8, 512, 512);
             gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGB, gl.UNSIGNED_BYTE, image);
+            gl.generateMipmap(gl.TEXTURE_2D);
 
             requestAnimationFrame(render);
 

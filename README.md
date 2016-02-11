@@ -24,11 +24,12 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[sampler_object](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:x:D3D not supported|:white_check_mark:| :x: D3D not supported|:white_check_mark:|
 |[sampler_wrap](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:| :x: Error: WebGL: samplerParameteri: invalid sampler|:white_check_mark:|
 |[sampler_filter](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|[texture_derivative](http://webglsamples.org/WebGL2Samples/#texture_derivative)|:white_check_mark:|:white_check_mark:|:grey_question:|:white_check_mark:|
+|[texture_derivative](http://webglsamples.org/WebGL2Samples/#texture_derivative)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_2d_array](http://webglsamples.org/WebGL2Samples/#texture_2d_array)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[texture_etc2_eac](http://webglsamples.org/WebGL2Samples/#texture_etc2_eac)|:white_check_mark:|:x: not working|:x: compressedTexImage2D: Invalid internalFormat: 0x9278 |:x: not working|
 |[texture_format](http://webglsamples.org/WebGL2Samples/#texture_format)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_fetch](http://webglsamples.org/WebGL2Samples/#texture_fetch)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
+|[texture_grad](http://webglsamples.org/WebGL2Samples/#texture_grad)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[texture_3d](http://webglsamples.org/WebGL2Samples/#texture_3d)|:x:GL ERROR :GL_INVALID_OPERATION : glGenerateMipmap: Can not generate mips|:white_check_mark:|:x: drawArraysInstanced: Active texture 0 for target 0x806f is 'incomplete'|:white_check_mark:|
 |[texture_immutable](http://webglsamples.org/WebGL2Samples/#texture_immutable)|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark:|
 |[texture_integer](http://webglsamples.org/WebGL2Samples/#texture_integer)|:white_check_mark:|:grey_question:|:x: Error: Driver ran out of memory during upload|:grey_question:|
