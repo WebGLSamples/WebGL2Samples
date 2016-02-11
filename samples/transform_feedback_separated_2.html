@@ -4,7 +4,7 @@
 <html lang="en">
 
 <head>
-    <title>WebGL 2 Samples - sync_object</title>
+    <title>WebGL 2 Samples - transform_feedback_separated_2</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
@@ -14,8 +14,8 @@
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - sync_object</div>
-    <p id="description">Sync objects can be used to synchronize execution between the GL server and the client. In this example, a fenceSync() is created during each transform feedback pass since it can't be reused, then we use waitSync() for all the GL commands in the server to complete before the render pass. gl.deleteSync() does not occur immediately as the sync object will be deleted when no other command operation is waiting for it. Therefore it's safe to call deleteSync() right after waitSync().</p>
+    <div id="info">WebGL 2 Samples - transform_feedback_separated_2</div>
+    <p id="description">Using transform feedback in a simple particle system</p>
 
     <!-- WebGL 2 shaders -->
     <script id="vs-emit" type="x-shader/x-vertex">
@@ -155,7 +155,6 @@
 
         var time = Date.now();
         var currentSourceIdx = 0;
-        var emitSync;
 
         // -- Init Program
 
@@ -241,42 +240,40 @@
         render();
 
         function initPrograms() {
-            var programEmit = (function(gl, vertexShaderSourceTransform, fragmentShaderSourceTransform) {
-                function createShader(gl, source, type) {
-                    var shader = gl.createShader(type);
-                    gl.shaderSource(shader, source);
-                    gl.compileShader(shader);
-                    return shader;
-                }
 
-                var vshaderTransform = createShader(gl, vertexShaderSourceTransform, gl.VERTEX_SHADER);
-                var fshaderTransform = createShader(gl, fragmentShaderSourceTransform, gl.FRAGMENT_SHADER);
+            // Setup program for transform feedback shaders
+            function createShader(gl, source, type) {
+                var shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                return shader;
+            }
 
-                var programEmit = gl.createProgram();
-                gl.attachShader(programEmit, vshaderTransform);
-                gl.deleteShader(vshaderTransform);
-                gl.attachShader(programEmit, fshaderTransform);
-                gl.deleteShader(fshaderTransform);
+            var vshaderTransform = createShader(gl, getShaderSource('vs-emit'), gl.VERTEX_SHADER);
+            var fshaderTransform = createShader(gl, getShaderSource('fs-emit'), gl.FRAGMENT_SHADER);
 
-                // Is only limited to 4 varyings?
-                var varyings = ['v_position', 'v_velocity', 'v_spawntime', 'v_lifetime'];
-                gl.transformFeedbackVaryings(programEmit, varyings, gl.SEPARATE_ATTRIBS);
-                gl.linkProgram(programEmit);
+            var programEmit = gl.createProgram();
+            gl.attachShader(programEmit, vshaderTransform);
+            gl.deleteShader(vshaderTransform);
+            gl.attachShader(programEmit, fshaderTransform);
+            gl.deleteShader(fshaderTransform);
 
-                // check
-                var log = gl.getProgramInfoLog(programEmit);
-                if (log) {
-                    console.log(log);
-                }
+            var varyings = ['v_position', 'v_velocity', 'v_spawntime', 'v_lifetime'];
+            gl.transformFeedbackVaryings(programEmit, varyings, gl.SEPARATE_ATTRIBS);
+            gl.linkProgram(programEmit);
 
-                log = gl.getShaderInfoLog(vshaderTransform);
-                if (log) {
-                    console.log(log);
-                }
+            // check
+            var log = gl.getProgramInfoLog(programEmit);
+            if (log) {
+                console.log(log);
+            }
 
-                return programEmit;
-            })(gl, getShaderSource('vs-emit'), getShaderSource('fs-emit'));
+            log = gl.getShaderInfoLog(vshaderTransform);
+            if (log) {
+                console.log(log);
+            }
 
+            // Setup program for draw shader
             var programDraw = createProgram(gl, getShaderSource('vs-draw'), getShaderSource('fs-draw'));
 
             var programs = [programEmit, programDraw];
@@ -343,12 +340,6 @@
             gl.drawArrays(gl.POINTS, 0, NUM_PARTICLES);
             gl.endTransformFeedback();
 
-            // Create a sync object to ensure transform feedback results
-            // are completed before the draw that uses them.
-            // Sync object can't be reused so we create a new one for each synchronization operation.
-            // Not recommended to use gl.finish unless neccessary for synchronizing all your operation as it could severely reduce the GPU performance. Instead use sync object as you can wait for partial completion of the GL command stream.
-            emitSync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
-
             // Restore state
             gl.disable(gl.RASTERIZER_DISCARD);
             gl.useProgram(null);
@@ -368,14 +359,6 @@
             emitParticles();
 
             time = Date.now();
-
-            // Block the GL server until transform feedback results are completed
-            gl.waitSync(emitSync, 0, gl.TIMEOUT_IGNORED);
-
-            // gl.deleteSync() does not occur immediately as the sync object will
-            // be deleted when no other command operation is waiting for it.
-            // Therefore it's safe to call deleteSync() here.
-            gl.deleteSync(emitSync);
 
             // Set the viewport
             gl.viewport(0, 0, canvas.width, canvas.height - 10);
