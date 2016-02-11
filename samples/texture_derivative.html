@@ -7,7 +7,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <script src="third-party/gl-matrix.js"></script>
+    <script src="third-party/gl-matrix-min.js"></script>
 </head>
 
 <body>
@@ -24,7 +24,6 @@
 
         layout(location = 0) in vec3 position;
         layout(location = 1) in vec2 texcoord;
-        layout(location = 2) in vec4 color;
 
         out vec2 st;
         out vec3 vPosition;
@@ -262,14 +261,13 @@
             0.0, 0.0, 0.0, 1.0
         ]);
 
-        var viewMatrix = mat4.lookAt(
-            [4, 3, 300],
-            [0, 0, 0],
-            [0, 1, 0]
-            );
-
-        var mvMatrix = mat4.multiply(viewMatrix, modelMatrix);
-        var perspectiveMatrix = mat4.perspective(0.45, 1, 1, 1000.0);
+        //var mvMatrix = mat4.multiply(viewMatrix, modelMatrix);
+        var mvMatrix = mat4.create();
+        var translate = vec3.create();
+        vec3.set(translate, 0, 0, -10);
+        mat4.translate(mvMatrix, modelMatrix, translate);
+        var perspectiveMatrix = mat4.create();
+        mat4.perspective(perspectiveMatrix, 0.785, 1, 1, 1000);
 
         // -- Mouse Behaviour
 
@@ -294,12 +292,17 @@
             var deltaX = newX - lastMouseX;
             var deltaY = newY - lastMouseY;
 
-            var m = mat4.identity();
-            mat4.rotateX(m, deltaX / 100.0, m);
-            mat4.rotateY(m, deltaY / 100.0, m);
-            mat4.scale(m, [(1 + deltaX / 1000.0), (1 + deltaX / 1000.0), (1 + deltaX / 1000.0)], m);
+            var m = mat4.create();
+ 
+            mat4.rotateX(m, m, deltaX / 100.0);
+            mat4.rotateY(m, m, deltaY / 100.0);
+            
+            var scale = vec3.create();
+            vec3.set(scale, (1 + deltaX / 1000.0), (1 + deltaX / 1000.0), (1 + deltaX / 1000.0));
+            mat4.scale(m, m, scale);
 
-            mat4.multiply(mvMatrix, m, mvMatrix);
+            mat4.multiply(mvMatrix, mvMatrix, m);
+            
             lastMouseX = newX;
             lastMouseY = newY;
         };
@@ -317,9 +320,9 @@
             orientation[1] = 0.00010; // pitch
             orientation[2] = 0.00005; // roll
 
-            mvMatrix = mat4.rotateX(mvMatrix, orientation[0] * Math.PI);
-            mvMatrix = mat4.rotateY(mvMatrix, orientation[1] * Math.PI);
-            mvMatrix = mat4.rotateZ(mvMatrix, orientation[2] * Math.PI);
+            mat4.rotateX(mvMatrix, mvMatrix, orientation[0] * Math.PI);
+            mat4.rotateY(mvMatrix, mvMatrix, orientation[1] * Math.PI);
+            mat4.rotateZ(mvMatrix, mvMatrix, orientation[2] * Math.PI);
 
             gl.bindVertexArray(vertexArray);
             gl.useProgram(program);
@@ -343,7 +346,6 @@
             gl.deleteTexture(texture);
             gl.deleteProgram(program);
             gl.deleteVertexArray(vertexArray);
-
         };
     })();
     </script>
