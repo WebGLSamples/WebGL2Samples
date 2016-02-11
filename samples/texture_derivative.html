@@ -49,27 +49,9 @@
 
         out vec4 color;
 
-        float textureLevel(in sampler2D sampler, in vec2 st)
-        {
-            vec2 size = vec2(textureSize(sampler, 0));
-
-            float levelCount = max(log2(size.x), log2(size.y));
-
-            vec2 dx = dFdx(st * size);
-            vec2 dy = dFdy(st * size);
-            float d = max(dot(dx, dx), dot(dy, dy));
-
-            d = clamp(d, 1.0, pow(2.0, (levelCount - 1.0) * 2.0));
-
-            return 0.5 * log2(d);
-        }
-
         void main()
         {
-            float level = textureLevel(diffuse, st);
-
-            // Compute LOD using gradient
-            color = textureLod(diffuse, st, level);
+            color = texture(diffuse, st);
 
             // Compute flat normal using gradient
             vec3 fdx = vec3(dFdx(vPosition.x), dFdx(vPosition.y), dFdx(vPosition.z));
@@ -292,16 +274,16 @@
             var deltaY = newY - lastMouseY;
 
             var m = mat4.create();
- 
+
             mat4.rotateX(m, m, deltaX / 100.0);
             mat4.rotateY(m, m, deltaY / 100.0);
-            
+
             var scale = vec3.create();
             vec3.set(scale, (1 + deltaX / 1000.0), (1 + deltaX / 1000.0), (1 + deltaX / 1000.0));
             mat4.scale(m, m, scale);
 
             mat4.multiply(mvMatrix, mvMatrix, m);
-            
+
             lastMouseX = newX;
             lastMouseY = newY;
         };
