@@ -383,20 +383,6 @@
 
             requestAnimationFrame(render);
         }
-
-        window.onunload = function() {
-            // -- Delete WebGL resources
-            gl.deleteTransformFeedback(transformFeedback);
-            gl.deleteProgram(programs[PROGRAM_EMIT]);
-            gl.deleteProgram(programs[PROGRAM_DRAW]);
-            for (var i = 0; i < 2; ++i) {
-                for (var j = 0; j < Particle.MAX; ++j) {
-                    gl.deleteBuffer(particleVBOs[i][j]);
-                }
-            }
-            gl.deleteVertexArray(particleVAOs[PROGRAM_EMIT]);
-            gl.deleteVertexArray(particleVAOs[PROGRAM_DRAW]);
-        };
     })();
     </script>
 
