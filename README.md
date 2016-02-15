@@ -20,6 +20,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[glsl_centroid](http://webglsamples.org/WebGL2Samples/#glsl_centroid)|:white_check_mark: |:grey_question:| :x: WebGL: renderbufferStorageMultisample: Multisampling is still under development, and is currently disabled.|:grey_question:|
 |[glsl_discard](http://webglsamples.org/WebGL2Samples/#glsl_discard)|:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
 |[glsl_flat_smooth_interpolators](http://webglsamples.org/WebGL2Samples/#glsl_flat_smooth_interpolators)|:white_check_mark: |:grey_question:| :white_check_mark: |:grey_question:|
+|[glsl_non_square_matrix](http://webglsamples.org/WebGL2Samples/#glsl_non_square_matrix)|:white_check_mark: |:grey_question:| :white_check_mark: |:grey_question:|
 |[query_occlusion](http://webglsamples.org/WebGL2Samples/#query_occlusion)|:white_check_mark:|:white_check_mark:| :white_check_mark:|:white_check_mark:|
 |[sampler_object](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:x:D3D not supported|:white_check_mark:| :x: D3D not supported|:white_check_mark:|
 |[sampler_wrap](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:| :x: Error: WebGL: samplerParameteri: invalid sampler|:white_check_mark:|
