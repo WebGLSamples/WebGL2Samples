@@ -27,21 +27,7 @@
         void main()
         {
             uv = texcoord;
-            mat4 MVP4;
-            int i, j;
-            for(i = 0; i <= 3; i++)
-            {
-                for(j = 0; j <= 2; j++)
-                {
-                    MVP4[i][j] = MVP[i][j];
-                    //MVP4[i][j] = 1.0;
-                }
-            }
-            MVP4[0][3] = 0.0;
-            MVP4[1][3] = 0.0;
-            MVP4[2][3] = 0.0;
-            MVP4[3][3] = 1.0;
-            gl_Position = MVP4 * vec4(position, 0.0, 1.0);
+            gl_Position = vec4(MVP * vec4(position, 0.0, 1.0) + MVP[3], 1.0);
         }
     </script>
 
@@ -147,7 +133,7 @@
                 0.5, 0.0, 0.0, 
                 0.0, 0.5, 0.0, 
                 0.0, 0.0, 0.5, 
-                0.0, 0.0, 0.0
+                0.2, -0.2, 0.0      //translation
             ]);
 
             gl.useProgram(program);
