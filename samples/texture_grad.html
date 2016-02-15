@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>WebGL 2 Samples - texture_derivative</title>
+    <title>WebGL 2 Samples - texture_grad</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
@@ -11,7 +11,7 @@
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - texture_derivative</div>
+    <div id="info">WebGL 2 Samples - texture_grad</div>
 
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
@@ -51,7 +51,10 @@
 
         void main()
         {
-            color = texture(diffuse, st);
+            vec2 size = vec2(textureSize(diffuse, 0));
+            vec2 dx = dFdx(st * size);
+            vec2 dy = dFdy(st * size);
+            color = textureGrad(diffuse, st, dx, dy);
 
             // Compute flat normal using gradient
             vec3 fdx = vec3(dFdx(vPosition.x), dFdx(vPosition.y), dFdx(vPosition.z));
@@ -227,6 +230,7 @@
             // -- Allocate storage for the texture
             gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGB8, 512, 512);
             gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGB, gl.UNSIGNED_BYTE, image);
+            gl.generateMipmap(gl.TEXTURE_2D);
 
             requestAnimationFrame(render);
 
@@ -274,16 +278,16 @@
             var deltaY = newY - lastMouseY;
 
             var m = mat4.create();
-
+ 
             mat4.rotateX(m, m, deltaX / 100.0);
             mat4.rotateY(m, m, deltaY / 100.0);
-
+            
             var scale = vec3.create();
             vec3.set(scale, (1 + deltaX / 1000.0), (1 + deltaX / 1000.0), (1 + deltaX / 1000.0));
             mat4.scale(m, m, scale);
 
             mat4.multiply(mvMatrix, mvMatrix, m);
-
+            
             lastMouseX = newX;
             lastMouseY = newY;
         };
