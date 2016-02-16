@@ -385,11 +385,11 @@
         }
 
             // *N.B:
-            // For long running process, resources will need to be deleted to avoid
-            // the process from bogging down.
+            // For long running pages, resources will need to be deleted to avoid
+            // consuming more graphics resources than necessary for long periods of time.
             // This code is included here to give a general idea of how to clean up
-            // resources in WebGL for this sample. Do not uncomment directly, you should only handle
-            // cleaning up resources outside of the animation loop.
+            // resources in WebGL for this sample. Do not uncomment directly;
+            // doing so will break this sample.
             //
             // -- Delete WebGL resources
             // gl.deleteTransformFeedback(transformFeedback);
