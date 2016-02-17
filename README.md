@@ -41,6 +41,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[texture_vertex](http://webglsamples.org/WebGL2Samples/#texture_vertex)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[transform_feedback_interleaved](http://webglsamples.org/WebGL2Samples/#transform_feedback_interleaved)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[transform_feedback_separated](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
+|[transform_feedback_separated_2](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated_2)|:white_check_mark:|:white_check_mark:|:grey_question:|:x: exceeded maxium varyings for transform feedback|
 |[fbo_rtt_texture_array](http://webglsamples.org/WebGL2Samples/#fbo_rtt_texture_array)|:x: crash|:white_check_mark:|:x: crash|:x: not working|
 |[fbo_blit](http://webglsamples.org/WebGL2Samples/#fbo_blit)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[fbo_multisample](http://webglsamples.org/WebGL2Samples/#fbo_multisample)|:white_check_mark:|:x: crashed|:x: WebGL: renderbufferStorageMultisample: Multisampling is still under development, and is currently disabled|:x: crashed|
