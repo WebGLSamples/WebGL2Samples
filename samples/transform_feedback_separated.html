@@ -11,6 +11,10 @@
 
 <body>
     <div id="info">WebGL 2 Samples - transform_feedback_separated</div>
+    <p id="description">
+        This simple sample shows how to use transform feedback. The first draw has no rasterization, but output the position and color attribute as the input of each vertex in the second draw.<br/>
+        Each attribute of the transform feedback output is stored in separate buffers (separated).
+    </p>
 
     <script id="vs-transform" type="x-shader/x-vertex">
         #version 300 es

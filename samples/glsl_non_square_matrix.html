@@ -10,7 +10,10 @@
 
 <body>
     <div id="info">WebGL 2 Samples - glsl_non_square_matrix</div>
-
+    <p id="description">
+        We use a mat4x3 to store the MVP homogenous matrix. The translation needs to be done as an extra step by adding the translation column in the matrix to the position. 
+    </p>
+    
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es

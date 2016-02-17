@@ -10,8 +10,11 @@
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - fbo_new_blend_equation<br/>TOP_LEFT: DST, TOP_RIGHT: SRC<br/>BOTTOM_LEFT: gl.blendEquation(gl.MAX), BOTTOM_LEFT: gl.blendEquation(gl.MIN)</div>
-
+    <div id="info">WebGL 2 Samples - fbo_new_blend_equation</div>
+    <p id="description">
+        TOP_LEFT: DST, TOP_RIGHT: SRC<br/>BOTTOM_LEFT: gl.blendEquation(gl.MAX), BOTTOM_RIGHT: gl.blendEquation(gl.MIN)
+    </p>
+    
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
