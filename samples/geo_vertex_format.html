@@ -47,8 +47,7 @@
             v_lightDirection = vec3(u_viewProj * vec4(u_lightPosition - modelPosition, 1.0));
             gl_Position = u_viewProj * vec4(modelPosition, 1.0);
 
-            //v_normal = vec3(u_viewProj * u_modelInvTrans * vec4(a_normal, 0.0));
-            v_normal = a_normal;
+            v_normal = vec3(u_viewProj * u_modelInvTrans * vec4(a_normal, 0.0));
 
             // Pass through
             v_color = a_color;
@@ -85,8 +84,6 @@
             lightIntensity = lightIntensity, 0.0, 1.0 + u_ambient;
 
             color = color * lightIntensity;
-            
-            color = vec4(abs(v_normal), 1.0);
         }
 
     </script>
@@ -189,7 +186,7 @@
             // Inf unhandled here
             const UNIT_VALUE = 1 / 1024;
             
-            //h ttps://en.wikipedia.org/wiki/Half-precision_floating-point_format
+            // https://en.wikipedia.org/wiki/Half-precision_floating-point_format
             var ary = frexp(value);
             var mantissa = ary[0];
             var exponent = ary[1];
@@ -259,117 +256,6 @@
             encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
             encodeFloat16(1), encodeFloat16(0), encodeFloat16(0)
         ];
-        
-        // var halfFloatArray = [
-        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
-        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
-        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
-        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
-            
-        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(1),
-        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(1),
-        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(1),
-        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(1),
-            
-        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
-        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
-        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
-        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
-            
-        //     encodeFloat16(1), encodeFloat16(1), encodeFloat16(0),
-        //     encodeFloat16(1), encodeFloat16(1), encodeFloat16(0),
-        //     encodeFloat16(1), encodeFloat16(1), encodeFloat16(0),
-        //     encodeFloat16(1), encodeFloat16(1), encodeFloat16(0),
-            
-        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
-        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
-        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
-        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
-            
-        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(1),
-        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(1),
-        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(1),
-        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(1)
-        // ];
-        
-        // var halfFloat_1 = 0x3C00;
-        // var halfFloat_m1 = 0xC400;
-        
-        // var halfFloatArray = [
-        //     // Front face
-        //     0, 0, halfFloat_m1,
-        //     0, 0, halfFloat_m1,
-        //     0, 0, halfFloat_m1,
-        //     0, 0, halfFloat_m1,
-
-        //     // Back face
-        //     0, 0, halfFloat_1,
-        //     0, 0, halfFloat_1,
-        //     0, 0, halfFloat_1,
-        //     0, 0, halfFloat_1,
-
-        //     // Top face
-        //     0, halfFloat_1, 0,
-        //     0, halfFloat_1, 0,
-        //     0, halfFloat_1, 0,
-        //     0, halfFloat_1, 0,
-
-        //     // Bottom face
-        //     0, halfFloat_m1, 0,
-        //     0, halfFloat_m1, 0,
-        //     0, halfFloat_m1, 0,
-        //     0, halfFloat_m1, 0,
-
-        //     // Right face
-        //     halfFloat_m1, 0, 0,
-        //     halfFloat_m1, 0, 0,
-        //     halfFloat_m1, 0, 0,
-        //     halfFloat_m1, 0, 0,
-
-        //     // Left face
-        //     halfFloat_1, 0, 0,
-        //     halfFloat_1, 0, 0,
-        //     halfFloat_1, 0, 0,
-        //     halfFloat_1, 0, 0
-        // ];
-        
-        // var halfFloatArray = [
-        //     // Front face
-        //     halfFloat_1, 0, 0,
-        //     halfFloat_1, 0, 0,
-        //     halfFloat_1, 0, 0,
-        //     halfFloat_1, 0, 0,
-
-        //     // Back face
-        //     halfFloat_1, halfFloat_1, 0,
-        //     halfFloat_1, halfFloat_1, 0,
-        //     halfFloat_1, halfFloat_1, 0,
-        //     halfFloat_1, halfFloat_1, 0,
-
-        //     // Top face
-        //     0, halfFloat_1, 0,
-        //     0, halfFloat_1, 0,
-        //     0, halfFloat_1, 0,
-        //     0, halfFloat_1, 0,
-
-        //     // Bottom face
-        //     0, halfFloat_1, halfFloat_1,
-        //     0, halfFloat_1, halfFloat_1,
-        //     0, halfFloat_1, halfFloat_1,
-        //     0, halfFloat_1, halfFloat_1,
-
-        //     // Right face
-        //     0, 0, halfFloat_1,
-        //     0, 0, halfFloat_1,
-        //     0, 0, halfFloat_1,
-        //     0, 0, halfFloat_1,
-
-        //     // Left face
-        //     halfFloat_1, 0, halfFloat_1,
-        //     halfFloat_1, 0, halfFloat_1,
-        //     halfFloat_1, 0, halfFloat_1,
-        //     halfFloat_1, 0, halfFloat_1
-        // ];
         
         normals.set(halfFloatArray, 0);
         var vertexNorBuffer = gl.createBuffer();
@@ -465,7 +351,6 @@
 
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexNorBuffer);
         gl.enableVertexAttribArray(NORMAL_LOCATION);
-        //gl.vertexAttribPointer(NORMAL_LOCATION, 3, gl.BYTE, false, 0, 0);
         gl.vertexAttribPointer(NORMAL_LOCATION, 3, gl.HALF_FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
