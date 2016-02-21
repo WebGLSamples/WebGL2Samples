@@ -84,11 +84,9 @@
             float lightIntensity = dot(normalize(v_normal), normalize(v_lightDirection));
             lightIntensity = lightIntensity, 0.0, 1.0 + u_ambient;
 
-            //color = color * lightIntensity;
+            color = color * lightIntensity;
             
-            color = vec4(v_normal, 1.0);
-            
-            //color = vec4(1.0, 1.0, -1.0, 1.0);
+            color = vec4(abs(v_normal), 1.0);
         }
 
     </script>
@@ -163,8 +161,8 @@
         gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        //http://stackoverflow.com/questions/28688838/convert-a-number-into-a-16-bit-float-stored-as-bytes-and-back
-        //http://croquetweak.blogspot.de/2014/08/deconstructing-floats-frexp-and-ldexp.html
+        // http://stackoverflow.com/questions/28688838/convert-a-number-into-a-16-bit-float-stored-as-bytes-and-back
+        // http://croquetweak.blogspot.de/2014/08/deconstructing-floats-frexp-and-ldexp.html
         function frexp(value) {
             if (value === 0) return [value, 0];
             var data = new DataView(new ArrayBuffer(8));
@@ -188,98 +186,154 @@
         }
         
         function encodeFloat16(value) {
-            //no range checking at present
+            // Inf unhandled here
+            const UNIT_VALUE = 1 / 1024;
             
+            //h ttps://en.wikipedia.org/wiki/Half-precision_floating-point_format
             var ary = frexp(value);
-            var mantissa = ary[0] * 2 - 1;
-            var exponent = ary[1] - 1;
+            var mantissa = ary[0];
+            var exponent = ary[1];
+            
+            var data = new DataView(new ArrayBuffer(2));
+            
+            if(mantissa === 0) {
+                // zero
+                data.setInt16(0, 0);
+                return data.getInt16(0);
+            }
             
             var signBit = mantissa < 0 ? 1 : 0;
-            var data = new DataView(new ArrayBuffer(2));
-            //data.setUint16(15, signBit);
-            //data.setUint16(10, exponent);
-            //data.setUint16(0, mantissa / (1 / 1024));
-            var a = signBit << 15;
-            var b = (exponent + 15) << 10;
-            var c = Math.abs(mantissa) / (1 / 1024);
+            var sign = signBit << 15;
+            var exp = 0;
+            var frac = 0;
             
-            data.setInt16(0, a + b + c);
+            if ( exponent <= -14) {
+                // subnormal value
+                frac = Math.abs(mantissa * Math.pow(2, exponent + 14)) / UNIT_VALUE;
+                data.setInt16(0, sign + exp + frac);
+                return data.getInt16(0);
+            }
             
+            // normalized value
+            mantissa = mantissa * 2 - 1;
+            exponent = exponent - 1;
             
-            // data.setInt16(0, signBit << 15);
-            // data.setInt16(0, (exponent + 15) << 9);
-            // data.setInt16(0, Math.abs(mantissa) / (1 / 1024));
+            exp = (exponent + 15) << 10;
+            frac = Math.abs(mantissa) / UNIT_VALUE;
+
+            data.setInt16(0, sign + exp + frac);
             
             return data.getInt16(0); 
         }
         
         var numVertices = 24;
         var normals = new Int16Array(new ArrayBuffer(2 * 3 * numVertices));
-        // var tmp_ary = [
-        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
-        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
-        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
-        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
+        var halfFloatArray = [
+            encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
+            encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
+            encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
+            encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
             
-        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
-        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
-        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
-        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
-            
-        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
-        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
-        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
-        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
-            
-        //     encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
-        //     encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
-        //     encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
-        //     encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
-            
-        //     encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
-        //     encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
-        //     encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
-        //     encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
-            
-        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
-        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
-        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
-        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(0)
-        // ];
-        var tmp_ary = [
             encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
             encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
             encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
             encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
-            
-            encodeFloat16(0), encodeFloat16(1), encodeFloat16(1),
-            encodeFloat16(0), encodeFloat16(1), encodeFloat16(1),
-            encodeFloat16(0), encodeFloat16(1), encodeFloat16(1),
-            encodeFloat16(0), encodeFloat16(1), encodeFloat16(1),
             
             encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
             encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
             encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
             encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
             
-            encodeFloat16(1), encodeFloat16(1), encodeFloat16(0),
-            encodeFloat16(1), encodeFloat16(1), encodeFloat16(0),
-            encodeFloat16(1), encodeFloat16(1), encodeFloat16(0),
-            encodeFloat16(1), encodeFloat16(1), encodeFloat16(0),
+            encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
+            encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
+            encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
+            encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
+            
+            encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
+            encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
+            encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
+            encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
             
             encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
             encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
             encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
-            encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
-            
-            encodeFloat16(1), encodeFloat16(0), encodeFloat16(1),
-            encodeFloat16(1), encodeFloat16(0), encodeFloat16(1),
-            encodeFloat16(1), encodeFloat16(0), encodeFloat16(1),
-            encodeFloat16(1), encodeFloat16(0), encodeFloat16(1)
+            encodeFloat16(1), encodeFloat16(0), encodeFloat16(0)
         ];
         
+        // var halfFloatArray = [
+        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
+        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
+        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
+        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
+            
+        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(1),
+        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(1),
+        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(1),
+        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(1),
+            
+        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
+        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
+        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
+        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
+            
+        //     encodeFloat16(1), encodeFloat16(1), encodeFloat16(0),
+        //     encodeFloat16(1), encodeFloat16(1), encodeFloat16(0),
+        //     encodeFloat16(1), encodeFloat16(1), encodeFloat16(0),
+        //     encodeFloat16(1), encodeFloat16(1), encodeFloat16(0),
+            
+        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
+        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
+        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
+        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
+            
+        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(1),
+        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(1),
+        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(1),
+        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(1)
+        // ];
+        
         // var halfFloat_1 = 0x3C00;
-        // var tmp_ary = [
+        // var halfFloat_m1 = 0xC400;
+        
+        // var halfFloatArray = [
+        //     // Front face
+        //     0, 0, halfFloat_m1,
+        //     0, 0, halfFloat_m1,
+        //     0, 0, halfFloat_m1,
+        //     0, 0, halfFloat_m1,
+
+        //     // Back face
+        //     0, 0, halfFloat_1,
+        //     0, 0, halfFloat_1,
+        //     0, 0, halfFloat_1,
+        //     0, 0, halfFloat_1,
+
+        //     // Top face
+        //     0, halfFloat_1, 0,
+        //     0, halfFloat_1, 0,
+        //     0, halfFloat_1, 0,
+        //     0, halfFloat_1, 0,
+
+        //     // Bottom face
+        //     0, halfFloat_m1, 0,
+        //     0, halfFloat_m1, 0,
+        //     0, halfFloat_m1, 0,
+        //     0, halfFloat_m1, 0,
+
+        //     // Right face
+        //     halfFloat_m1, 0, 0,
+        //     halfFloat_m1, 0, 0,
+        //     halfFloat_m1, 0, 0,
+        //     halfFloat_m1, 0, 0,
+
+        //     // Left face
+        //     halfFloat_1, 0, 0,
+        //     halfFloat_1, 0, 0,
+        //     halfFloat_1, 0, 0,
+        //     halfFloat_1, 0, 0
+        // ];
+        
+        // var halfFloatArray = [
         //     // Front face
         //     halfFloat_1, 0, 0,
         //     halfFloat_1, 0, 0,
@@ -316,48 +370,8 @@
         //     halfFloat_1, 0, halfFloat_1,
         //     halfFloat_1, 0, halfFloat_1
         // ];
-        normals.set(tmp_ary, 0);
         
-
-
-        // var normals = new Int8Array([
-        //     // Front face
-        //     0, 0, -1,
-        //     0, 0, -1,
-        //     0, 0, -1,
-        //     0, 0, -1,
-
-        //     // Back face
-        //     0, 0, 1,
-        //     0, 0, 1,
-        //     0, 0, 1,
-        //     0, 0, 1,
-
-        //     // Top face
-        //     0, 1, 0,
-        //     0, 1, 0,
-        //     0, 1, 0,
-        //     0, 1, 0,
-
-        //     // Bottom face
-        //     0, -1, 0,
-        //     0, -1, 0,
-        //     0, -1, 0,
-        //     0, -1, 0,
-
-        //     // Right face
-        //     -1, 0, 0,
-        //     -1, 0, 0,
-        //     -1, 0, 0,
-        //     -1, 0, 0,
-
-        //     // Left face
-        //     1, 0, 0,
-        //     1, 0, 0,
-        //     1, 0, 0,
-        //     1, 0, 0
-        // ]);
-        
+        normals.set(halfFloatArray, 0);
         var vertexNorBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexNorBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
