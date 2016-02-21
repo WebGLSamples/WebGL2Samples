@@ -183,6 +183,8 @@
         }
         
         function encodeFloat16(value) {
+            //no range checking at present
+            
             var ary = frexp(value);
             var mantissa = ary[0];
             var exponent = ary[1];
@@ -194,16 +196,47 @@
             //data.setUint16(0, mantissa / (1 / 1024));
             
             data.setUint16(0, signBit << 15);
-            data.setUint16(0, exponent << 9);
+            data.setUint16(0, (exponent + 15) << 9);
             data.setUint16(0, Math.abs(mantissa) / (1 / 1024));
             
-            return data; 
+            return data.getUint16(0); 
         }
         
         //var ns = encodeFloat16(4);
-        var uint16 = new Uint16Array(new ArrayBuffer(3 * 2));
-        var xxx = encodeFloat16(4).getUint16(0);
-        var tmp_ary = [encodeFloat16(4).getUint16(0), encodeFloat16(99.456).getUint16(0)];
+        var numVertices = 24;
+        var uint16 = new Uint16Array(new ArrayBuffer(2 * 3 * numVertices));
+        //var xxx = encodeFloat16(4).getUint16(0);
+        var tmp_ary = [
+            encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
+            encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
+            encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
+            encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
+            
+            encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
+            encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
+            encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
+            encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
+            
+            encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
+            encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
+            encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
+            encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
+            
+            encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
+            encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
+            encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
+            encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
+            
+            encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
+            encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
+            encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
+            encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
+            
+            encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
+            encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
+            encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
+            encodeFloat16(1), encodeFloat16(0), encodeFloat16(0)
+        ];
         uint16.set(tmp_ary, 0);
         
 
