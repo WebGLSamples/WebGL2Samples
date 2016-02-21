@@ -126,22 +126,22 @@
 
         // -- Load obj then render
         var objURL = '../assets/obj/di_model_tri.obj';
-        var gltfURL = '../../assets/gltf/cornell_box_embedded.gltf';
+        var gltfName = 'cornell_box.gltf';
+        var gltfRelativePath = '../../assets/gltf/';
 
         // loadObj(objURL, function(mesh) {
-        loadGltf(gltfURL, function(scene) {
-            console.log(scene);
-            return;
+        loadGltf(gltfRelativePath, gltfName, function(scene) {
 
             var mesh = scene;
+            console.log(scene);
 
             // -- Initialize buffer
-            var positions = new Float32Array(mesh.vertices);
+            var positions = new Float32Array(mesh.positions);
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-            var normals = new Float32Array(mesh.vertexNormals);
+            var normals = new Float32Array(mesh.normals);
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
