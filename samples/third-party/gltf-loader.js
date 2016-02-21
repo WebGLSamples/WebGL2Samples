@@ -23,10 +23,8 @@
 
     // @todo: load multiple scences
     GLTF.Scene = function() {
-        this.positions = [];
-        this.normals = [];
-        this.texcoords = [];
-        this.indices = []
+        this.vertices = [];
+        this.indices = [];
     };
 
     var parseGltf = function(json, onload) {
@@ -45,14 +43,12 @@
                 var node = json.nodes[nodeName];
 
                 // Traverse node
-                traverseNode(json, node, newScene);
+                traverseNode(json, node, newScene, onload);
             }
         }
-
-        onload(newScene);
     };
 
-    var traverseNode = function(json, node, scene) {
+    var traverseNode = function(json, node, scene, onload) {
 
         // Iterate through every mesh within node
         var meshes = node.meshes;
@@ -69,11 +65,11 @@
             for (var p = 0; p < primitiveLen; ++p) {
                 var primitive = primitives[p];
 
-                // Get attributes
-                parseAttributes(json, primitive, scene);
-
                 // Get indices
-                parseIndices(json, primitive, scene);
+                parseIndices(json, primitive, scene, function() {
+                    // Get attributes
+                    parseAttributes(json, primitive, scene, onload);
+                });
             }
         }
 
@@ -87,7 +83,7 @@
         }
     };
 
-    var parseIndices = function(json, primitive, scene) {
+    var parseIndices = function(json, primitive, scene, callback) {
 
         var accessorName = primitive.indices;
         var accessor = json.accessors[accessorName];
@@ -112,11 +108,12 @@
 
             if (data) {
                 scene.indices = data;
+                callback();
             }
         });
     };
 
-    var parseAttributes = function(json, primitive, scene) {
+    var parseAttributes = function(json, primitive, scene, callback) {
         var accessors = json.accessors;
 
         // Get all the attributes
@@ -124,16 +121,39 @@
 
         // *N.B*: Attribute semantics can be of the form
         //        [semantic]_[set_index], e.g., TEXCOORD_0, TEXCOORD_1, etc.
+
+        var attribute;
         for (var semantic in attributes) {
             var accessorName = attributes[semantic];
-            var attribute = accessors[accessorName];
-            var attributeData = parseAttributeData(json, attribute, semantic, scene);
+            attribute = accessors[accessorName];
+
+            if (semantic.substring(0, 8) === 'POSITION') {
+                scene.positionByteOffset = attribute.byteOffset;
+                scene.positionNumberOfComponents = NumberOfComponents[attribute.type];
+            } else if (semantic.substring(0, 6) === 'NORMAL') {
+                scene.normalByteOffset = attribute.byteOffset;
+                scene.normalNumberOfComponents = NumberOfComponents[attribute.type];
+            } else if (semantic.substring(0, 8) === 'TEXCOORD') {
+                scene.texcoordByteOffset = attribute.byteOffset;
+                scene.texcoordNumberOfComponents = NumberOfComponents[attribute.type];
+            } else if (semantic.substring(0, 5) === 'COLOR') {
+                // @todo: Parse
+            } else if (semantic.substring(0, 5) === 'JOINT') {
+                // @todo: Parse
+            } else if (semantic.substring(0, 11) === 'JOINTMATRIX') {
+                // @todo: Parse
+            } else if (semantic.substring(0, 6) === 'WEIGHT') {
+                // @todo: Parse
+            }
         }
-    };
 
-    var parseAttributeData = function(json, attribute, semantic, scene) {
+        // Update scene byte stride
+        scene.byteStride = attribute.byteStride;
 
-        // Get the buffer that contains data for this attribute
+        // Get the buffer that contains data attributes
+
+        // @todo: Can we trust that all vertex attributes are stored
+        // in the same buffer?
         var bufferViewName = attribute.bufferView;
         var bufferView = json.bufferViews[bufferViewName];
         var bufferName = bufferView.buffer;
@@ -144,32 +164,18 @@
         loadArrayBuffer(uri, function(resource) {
 
             var byteOffset = bufferView.byteOffset;
-            var attributeSize = AttributeSize[attribute.componentType];
-            var numberOfComponents = NumberOfComponents[attribute.type];
-            var count = attribute.count; // Number of attributes
 
             // @todo: assuming float32
-            var data = new Float32Array(resource, byteOffset, count * numberOfComponents);
+            var data = new Float32Array(resource);
 
             if (data) {
-                if (semantic.substring(0, 8) === 'POSITION') {
-                    scene.positions = data;
-                } else if (semantic.substring(0, 6) === 'NORMAL') {
-                    scene.normals = data;
-                } else if (semantic.substring(0, 8) === 'TEXCOORD') {
-                    scene.texcoords = data;
-                } else if (semantic.substring(0, 5) === 'COLOR') {
-                    // @todo: Parse
-                } else if (semantic.substring(0, 5) === 'JOINT') {
-                    // @todo: Parse
-                } else if (semantic.substring(0, 11) === 'JOINTMATRIX') {
-                    // @todo: Parse
-                } else if (semantic.substring(0, 6) === 'WEIGHT') {
-                    // @todo: Parse
-                }
+                scene.vertices = data;
+
+                // Completed loading
+                callback(scene);
             }
         });
-    }
+    };
 
     window.loadGltf = function(relativePath, filename, onload) {
 

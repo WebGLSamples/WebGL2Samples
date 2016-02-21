@@ -99,12 +99,12 @@
                     1
                 ],
                 "specular": [
-                    0.5,
-                    0.5,
-                    0.5,
+                    0,
+                    0,
+                    0,
                     1
                 ],
-                "shininess": 10,
+                "shininess": 0,
                 "transparency": 1
             },
             "technique": "technique0"
@@ -189,7 +189,7 @@
             "type": 35632,
             "uri": "",
             "extras": {
-                "source": "precision highp float;\nuniform vec4 u_ambient;\nuniform vec4 u_diffuse;\nuniform vec4 u_emission;\nuniform vec4 u_specular;\nuniform float u_shininess;\nuniform float u_transparency;\nvarying vec3 v_positionEC;\nvarying vec3 v_normal;\nvarying vec2 v_texcoord_0;\nvoid main(void) {\n  vec3 normal = normalize(v_normal);\n  vec4 diffuse = u_diffuse;\n  vec3 diffuseLight = vec3(0.0, 0.0, 0.0);\n  vec3 specular = u_specular.rgb;\n  vec3 specularLight = vec3(0.0, 0.0, 0.0);\n  vec3 emission = u_emission.rgb;\n  vec3 ambient = u_ambient.rgb;\n  vec3 viewDir = -normalize(v_positionEC);\n  vec3 ambientLight = vec3(0.0, 0.0, 0.0);\n  ambientLight += vec3(0.1, 0.1, 0.1);\n  vec3 l = normalize(czm_sunDirectionEC);\n  diffuseLight += vec3(1.0, 1.0, 1.0) * max(dot(normal,l), 0.);\n  vec3 h = normalize(l + viewDir);\n  float specularIntensity = max(0., pow(max(dot(normal, h), 0.), u_shininess));\n  specularLight += vec3(1.0, 1.0, 1.0) * specularIntensity;\n  vec3 color = vec3(0.0, 0.0, 0.0);\n  color += diffuse.rgb * diffuseLight;\n  color += specular * specularLight;\n  color += emission;\n  color += ambient * ambientLight;\n  gl_FragColor = vec4(color * diffuse.a, diffuse.a * u_transparency);\n}\n"
+                "source": "precision highp float;\nuniform vec4 u_ambient;\nuniform vec4 u_diffuse;\nuniform vec4 u_emission;\nuniform vec4 u_specular;\nuniform float u_shininess;\nuniform float u_transparency;\nvarying vec3 v_positionEC;\nvarying vec3 v_normal;\nvarying vec2 v_texcoord_0;\nvoid main(void) {\n  vec3 normal = normalize(v_normal);\n  vec4 diffuse = u_diffuse;\n  vec3 diffuseLight = vec3(0.0, 0.0, 0.0);\n  vec3 emission = u_emission.rgb;\n  vec3 ambient = u_ambient.rgb;\n  vec3 viewDir = -normalize(v_positionEC);\n  vec3 ambientLight = vec3(0.0, 0.0, 0.0);\n  ambientLight += vec3(0.1, 0.1, 0.1);\n  vec3 l = normalize(czm_sunDirectionEC);\n  diffuseLight += vec3(1.0, 1.0, 1.0) * max(dot(normal,l), 0.);\n  vec3 color = vec3(0.0, 0.0, 0.0);\n  color += diffuse.rgb * diffuseLight;\n  color += emission;\n  color += ambient * ambientLight;\n  gl_FragColor = vec4(color * diffuse.a, diffuse.a * u_transparency);\n}\n"
             }
         }
     },
