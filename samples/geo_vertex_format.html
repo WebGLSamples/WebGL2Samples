@@ -175,16 +175,14 @@
         }
         
         function ldexp(mantissa, exponent) {
-            return exponent > 1023 // avoid multiplying by infinity
-                ? mantissa * Math.pow(2, 1023) * Math.pow(2, exponent - 1023)
-                : exponent < -1074 // avoid multiplying by zero
-                ? mantissa * Math.pow(2, -1074) * Math.pow(2, exponent + 1074)
-                : mantissa * Math.pow(2, exponent);
+            // avoid multiplying by infinity and zero
+            return exponent > 1023 ? mantissa * Math.pow(2, 1023) * Math.pow(2, exponent - 1023) : 
+                exponent < -1074 ? mantissa * Math.pow(2, -1074) * Math.pow(2, exponent + 1074) : mantissa * Math.pow(2, exponent);
         }
         
         function encodeFloat16(value) {
             // Inf unhandled here
-            const UNIT_VALUE = 1 / 1024;
+            var UNIT_VALUE = 1 / 1024;
             
             // https://en.wikipedia.org/wiki/Half-precision_floating-point_format
             var ary = frexp(value);
