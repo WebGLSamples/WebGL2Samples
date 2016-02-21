@@ -65,8 +65,9 @@
             for (var p = 0; p < primitiveLen; ++p) {
                 var primitive = primitives[p];
 
-                // Get indices
+                // Get indices first
                 parseIndices(json, primitive, scene, function() {
+
                     // Get attributes
                     parseAttributes(json, primitive, scene, onload);
                 });

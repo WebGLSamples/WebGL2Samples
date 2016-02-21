@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <script src="third-party/gl-matrix.js"></script>
-    <script src="third-party/webgl-obj-loader.js"></script>
+    <script src="third-party/gltf-loader.js"></script>
     <script src="utility.js"></script>
 </head>
 
@@ -19,6 +19,10 @@
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
+        #define POSITION_LOCATION 0
+        #define TEXCOORD_LOCATION 1
+        #define NORMAL_LOCATION 2
+
         precision highp float;
         precision highp int;
 
@@ -26,9 +30,9 @@
         uniform mat4 pMatrix;
         uniform sampler2D displacementMap;
 
-        layout(location = 0) in vec3 position;
-        layout(location = 1) in vec2 texcoord;
-        layout(location = 2) in vec3 normal;
+        layout(location = POSITION_LOCATION) in vec3 position;
+        layout(location = TEXCOORD_LOCATION) in vec2 texcoord;
+        layout(location = NORMAL_LOCATION) in vec3 normal;
 
         out vec2 st;
         out vec3 vPosition;
@@ -113,62 +117,68 @@
         var diffuseLocation = gl.getUniformLocation(program, 'diffuse');
         var displacementMapLocation = gl.getUniformLocation(program, 'displacementMap');
 
-        var vertexPosBuffer = gl.createBuffer();
-        var vertexTexPosBuffer = gl.createBuffer();
-        var vertexNormalBuffer = gl.createBuffer();
+        var vertexBuffer = gl.createBuffer();
         var vertexElementBuffer = gl.createBuffer();
         var vertexArray = gl.createVertexArray();
         var numIndices;
         var texture;
 
         // -- Load obj then render
-        var objURL = '../assets/obj/plane.obj';
-        loadObj(objURL, function(mesh) {
-            numIndices = mesh.indices.length;
+        var relativePath = '../assets/gltf/';
+        var filename = 'plane.gltf';
+        loadGltf(relativePath, filename, function(scene) {
+            numIndices = scene.indices.length;
 
             // -- Initialize buffer
-            var positions = new Float32Array(mesh.vertices);
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+            var vertices = scene.vertices;
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-            var uv = new Float32Array(mesh.textures);
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexPosBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, uv, gl.STATIC_DRAW);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-            var normals = new Float32Array(mesh.vertexNormals);
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-            var indices = new Uint16Array(mesh.indices);
+            var indices = scene.indices;
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexElementBuffer);
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
             // -- Initialize vertex array
+            var POSITION_LOCATION = 0; // set with GLSL layout qualifier
+            var TEXCOORD_LOCATION = 1; // set with GLSL layout qualifier
+            var NORMAL_LOCATION = 2; // set with GLSL layout qualifier
+
             gl.bindVertexArray(vertexArray);
-            var vertexPosLocation = 0; // set with GLSL layout qualifier
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-            gl.vertexAttribPointer(vertexPosLocation, 3, gl.FLOAT, false, 0, 0);
-            gl.enableVertexAttribArray(vertexPosLocation);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.vertexAttribPointer(
+                POSITION_LOCATION,
+                scene.positionNumberOfComponents,
+                gl.FLOAT,
+                false,
+                scene.byteStride,
+                scene.positionByteOffset
+                );
+            gl.enableVertexAttribArray(POSITION_LOCATION);
 
-            var vertexTexPosLocation = 1; // set with GLSL layout qualifier
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexPosBuffer);
-            gl.vertexAttribPointer(vertexTexPosLocation, 2, gl.FLOAT, false, 0, 0);
-            gl.enableVertexAttribArray(vertexTexPosLocation);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            gl.vertexAttribPointer(
+                TEXCOORD_LOCATION,
+                scene.texcoordNumberOfComponents,
+                gl.FLOAT,
+                false,
+                scene.byteStride,
+                scene.texcoordByteOffset
+                );
+            gl.enableVertexAttribArray(TEXCOORD_LOCATION);
 
-            var vertexNormalLocation = 2; // set with GLSL layout qualifier
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
-            gl.vertexAttribPointer(vertexNormalLocation, 3, gl.FLOAT, false, 0, 0);
-            gl.enableVertexAttribArray(vertexNormalLocation);
+            gl.vertexAttribPointer(
+                NORMAL_LOCATION,
+                scene.normalNumberOfComponents,
+                gl.FLOAT,
+                false,
+                scene.byteStride,
+                scene.normalByteOffset
+                );
+            gl.enableVertexAttribArray(NORMAL_LOCATION);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexElementBuffer);
-
             gl.bindVertexArray(null);
 
             // -- Init Texture
@@ -276,17 +286,13 @@
             requestAnimationFrame(render);
         }
 
-        document.onunload = function() {
-            // Delete WebGL resources
-            gl.deleteBuffer(vertexPosBuffer);
-            gl.deleteBuffer(vertexTexBuffer);
-            gl.deleteBuffer(vertexNormalBuffer);
-            gl.deleteBuffer(vertexElementBuffer);
-            gl.deleteBuffer(indexBuffer);
-            gl.deleteTexture(texture);
-            gl.deleteProgram(program);
-            gl.deleteVertexArray(vertexArray);
-        };
+        // If you have a long-running page, and need to delete WebGL resources, use:
+
+        // gl.deleteBuffer(vertexBuffer);
+        // gl.deleteBuffer(vertexElementBuffer);
+        // gl.deleteTexture(texture);
+        // gl.deleteProgram(program);
+        // gl.deleteVertexArray(vertexArray);
     })();
     </script>
 

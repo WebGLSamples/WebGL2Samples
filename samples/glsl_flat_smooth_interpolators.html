@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <script src="third-party/gl-matrix-min.js"></script>
-    <script src="third-party/webgl-obj-loader.js"></script>
+    <script src="third-party/gltf-loader.js"></script>
     <script src="utility.js"></script>
 </head>
 
@@ -50,13 +50,13 @@
         in vec3 v_normal;
 
         layout(location = FRAG_COLOR_LOCATION) out vec4 color;
-        
+
         void main()
         {
             color = vec4(v_normal, 1.0);
         }
     </script>
-    
+
     <script id="vs-flat" type="x-shader/x-vertex">
         #version 300 es
         #define POSITION_LOCATION 0
@@ -90,7 +90,7 @@
         flat in vec3 v_normal;
 
         layout(location = FRAG_COLOR_LOCATION) out vec4 color;
-        
+
         void main()
         {
             color = vec4(v_normal, 1.0);
@@ -112,7 +112,7 @@
             document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
             return;
         }
-        
+
         // -- Divide viewport
         var canvasSize = {
             x: canvas.width,
@@ -145,43 +145,52 @@
         var programs = [createProgram(gl, getShaderSource('vs-flat'), getShaderSource('fs-flat')), createProgram(gl, getShaderSource('vs-smooth'), getShaderSource('fs-smooth'))];
         var uniformMvpLocations = [gl.getUniformLocation(programs[VIEWPORTS.LEFT], "mvp"), gl.getUniformLocation(programs[VIEWPORTS.RIGHT], "mvp")];
         var uniformMvNormalLocations = [gl.getUniformLocation(programs[VIEWPORTS.LEFT], "mvNormal"), gl.getUniformLocation(programs[VIEWPORTS.RIGHT], "mvNormal")];
-        
-        var vertexPosBuffer = gl.createBuffer();
-        var vertexNormalBuffer = gl.createBuffer();
+
+        var vertexBuffer = gl.createBuffer();
         var vertexElementBuffer = gl.createBuffer();
         var vertexArray = gl.createVertexArray();
 
-        // -- Load obj then render
-        var objURL = '../assets/obj/di_model_tri.obj';
-        loadObj(objURL, function(mesh) {
+        // -- Load gltf then render
+        var relativePath = '../assets/gltf/';
+        var filename = 'di_model_tri.gltf';
+        loadGltf(relativePath, filename, function(scene) {
+
             // -- Initialize buffer
-            var positions = new Float32Array(mesh.vertices); 
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+            var vertices = scene.vertices;
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
-            
-            var normals = new Float32Array(mesh.vertexNormals);
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-            
-            var indices = new Uint16Array(mesh.indices);
+
+            var indices = scene.indices;
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexElementBuffer);
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-            
-            // -- Initialize vertex array
-            gl.bindVertexArray(vertexArray);
-            var vertexPosLocation = 0; // set with GLSL layout qualifier
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
-            gl.vertexAttribPointer(vertexPosLocation, 3, gl.FLOAT, false, 0, 0);
-            gl.enableVertexAttribArray(vertexPosLocation);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-            var vertexNormalLocation = 1; // set with GLSL layout qualifier
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
-            gl.vertexAttribPointer(vertexNormalLocation, 3, gl.FLOAT, false, 0, 0);
-            gl.enableVertexAttribArray(vertexNormalLocation);
+            // -- Initialize vertex array
+            var POSITION_LOCATION = 0; // set with GLSL layout qualifier
+            var NORMAL_LOCATION = 1; // set with GLSL layout qualifier
+
+            gl.bindVertexArray(vertexArray);
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.vertexAttribPointer(
+                POSITION_LOCATION,
+                scene.positionNumberOfComponents,
+                gl.FLOAT,
+                false,
+                scene.byteStride,
+                scene.positionByteOffset
+                );
+            gl.enableVertexAttribArray(POSITION_LOCATION);
+
+            gl.vertexAttribPointer(
+                NORMAL_LOCATION,
+                scene.normalNumberOfComponents,
+                gl.FLOAT,
+                false,
+                scene.byteStride,
+                scene.normalByteOffset
+                );
+            gl.enableVertexAttribArray(NORMAL_LOCATION);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexElementBuffer);
@@ -191,9 +200,9 @@
             // -- Render preparation
             gl.enable(gl.DEPTH_TEST);
             gl.depthFunc(gl.LEQUAL);
-            
-            var numIndices = mesh.indices.length;
-            
+
+            var numIndices = scene.indices.length;
+
             var translate = vec3.create();
             vec3.set(translate, 0, -18, -60);
             var scale = vec3.create();
@@ -201,25 +210,25 @@
             var modelView = mat4.create();
             mat4.translate(modelView, modelView, translate);
             mat4.scale(modelView, modelView, scale);
-            
+
             var rotatationSpeedY= 0.01;
-   
+
             var perspective = mat4.create();
             mat4.perspective(perspective, 0.785, 1, 1, 1000);
             var mvp = mat4.create();
-         
+
             var mvNormal = mat4.create();
-            
+
             gl.bindVertexArray(vertexArray);
-            
+
             // -- Render loop
             (function render() {
                 gl.clearColor(0.0, 0.0, 0.0, 1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT);
-                
+
                 mat4.rotateY(modelView, modelView, rotatationSpeedY);
                 mat4.multiply(mvp, perspective, modelView);
-                
+
                 mat4.invert(mvNormal, modelView);
                 mat4.transpose(mvNormal, mvNormal);
 
@@ -227,24 +236,22 @@
                     gl.useProgram(programs[i]);
                     gl.uniformMatrix4fv(uniformMvpLocations[i], false, mvp);
                     gl.uniformMatrix4fv(uniformMvNormalLocations[i], false, mvNormal);
-                    
+
                     gl.viewport(viewport[i].x, viewport[i].y, viewport[i].width, viewport[i].height);
                     gl.drawElements(gl.TRIANGLES, numIndices, gl.UNSIGNED_SHORT, 0);
                 }
-                
+
                 requestAnimationFrame(render);
             })();
         });
-   
-        window.onunload = function() {
-            // -- Delete WebGL resources
-            gl.deleteBuffer(vertexPosBuffer);
-            gl.deleteBuffer(vertexNormalBuffer);
-            gl.deleteBuffer(vertexElementBuffer);
-            gl.deleteVertexArray(vertexArray);
-            gl.deleteProgram(programs[VIEWPORTS.LEFT]);
-            gl.deleteProgram(programs[VIEWPORTS.RIGHT]);
-        };
+
+        // If you have a long-running page, and need to delete WebGL resources, use:
+
+        // gl.deleteBuffer(vertexBuffer);
+        // gl.deleteBuffer(vertexElementBuffer);
+        // gl.deleteVertexArray(vertexArray);
+        // gl.deleteProgram(programs[VIEWPORTS.LEFT]);
+        // gl.deleteProgram(programs[VIEWPORTS.RIGHT]);
     })();
     </script>
 
