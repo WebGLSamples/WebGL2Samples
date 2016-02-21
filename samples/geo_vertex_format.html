@@ -191,18 +191,24 @@
             //no range checking at present
             
             var ary = frexp(value);
-            var mantissa = ary[0];
-            var exponent = ary[1];
+            var mantissa = ary[0] * 2 - 1;
+            var exponent = ary[1] - 1;
             
             var signBit = mantissa < 0 ? 1 : 0;
             var data = new DataView(new ArrayBuffer(2));
             //data.setUint16(15, signBit);
             //data.setUint16(10, exponent);
             //data.setUint16(0, mantissa / (1 / 1024));
+            var a = signBit << 15;
+            var b = (exponent + 15) << 10;
+            var c = Math.abs(mantissa) / (1 / 1024);
             
-            data.setInt16(0, signBit << 15);
-            data.setInt16(0, (exponent + 15) << 9);
-            data.setInt16(0, Math.abs(mantissa) / (1 / 1024));
+            data.setInt16(0, a + b + c);
+            
+            
+            // data.setInt16(0, signBit << 15);
+            // data.setInt16(0, (exponent + 15) << 9);
+            // data.setInt16(0, Math.abs(mantissa) / (1 / 1024));
             
             return data.getInt16(0); 
         }
@@ -240,44 +246,76 @@
         //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
         //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(0)
         // ];
-        var halfFloat_1 = 0x3C00;
         var tmp_ary = [
-            // Front face
-            halfFloat_1, 0, 0,
-            halfFloat_1, 0, 0,
-            halfFloat_1, 0, 0,
-            halfFloat_1, 0, 0,
-
-            // Back face
-            halfFloat_1, halfFloat_1, 0,
-            halfFloat_1, halfFloat_1, 0,
-            halfFloat_1, halfFloat_1, 0,
-            halfFloat_1, halfFloat_1, 0,
-
-            // Top face
-            0, halfFloat_1, 0,
-            0, halfFloat_1, 0,
-            0, halfFloat_1, 0,
-            0, halfFloat_1, 0,
-
-            // Bottom face
-            0, halfFloat_1, halfFloat_1,
-            0, halfFloat_1, halfFloat_1,
-            0, halfFloat_1, halfFloat_1,
-            0, halfFloat_1, halfFloat_1,
-
-            // Right face
-            0, 0, halfFloat_1,
-            0, 0, halfFloat_1,
-            0, 0, halfFloat_1,
-            0, 0, halfFloat_1,
-
-            // Left face
-            halfFloat_1, 0, halfFloat_1,
-            halfFloat_1, 0, halfFloat_1,
-            halfFloat_1, 0, halfFloat_1,
-            halfFloat_1, 0, halfFloat_1
+            encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
+            encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
+            encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
+            encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
+            
+            encodeFloat16(0), encodeFloat16(1), encodeFloat16(1),
+            encodeFloat16(0), encodeFloat16(1), encodeFloat16(1),
+            encodeFloat16(0), encodeFloat16(1), encodeFloat16(1),
+            encodeFloat16(0), encodeFloat16(1), encodeFloat16(1),
+            
+            encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
+            encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
+            encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
+            encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
+            
+            encodeFloat16(1), encodeFloat16(1), encodeFloat16(0),
+            encodeFloat16(1), encodeFloat16(1), encodeFloat16(0),
+            encodeFloat16(1), encodeFloat16(1), encodeFloat16(0),
+            encodeFloat16(1), encodeFloat16(1), encodeFloat16(0),
+            
+            encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
+            encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
+            encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
+            encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
+            
+            encodeFloat16(1), encodeFloat16(0), encodeFloat16(1),
+            encodeFloat16(1), encodeFloat16(0), encodeFloat16(1),
+            encodeFloat16(1), encodeFloat16(0), encodeFloat16(1),
+            encodeFloat16(1), encodeFloat16(0), encodeFloat16(1)
         ];
+        
+        // var halfFloat_1 = 0x3C00;
+        // var tmp_ary = [
+        //     // Front face
+        //     halfFloat_1, 0, 0,
+        //     halfFloat_1, 0, 0,
+        //     halfFloat_1, 0, 0,
+        //     halfFloat_1, 0, 0,
+
+        //     // Back face
+        //     halfFloat_1, halfFloat_1, 0,
+        //     halfFloat_1, halfFloat_1, 0,
+        //     halfFloat_1, halfFloat_1, 0,
+        //     halfFloat_1, halfFloat_1, 0,
+
+        //     // Top face
+        //     0, halfFloat_1, 0,
+        //     0, halfFloat_1, 0,
+        //     0, halfFloat_1, 0,
+        //     0, halfFloat_1, 0,
+
+        //     // Bottom face
+        //     0, halfFloat_1, halfFloat_1,
+        //     0, halfFloat_1, halfFloat_1,
+        //     0, halfFloat_1, halfFloat_1,
+        //     0, halfFloat_1, halfFloat_1,
+
+        //     // Right face
+        //     0, 0, halfFloat_1,
+        //     0, 0, halfFloat_1,
+        //     0, 0, halfFloat_1,
+        //     0, 0, halfFloat_1,
+
+        //     // Left face
+        //     halfFloat_1, 0, halfFloat_1,
+        //     halfFloat_1, 0, halfFloat_1,
+        //     halfFloat_1, 0, halfFloat_1,
+        //     halfFloat_1, 0, halfFloat_1
+        // ];
         normals.set(tmp_ary, 0);
         
 
