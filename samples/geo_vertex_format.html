@@ -47,7 +47,8 @@
             v_lightDirection = vec3(u_viewProj * vec4(u_lightPosition - modelPosition, 1.0));
             gl_Position = u_viewProj * vec4(modelPosition, 1.0);
 
-            v_normal = vec3(u_viewProj * u_modelInvTrans * vec4(a_normal, 0.0));
+            //v_normal = vec3(u_viewProj * u_modelInvTrans * vec4(a_normal, 0.0));
+            v_normal = a_normal;
 
             // Pass through
             v_color = a_color;
@@ -83,7 +84,11 @@
             float lightIntensity = dot(normalize(v_normal), normalize(v_lightDirection));
             lightIntensity = lightIntensity, 0.0, 1.0 + u_ambient;
 
-            color = color * lightIntensity;
+            //color = color * lightIntensity;
+            
+            color = vec4(v_normal, 1.0);
+            
+            //color = vec4(1.0, 1.0, -1.0, 1.0);
         }
 
     </script>
@@ -195,89 +200,126 @@
             //data.setUint16(10, exponent);
             //data.setUint16(0, mantissa / (1 / 1024));
             
-            data.setUint16(0, signBit << 15);
-            data.setUint16(0, (exponent + 15) << 9);
-            data.setUint16(0, Math.abs(mantissa) / (1 / 1024));
+            data.setInt16(0, signBit << 15);
+            data.setInt16(0, (exponent + 15) << 9);
+            data.setInt16(0, Math.abs(mantissa) / (1 / 1024));
             
-            return data.getUint16(0); 
+            return data.getInt16(0); 
         }
         
-        //var ns = encodeFloat16(4);
         var numVertices = 24;
-        var uint16 = new Uint16Array(new ArrayBuffer(2 * 3 * numVertices));
-        //var xxx = encodeFloat16(4).getUint16(0);
+        var normals = new Int16Array(new ArrayBuffer(2 * 3 * numVertices));
+        // var tmp_ary = [
+        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
+        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
+        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
+        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
+            
+        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
+        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
+        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
+        //     encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
+            
+        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
+        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
+        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
+        //     encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
+            
+        //     encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
+        //     encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
+        //     encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
+        //     encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
+            
+        //     encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
+        //     encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
+        //     encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
+        //     encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
+            
+        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
+        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
+        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
+        //     encodeFloat16(1), encodeFloat16(0), encodeFloat16(0)
+        // ];
+        var halfFloat_1 = 0x3C00;
         var tmp_ary = [
-            encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
-            encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
-            encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
-            encodeFloat16(0), encodeFloat16(0), encodeFloat16(-1),
-            
-            encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
-            encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
-            encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
-            encodeFloat16(0), encodeFloat16(0), encodeFloat16(1),
-            
-            encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
-            encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
-            encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
-            encodeFloat16(0), encodeFloat16(1), encodeFloat16(0),
-            
-            encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
-            encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
-            encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
-            encodeFloat16(0), encodeFloat16(-1), encodeFloat16(0),
-            
-            encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
-            encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
-            encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
-            encodeFloat16(-1), encodeFloat16(0), encodeFloat16(0),
-            
-            encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
-            encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
-            encodeFloat16(1), encodeFloat16(0), encodeFloat16(0),
-            encodeFloat16(1), encodeFloat16(0), encodeFloat16(0)
+            // Front face
+            halfFloat_1, 0, 0,
+            halfFloat_1, 0, 0,
+            halfFloat_1, 0, 0,
+            halfFloat_1, 0, 0,
+
+            // Back face
+            halfFloat_1, halfFloat_1, 0,
+            halfFloat_1, halfFloat_1, 0,
+            halfFloat_1, halfFloat_1, 0,
+            halfFloat_1, halfFloat_1, 0,
+
+            // Top face
+            0, halfFloat_1, 0,
+            0, halfFloat_1, 0,
+            0, halfFloat_1, 0,
+            0, halfFloat_1, 0,
+
+            // Bottom face
+            0, halfFloat_1, halfFloat_1,
+            0, halfFloat_1, halfFloat_1,
+            0, halfFloat_1, halfFloat_1,
+            0, halfFloat_1, halfFloat_1,
+
+            // Right face
+            0, 0, halfFloat_1,
+            0, 0, halfFloat_1,
+            0, 0, halfFloat_1,
+            0, 0, halfFloat_1,
+
+            // Left face
+            halfFloat_1, 0, halfFloat_1,
+            halfFloat_1, 0, halfFloat_1,
+            halfFloat_1, 0, halfFloat_1,
+            halfFloat_1, 0, halfFloat_1
         ];
-        uint16.set(tmp_ary, 0);
+        normals.set(tmp_ary, 0);
         
 
 
-        var normals = new Int8Array([
-            // Front face
-            0, 0, -1,
-            0, 0, -1,
-            0, 0, -1,
-            0, 0, -1,
+        // var normals = new Int8Array([
+        //     // Front face
+        //     0, 0, -1,
+        //     0, 0, -1,
+        //     0, 0, -1,
+        //     0, 0, -1,
 
-            // Back face
-            0, 0, 1,
-            0, 0, 1,
-            0, 0, 1,
-            0, 0, 1,
+        //     // Back face
+        //     0, 0, 1,
+        //     0, 0, 1,
+        //     0, 0, 1,
+        //     0, 0, 1,
 
-            // Top face
-            0, 1, 0,
-            0, 1, 0,
-            0, 1, 0,
-            0, 1, 0,
+        //     // Top face
+        //     0, 1, 0,
+        //     0, 1, 0,
+        //     0, 1, 0,
+        //     0, 1, 0,
 
-            // Bottom face
-            0, -1, 0,
-            0, -1, 0,
-            0, -1, 0,
-            0, -1, 0,
+        //     // Bottom face
+        //     0, -1, 0,
+        //     0, -1, 0,
+        //     0, -1, 0,
+        //     0, -1, 0,
 
-            // Right face
-            -1, 0, 0,
-            -1, 0, 0,
-            -1, 0, 0,
-            -1, 0, 0,
+        //     // Right face
+        //     -1, 0, 0,
+        //     -1, 0, 0,
+        //     -1, 0, 0,
+        //     -1, 0, 0,
 
-            // Left face
-            1, 0, 0,
-            1, 0, 0,
-            1, 0, 0,
-            1, 0, 0
-        ]);
+        //     // Left face
+        //     1, 0, 0,
+        //     1, 0, 0,
+        //     1, 0, 0,
+        //     1, 0, 0
+        // ]);
+        
         var vertexNorBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexNorBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
@@ -371,7 +413,8 @@
 
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexNorBuffer);
         gl.enableVertexAttribArray(NORMAL_LOCATION);
-        gl.vertexAttribPointer(NORMAL_LOCATION, 3, gl.BYTE, false, 0, 0);
+        //gl.vertexAttribPointer(NORMAL_LOCATION, 3, gl.BYTE, false, 0, 0);
+        gl.vertexAttribPointer(NORMAL_LOCATION, 3, gl.HALF_FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
