@@ -18,7 +18,6 @@ var HALFFLOAT = HALFFLOAT || {};
     // http://croquetweak.blogspot.de/2014/08/deconstructing-floats-frexp-and-ldexp.html
     function frexp(value) {
         if (value === 0) {
-            //return [value, 0];
             mantissa = 0;
             exponent = 0;
             return;
@@ -31,7 +30,6 @@ var HALFFLOAT = HALFFLOAT || {};
         }
         exponent = bits - 1022;
         mantissa = ldexp(value, -exponent);
-        //return [mantissa, exponent];
     }
     
     function ldexp(f, e) {
@@ -89,49 +87,10 @@ var HALFFLOAT = HALFFLOAT || {};
     var i;
     HALFFLOAT.Float16Array = function(numArray){
         var float16Array = new Int16Array(new ArrayBuffer(2 * numArray.length));
-        var tmpArray = new Array(numArray.length);
-        
+        var tmpArray = new Array(numArray.length);        
         for (i = 0; i < numArray.length; ++i) {
             tmpArray[i] = HALFFLOAT.encodeFloat16AsInt16(numArray[i]);
         }
-        
-        // var tmpArray = [
-        //     // Front face
-        //     0, 0, -1,
-        //     0, 0, -1,
-        //     0, 0, -1,
-        //     0, 0, -1,
-            
-        //     // Back face
-        //     0, 0, 1,
-        //     0, 0, 1,
-        //     0, 0, 1,
-        //     0, 0, 1,
-            
-        //     // Top face
-        //     0.5, 1, 0,
-        //     0.5, 1, 0,
-        //     0.5, 1, 0,
-        //     0.5, 1, 0,
-            
-        //     // Bottom face
-        //     0, -1, 0,
-        //     0, -1, 0,
-        //     0, -1, 0,
-        //     0, -1, 0,
-            
-        //     // Right face
-        //     -1, 0, 0,
-        //     -1, 0, 0,
-        //     -1, 0, 0,
-        //     -1, 0, 0,
-            
-        //     // Left face
-        //     0.5, 0, 0,
-        //     0.5, 0, 0,
-        //     0.5, 0, 0,
-        //     0.5, 0, 0
-        // ];
         float16Array.set(tmpArray, 0);
         return float16Array;
     };

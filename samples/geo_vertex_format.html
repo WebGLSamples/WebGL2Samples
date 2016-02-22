@@ -47,8 +47,7 @@
             v_lightDirection = vec3(u_viewProj * vec4(u_lightPosition - modelPosition, 1.0));
             gl_Position = u_viewProj * vec4(modelPosition, 1.0);
 
-            //v_normal = vec3(u_viewProj * u_modelInvTrans * vec4(a_normal, 0.0));
-            v_normal = a_normal;
+            v_normal = vec3(u_viewProj * u_modelInvTrans * vec4(a_normal, 0.0));
 
             // Pass through
             v_color = a_color;
@@ -84,9 +83,7 @@
             float lightIntensity = dot(normalize(v_normal), normalize(v_lightDirection));
             lightIntensity = lightIntensity, 0.0, 1.0 + u_ambient;
 
-            //color = color * lightIntensity;
-            
-            color = vec4(abs(v_normal), 1.0);
+            color = color * lightIntensity;
         }
 
     </script>
@@ -200,45 +197,6 @@
             1, 0, 0,
             1, 0, 0
         ]);
-        
-        // var normals = HALFFLOAT.Float16Array([
-        //     // Front face
-        //     -1, 0, 0,
-        //     0, 0, 0,
-        //     0, 0, 0,
-        //     0, 0, 0,
-            
-        //     // Back face
-        //     0, 0, 0,
-        //     0, 0, 0,
-        //     0, 0, 0,
-        //     0, 0, 0,
-            
-        //     // Top face
-        //     0, 0, 0,
-        //     0, 0, 0,
-        //     0, 0, 0,
-        //     0, 0, 0,
-            
-        //     // Bottom face
-        //     0, 0, 0,
-        //     0, 0, 0,
-        //     0, 0, 0,
-        //     0, 0, 0,
-            
-        //     // Right face
-        //     0, 0, 0,
-        //     0, 0, 0,
-        //     0, 0, 0,
-        //     0, 0, 0,
-            
-        //     // Left face
-        //     0, 0, 0,
-        //     0, 0, 0,
-        //     0, 0, 0,
-        //     0, 0, 0
-        // ]);
-        
         var vertexNorBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexNorBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
