@@ -17,7 +17,12 @@ var HALFFLOAT = HALFFLOAT || {};
     // http://stackoverflow.com/questions/28688838/convert-a-number-into-a-16-bit-float-stored-as-bytes-and-back
     // http://croquetweak.blogspot.de/2014/08/deconstructing-floats-frexp-and-ldexp.html
     function frexp(value) {
-        if (value === 0) return [value, 0];
+        if (value === 0) {
+            //return [value, 0];
+            mantissa = 0;
+            exponent = 0;
+            return;
+        }
         data64.setFloat64(0, value);
         bits = (data64.getUint32(0) >>> 20) & 0x7FF;
         if (bits === 0) {
@@ -29,10 +34,10 @@ var HALFFLOAT = HALFFLOAT || {};
         //return [mantissa, exponent];
     }
     
-    function ldexp(frac, exp) {
+    function ldexp(f, e) {
         // avoid multiplying by infinity and zero
-        return exp > 1023 ? frac * Math.pow(2, 1023) * Math.pow(2, exp - 1023) : 
-            exp < -1074 ? frac * Math.pow(2, -1074) * Math.pow(2, exp + 1074) : frac * Math.pow(2, exp);
+        return e > 1023 ? f * Math.pow(2, 1023) * Math.pow(2, e - 1023) : 
+            e < -1074 ? f * Math.pow(2, -1074) * Math.pow(2, e + 1074) : f * Math.pow(2, e);
     }
     
     var signBit;
@@ -64,8 +69,10 @@ var HALFFLOAT = HALFFLOAT || {};
         }
         
         // normalized value
-        mantissa = mantissa * 2 - 1;
-        exponent = exponent - 1;
+        if(mantissa < 1.0) {
+            mantissa = mantissa * 2 - 1;
+            exponent = exponent - 1;
+        }
         
         exp = (exponent + 15) << 10;
         frac = Math.abs(mantissa) / UNIT_VALUE;
@@ -83,9 +90,48 @@ var HALFFLOAT = HALFFLOAT || {};
     HALFFLOAT.Float16Array = function(numArray){
         var float16Array = new Int16Array(new ArrayBuffer(2 * numArray.length));
         var tmpArray = new Array(numArray.length);
+        
         for (i = 0; i < numArray.length; ++i) {
             tmpArray[i] = HALFFLOAT.encodeFloat16AsInt16(numArray[i]);
         }
+        
+        // var tmpArray = [
+        //     // Front face
+        //     0, 0, -1,
+        //     0, 0, -1,
+        //     0, 0, -1,
+        //     0, 0, -1,
+            
+        //     // Back face
+        //     0, 0, 1,
+        //     0, 0, 1,
+        //     0, 0, 1,
+        //     0, 0, 1,
+            
+        //     // Top face
+        //     0.5, 1, 0,
+        //     0.5, 1, 0,
+        //     0.5, 1, 0,
+        //     0.5, 1, 0,
+            
+        //     // Bottom face
+        //     0, -1, 0,
+        //     0, -1, 0,
+        //     0, -1, 0,
+        //     0, -1, 0,
+            
+        //     // Right face
+        //     -1, 0, 0,
+        //     -1, 0, 0,
+        //     -1, 0, 0,
+        //     -1, 0, 0,
+            
+        //     // Left face
+        //     0.5, 0, 0,
+        //     0.5, 0, 0,
+        //     0.5, 0, 0,
+        //     0.5, 0, 0
+        // ];
         float16Array.set(tmpArray, 0);
         return float16Array;
     };

@@ -11,7 +11,7 @@
 
 <body>
     <div id="info">WebGL 2 Samples - geo_vertex_format</div>
-    <div id="description"> This sample demonstrates the use of different vertex formats. gl.SHORT for normals attribute and gl.UNSIGNED_BYTE for colors attribute.
+    <div id="description"> This sample demonstrates the use of different vertex formats. gl.HALF_FLOAT for normals attribute and gl.UNSIGNED_BYTE for colors attribute.
 
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
@@ -84,7 +84,7 @@
             float lightIntensity = dot(normalize(v_normal), normalize(v_lightDirection));
             lightIntensity = lightIntensity, 0.0, 1.0 + u_ambient;
 
-            color = color * lightIntensity;
+            //color = color * lightIntensity;
             
             color = vec4(abs(v_normal), 1.0);
         }
@@ -200,6 +200,44 @@
             1, 0, 0,
             1, 0, 0
         ]);
+        
+        // var normals = HALFFLOAT.Float16Array([
+        //     // Front face
+        //     -1, 0, 0,
+        //     0, 0, 0,
+        //     0, 0, 0,
+        //     0, 0, 0,
+            
+        //     // Back face
+        //     0, 0, 0,
+        //     0, 0, 0,
+        //     0, 0, 0,
+        //     0, 0, 0,
+            
+        //     // Top face
+        //     0, 0, 0,
+        //     0, 0, 0,
+        //     0, 0, 0,
+        //     0, 0, 0,
+            
+        //     // Bottom face
+        //     0, 0, 0,
+        //     0, 0, 0,
+        //     0, 0, 0,
+        //     0, 0, 0,
+            
+        //     // Right face
+        //     0, 0, 0,
+        //     0, 0, 0,
+        //     0, 0, 0,
+        //     0, 0, 0,
+            
+        //     // Left face
+        //     0, 0, 0,
+        //     0, 0, 0,
+        //     0, 0, 0,
+        //     0, 0, 0
+        // ]);
         
         var vertexNorBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexNorBuffer);
