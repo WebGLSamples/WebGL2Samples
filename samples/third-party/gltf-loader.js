@@ -94,7 +94,7 @@
         var bufferView = json.bufferViews[bufferViewName];
         var bufferName = bufferView.buffer;
         var buffer = json.buffers[bufferName];
-        var uri = GLTF.relativePath + buffer.uri;
+        var uri = GLTF.baseUri + buffer.uri;
 
         // @todo: optimize so we only need to load resources once
         loadArrayBuffer(uri, function(resource) {
@@ -159,7 +159,7 @@
         var bufferView = json.bufferViews[bufferViewName];
         var bufferName = bufferView.buffer;
         var buffer = json.buffers[bufferName];
-        var uri = GLTF.relativePath + buffer.uri;
+        var uri = GLTF.baseUri + buffer.uri;
 
         // @todo: optimize so we only need to load resources once
         loadArrayBuffer(uri, function(resource) {
@@ -178,11 +178,10 @@
         });
     };
 
-    window.loadGltf = function(relativePath, filename, onload) {
+    window.loadGltf = function(url, onload) {
 
-        var url = relativePath + filename;
         // Save relative path to load .bin file
-        GLTF.relativePath = relativePath;
+        GLTF.baseUri = getBaseUri(url);
 
         loadJSON(url, function(response) {
             // Parse JSON string into object
@@ -190,6 +189,19 @@
             parseGltf(jsonObj, onload);
         });
     };
+    
+    function getBaseUri(uri) {
+        
+        // https://github.com/AnalyticalGraphicsInc/cesium/blob/master/Source/Core/getBaseUri.js
+        
+        var basePath = '';
+        var i = uri.lastIndexOf('/');
+        if(i !== -1) {
+            basePath = uri.substring(0, i + 1);
+        }
+        
+        return basePath;
+    }
 
     function loadJSON(src, callback) {
 

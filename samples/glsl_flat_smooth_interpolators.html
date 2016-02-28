@@ -151,9 +151,8 @@
         var vertexArray = gl.createVertexArray();
 
         // -- Load gltf then render
-        var relativePath = '../assets/gltf/';
-        var filename = 'di_model_tri.gltf';
-        loadGltf(relativePath, filename, function(scene) {
+        var gltfURL = '../assets/gltf/di_model_tri.gltf';
+        loadGltf(gltfURL, function(scene) {
 
             // -- Initialize buffer
             var vertices = scene.vertices;
