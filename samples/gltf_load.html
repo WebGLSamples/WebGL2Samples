@@ -150,7 +150,7 @@
                 gl.FLOAT,
                 false,
                 scene.positionByteStride,
-                scene.positionByteOffset
+                scene.positionByteOffset + 18 * 4
                 );
             gl.enableVertexAttribArray(POSITION_LOCATION);
 
@@ -160,7 +160,7 @@
                 gl.FLOAT,
                 false,
                 scene.normalByteStride,
-                scene.normalByteOffset
+                scene.normalByteOffset + 18 * 4
                 );
             gl.enableVertexAttribArray(NORMAL_LOCATION);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
