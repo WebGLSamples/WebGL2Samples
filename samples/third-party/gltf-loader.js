@@ -47,12 +47,35 @@
             }
         }
     };
-
-    var traverseNode = function(json, node, scene, onload) {
+    
+    
+    var translationVec3;
+    var rotationQuat;
+    var scaleVec3;
+    var TRMatrix;
+    
+    var traverseNode = function(json, node, scene, onload, matrix = mat4.create()) {
 
         // Iterate through every mesh within node
         var meshes = node.meshes;
         var meshLen = meshes.length;
+        
+        var curMatrix = mat4.clone(matrix);
+        if (node.hasOwnProperty('matrix')) {
+            // matrix
+            for(var i = 0; i < 16; ++i) {
+                curMatrix[i] = node.matrix[i];
+            }
+            mat4.multiply(curMatrix, curMatrix, curMatrix);
+        } else {
+            // translation, rotation, scale (TRS)
+            vec3.set(translationVec3, node.translation[0], node.translation[1], node.translation[2]);
+            quat.set(rotationQuat, node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
+            mat4.fromRotationTranslation(TRMatrix, rotationQuat, translationVec3);
+            mat4.multiply(curMatrix, curMatrix, TRMatrix);
+            vec3.set(scaleVec3, node.scale[0], node.scale[1], node.scale[2]);
+            mat4.scale(curMatrix, curMatrix, scaleVec3);
+        }
 
         for (var m = 0; m < meshLen; ++m) {
             var meshName = meshes[m];
@@ -69,7 +92,7 @@
                 parseIndices(json, primitive, scene, function() {
 
                     // Get attributes
-                    parseAttributes(json, primitive, scene, onload);
+                    parseAttributes(json, primitive, scene, onload, curMatrix);
                 });
             }
         }
@@ -80,7 +103,7 @@
         for (var c = 0; c < childreLen; ++c) {
             var childName = children[c];
             var childNode = json.nodes[childName];
-            traverseNode(childNode);
+            traverseNode(json, childNode, scene, onload, curMatrix);
         }
     };
 
@@ -114,7 +137,7 @@
         });
     };
 
-    var parseAttributes = function(json, primitive, scene, callback) {
+    var parseAttributes = function(json, primitive, scene, callback, matrix) {
         var accessors = json.accessors;
 
         // Get all the attributes
@@ -179,15 +202,42 @@
     };
 
     window.loadGltfGeometry = function(url, onload) {
+        
+        // @todo: currently using a relative path to load gl-matrix-min
+        (function(src, callback){
+            // http://stackoverflow.com/questions/950087/include-a-javascript-file-in-another-javascript-file
+            
+            // Adding the script tag to the head as suggested before
+            var head = document.getElementsByTagName('head')[0];
+            var script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = src;
 
-        // Save relative path to load .bin file
-        GLTF.baseUri = getBaseUri(url);
+            // Then bind the event to the callback function.
+            // There are several events for cross browser compatibility.
+            script.onreadystatechange = callback;
+            script.onload = callback;
 
-        loadJSON(url, function(response) {
-            // Parse JSON string into object
-            var jsonObj = JSON.parse(response);
-            parseGltf(jsonObj, onload);
-        });
+            // Fire the loading
+            head.appendChild(script);
+        })('third-party/gl-matrix-min.js', 
+            (function() {
+            // Save relative path to load .bin file
+            GLTF.baseUri = getBaseUri(url);
+            
+            // matrix transform preparation
+            translationVec3 = vec3.create();
+            rotationQuat = vec4.create();
+            scaleVec3 = vec3.create();
+            TRMatrix = mat4.create();
+
+            loadJSON(url, function(response) {
+                // Parse JSON string into object
+                var jsonObj = JSON.parse(response);
+                parseGltf(jsonObj, onload);
+            });
+        })); 
+ 
     };
     
     function getBaseUri(uri) {
