@@ -61,13 +61,13 @@
         if(!!meshes) {
             var meshLen = meshes.length;
         
-            var curMatrix = mat4.clone(matrix);
+            var curMatrix = mat4.create();
             if (node.hasOwnProperty('matrix')) {
                 // matrix
                 for(var i = 0; i < 16; ++i) {
                     curMatrix[i] = node.matrix[i];
                 }
-                mat4.multiply(curMatrix, curMatrix, curMatrix);
+                mat4.multiply(curMatrix, matrix, curMatrix);
             } else {
                 // translation, rotation, scale (TRS)
                 vec3.set(translationVec3, node.translation[0], node.translation[1], node.translation[2]);
@@ -199,6 +199,9 @@
             // @todo: assuming float32
             var data = new Float32Array(resource);
             
+            var stride = scene.byteStride / 4;
+            var offset = 0;
+            
             // apply transformations
             // attributes are interleaved
             for (var semantic in attributes) {
@@ -206,22 +209,32 @@
                 attribute = accessors[accessorName];
 
                 if (semantic.substring(0, 8) === 'POSITION') {
-                    for (var i = 0; i < data.length; i += scene.byteStride) {
-                        vec4.set(tmpVec4, data[i + scene.positionByteOffset / 4]
-                                        , data[i + scene.positionByteOffset / 4 + 1]
-                                        , data[i + scene.positionByteOffset / 4 + 2]
+                    offset = scene.positionByteOffset / 4;
+                    for (var i = 0; i < data.length; i += stride) {
+                        vec4.set(tmpVec4, data[i + offset]
+                                        , data[i + offset + 1]
+                                        , data[i + offset + 2]
                                         , 1);
                         vec4.transformMat4(tmpVec4, tmpVec4, matrix);
+                        vec4.scale(tmpVec4, tmpVec4, tmpVec4[3]);
+                        data[i + offset] = tmpVec4[0];
+                        data[i + offset + 1] = tmpVec4[1];
+                        data[i + offset + 2] = tmpVec4[2];
                     }
                 } else if (semantic.substring(0, 6) === 'NORMAL') {
+                    offset = scene.normalByteOffset / 4;
                     mat4.invert(inverseTransposeMatrix, matrix);
                     mat4.transpose(inverseTransposeMatrix, inverseTransposeMatrix);                    
-                    for (var i = 0; i < data.length; i += scene.byteStride) {
-                        vec4.set(tmpVec4, data[i + scene.normalByteOffset / 4]
-                                        , data[i + scene.normalByteOffset / 4 + 1]
-                                        , data[i + scene.normalByteOffset / 4 + 2]
-                                        , 1);
+                    for (var i = 0; i < data.length; i += stride) {
+                        vec4.set(tmpVec4, data[i + offset]
+                                        , data[i + offset + 1]
+                                        , data[i + offset + 2]
+                                        , 0);
                         vec4.transformMat4(tmpVec4, tmpVec4, inverseTransposeMatrix);
+                        vec4.normalize(tmpVec4, tmpVec4);
+                        data[i + offset] = tmpVec4[0];
+                        data[i + offset + 1] = tmpVec4[1];
+                        data[i + offset + 2] = tmpVec4[2];
                     }
                 } else if (semantic.substring(0, 8) === 'TEXCOORD') {
                     // @todo: Parse
