@@ -137,6 +137,9 @@
         });
     };
 
+    
+    var tmpVec4;
+    
     var parseAttributes = function(json, primitive, scene, callback, matrix) {
         var accessors = json.accessors;
 
@@ -191,7 +194,42 @@
 
             // @todo: assuming float32
             var data = new Float32Array(resource);
+            
+            // apply transformations
+            // attributes are interleaved
+            for (var semantic in attributes) {
+                var accessorName = attributes[semantic];
+                attribute = accessors[accessorName];
 
+                if (semantic.substring(0, 8) === 'POSITION') {
+                    for (var i = 0; i < data.length; i += scene.byteStride) {
+                        vec4.set(tmpVec4, data[i + scene.positionByteOffset / 4]
+                                        , data[i + scene.positionByteOffset / 4 + 1]
+                                        , data[i + scene.positionByteOffset / 4 + 2]
+                                        , 1);
+                        vec4.transformMat4(tmpVec4, tmpVec4, matrix);
+                    }
+                } else if (semantic.substring(0, 6) === 'NORMAL') {
+                    for (var i = 0; i < data.length; i += scene.byteStride) {
+                        vec4.set(tmpVec4, data[i + scene.normalByteOffset / 4]
+                                        , data[i + scene.normalByteOffset / 4 + 1]
+                                        , data[i + scene.normalByteOffset / 4 + 2]
+                                        , 1);
+                        vec4.transformMat4(tmpVec4, tmpVec4, matrix);
+                    }
+                } else if (semantic.substring(0, 8) === 'TEXCOORD') {
+                    // @todo: Parse
+                } else if (semantic.substring(0, 5) === 'COLOR') {
+                    // @todo: Parse
+                } else if (semantic.substring(0, 5) === 'JOINT') {
+                    // @todo: Parse
+                } else if (semantic.substring(0, 11) === 'JOINTMATRIX') {
+                    // @todo: Parse
+                } else if (semantic.substring(0, 6) === 'WEIGHT') {
+                    // @todo: Parse
+                }
+            }
+            
             if (data) {
                 scene.vertices = data;
 
@@ -230,6 +268,8 @@
             rotationQuat = vec4.create();
             scaleVec3 = vec3.create();
             TRMatrix = mat4.create();
+            
+            tmpVec4 = vec4.create();
 
             loadJSON(url, function(response) {
                 // Parse JSON string into object
