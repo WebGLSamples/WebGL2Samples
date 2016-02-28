@@ -213,6 +213,7 @@
                         vec4.transformMat4(tmpVec4, tmpVec4, matrix);
                     }
                 } else if (semantic.substring(0, 6) === 'NORMAL') {
+                    // @todo: this needs a inverseTranspose matrix
                     for (var i = 0; i < data.length; i += scene.byteStride) {
                         vec4.set(tmpVec4, data[i + scene.normalByteOffset / 4]
                                         , data[i + scene.normalByteOffset / 4 + 1]
