@@ -199,8 +199,8 @@
             // @todo: assuming float32
             var data = new Float32Array(resource);
             
-            var stride = scene.byteStride / 4;
-            var offset = 0;
+            var stride;
+            var offset;
             
             // apply transformations
             // attributes are interleaved
