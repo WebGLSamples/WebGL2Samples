@@ -58,44 +58,47 @@
 
         // Iterate through every mesh within node
         var meshes = node.meshes;
-        var meshLen = meshes.length;
+        if(!!meshes) {
+            var meshLen = meshes.length;
         
-        var curMatrix = mat4.clone(matrix);
-        if (node.hasOwnProperty('matrix')) {
-            // matrix
-            for(var i = 0; i < 16; ++i) {
-                curMatrix[i] = node.matrix[i];
+            var curMatrix = mat4.clone(matrix);
+            if (node.hasOwnProperty('matrix')) {
+                // matrix
+                for(var i = 0; i < 16; ++i) {
+                    curMatrix[i] = node.matrix[i];
+                }
+                mat4.multiply(curMatrix, curMatrix, curMatrix);
+            } else {
+                // translation, rotation, scale (TRS)
+                vec3.set(translationVec3, node.translation[0], node.translation[1], node.translation[2]);
+                quat.set(rotationQuat, node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
+                mat4.fromRotationTranslation(TRMatrix, rotationQuat, translationVec3);
+                mat4.multiply(curMatrix, curMatrix, TRMatrix);
+                vec3.set(scaleVec3, node.scale[0], node.scale[1], node.scale[2]);
+                mat4.scale(curMatrix, curMatrix, scaleVec3);
             }
-            mat4.multiply(curMatrix, curMatrix, curMatrix);
-        } else {
-            // translation, rotation, scale (TRS)
-            vec3.set(translationVec3, node.translation[0], node.translation[1], node.translation[2]);
-            quat.set(rotationQuat, node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
-            mat4.fromRotationTranslation(TRMatrix, rotationQuat, translationVec3);
-            mat4.multiply(curMatrix, curMatrix, TRMatrix);
-            vec3.set(scaleVec3, node.scale[0], node.scale[1], node.scale[2]);
-            mat4.scale(curMatrix, curMatrix, scaleVec3);
+
+            for (var m = 0; m < meshLen; ++m) {
+                var meshName = meshes[m];
+                var mesh = json.meshes[meshName];
+
+                // Iterate through primitives
+                var primitives = mesh.primitives;
+                var primitiveLen = primitives.length;
+
+                for (var p = 0; p < primitiveLen; ++p) {
+                    var primitive = primitives[p];
+
+                    // Get indices first
+                    parseIndices(json, primitive, scene, function() {
+
+                        // Get attributes
+                        parseAttributes(json, primitive, scene, onload, curMatrix);
+                    });
+                }
+            }
         }
 
-        for (var m = 0; m < meshLen; ++m) {
-            var meshName = meshes[m];
-            var mesh = json.meshes[meshName];
-
-            // Iterate through primitives
-            var primitives = mesh.primitives;
-            var primitiveLen = primitives.length;
-
-            for (var p = 0; p < primitiveLen; ++p) {
-                var primitive = primitives[p];
-
-                // Get indices first
-                parseIndices(json, primitive, scene, function() {
-
-                    // Get attributes
-                    parseAttributes(json, primitive, scene, onload, curMatrix);
-                });
-            }
-        }
 
         // Go through all the children recursively
         var children = node.children;
