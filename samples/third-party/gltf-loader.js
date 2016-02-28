@@ -214,7 +214,8 @@
 
                 if (semantic.substring(0, 8) === 'POSITION') {
                     stride = scene.positionByteStride / AttributeSize[attribute.componentType];
-                    offset = 18 + scene.positionByteOffset / AttributeSize[attribute.componentType];
+                    offset = scene.positionByteOffset / AttributeSize[attribute.componentType];
+                    // offset += 18;
                     count = attribute.count;
                     // for (var i = 0; i < data.length; i += stride) {
                     //     // @todo: add vec2 and other(needed?) support
@@ -246,7 +247,8 @@
                     }
                 } else if (semantic.substring(0, 6) === 'NORMAL') {
                     stride = scene.normalByteStride / AttributeSize[attribute.componentType];
-                    offset = 18 + scene.normalByteOffset / AttributeSize[attribute.componentType];
+                    offset = scene.normalByteOffset / AttributeSize[attribute.componentType];
+                    //offset += 18;
                     count = attribute.count;
                     mat4.invert(inverseTransposeMatrix, matrix);
                     mat4.transpose(inverseTransposeMatrix, inverseTransposeMatrix);                    
