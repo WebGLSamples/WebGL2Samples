@@ -142,6 +142,7 @@
 
     
     var tmpVec4;
+    var inverseTransposeMatrix;
     
     var parseAttributes = function(json, primitive, scene, callback, matrix) {
         var accessors = json.accessors;
@@ -213,13 +214,14 @@
                         vec4.transformMat4(tmpVec4, tmpVec4, matrix);
                     }
                 } else if (semantic.substring(0, 6) === 'NORMAL') {
-                    // @todo: this needs a inverseTranspose matrix
+                    mat4.invert(inverseTransposeMatrix, matrix);
+                    mat4.transpose(inverseTransposeMatrix, inverseTransposeMatrix);                    
                     for (var i = 0; i < data.length; i += scene.byteStride) {
                         vec4.set(tmpVec4, data[i + scene.normalByteOffset / 4]
                                         , data[i + scene.normalByteOffset / 4 + 1]
                                         , data[i + scene.normalByteOffset / 4 + 2]
                                         , 1);
-                        vec4.transformMat4(tmpVec4, tmpVec4, matrix);
+                        vec4.transformMat4(tmpVec4, tmpVec4, inverseTransposeMatrix);
                     }
                 } else if (semantic.substring(0, 8) === 'TEXCOORD') {
                     // @todo: Parse
@@ -274,6 +276,7 @@
             TRMatrix = mat4.create();
             
             tmpVec4 = vec4.create();
+            inverseTransposeMatrix = mat4.create();
 
             loadJSON(url, function(response) {
                 // Parse JSON string into object
