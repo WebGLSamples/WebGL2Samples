@@ -56,28 +56,28 @@
     
     var traverseNode = function(json, node, scene, onload, matrix = mat4.create()) {
 
+        var curMatrix = mat4.create();
+        
+        if (node.hasOwnProperty('matrix')) {
+            // matrix
+            for(var i = 0; i < 16; ++i) {
+                curMatrix[i] = node.matrix[i];
+            }
+            mat4.multiply(curMatrix, matrix, curMatrix);
+        } else {
+            // translation, rotation, scale (TRS)
+            vec3.set(translationVec3, node.translation[0], node.translation[1], node.translation[2]);
+            quat.set(rotationQuat, node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
+            mat4.fromRotationTranslation(TRMatrix, rotationQuat, translationVec3);
+            mat4.multiply(curMatrix, curMatrix, TRMatrix);
+            vec3.set(scaleVec3, node.scale[0], node.scale[1], node.scale[2]);
+            mat4.scale(curMatrix, curMatrix, scaleVec3);
+        }
+            
         // Iterate through every mesh within node
         var meshes = node.meshes;
         if(!!meshes) {
             var meshLen = meshes.length;
-        
-            var curMatrix = mat4.create();
-            if (node.hasOwnProperty('matrix')) {
-                // matrix
-                for(var i = 0; i < 16; ++i) {
-                    curMatrix[i] = node.matrix[i];
-                }
-                mat4.multiply(curMatrix, matrix, curMatrix);
-            } else {
-                // translation, rotation, scale (TRS)
-                vec3.set(translationVec3, node.translation[0], node.translation[1], node.translation[2]);
-                quat.set(rotationQuat, node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
-                mat4.fromRotationTranslation(TRMatrix, rotationQuat, translationVec3);
-                mat4.multiply(curMatrix, curMatrix, TRMatrix);
-                vec3.set(scaleVec3, node.scale[0], node.scale[1], node.scale[2]);
-                mat4.scale(curMatrix, curMatrix, scaleVec3);
-            }
-
             for (var m = 0; m < meshLen; ++m) {
                 var meshName = meshes[m];
                 var mesh = json.meshes[meshName];
@@ -208,24 +208,30 @@
                 var accessorName = attributes[semantic];
                 attribute = accessors[accessorName];
 
+                stride = scene.byteStride / AttributeSize[attribute.componentType];
+                
                 if (semantic.substring(0, 8) === 'POSITION') {
-                    offset = scene.positionByteOffset / 4;
+                    offset = scene.positionByteOffset / AttributeSize[attribute.componentType];
                     for (var i = 0; i < data.length; i += stride) {
-                        vec4.set(tmpVec4, data[i + offset]
-                                        , data[i + offset + 1]
-                                        , data[i + offset + 2]
-                                        , 1);
-                        vec4.transformMat4(tmpVec4, tmpVec4, matrix);
-                        vec4.scale(tmpVec4, tmpVec4, tmpVec4[3]);
-                        data[i + offset] = tmpVec4[0];
-                        data[i + offset + 1] = tmpVec4[1];
-                        data[i + offset + 2] = tmpVec4[2];
+                        // @todo: add vec2 and other(needed?) support
+                        if(scene.positionNumberOfComponents === 3) {
+                            vec4.set(tmpVec4, data[i + offset]
+                                            , data[i + offset + 1]
+                                            , data[i + offset + 2]
+                                            , 1);
+                            vec4.transformMat4(tmpVec4, tmpVec4, matrix);
+                            vec4.scale(tmpVec4, tmpVec4, tmpVec4[3]);
+                            data[i + offset] = tmpVec4[0];
+                            data[i + offset + 1] = tmpVec4[1];
+                            data[i + offset + 2] = tmpVec4[2];
+                        }
                     }
                 } else if (semantic.substring(0, 6) === 'NORMAL') {
-                    offset = scene.normalByteOffset / 4;
+                    offset = scene.normalByteOffset / AttributeSize[attribute.componentType];
                     mat4.invert(inverseTransposeMatrix, matrix);
                     mat4.transpose(inverseTransposeMatrix, inverseTransposeMatrix);                    
                     for (var i = 0; i < data.length; i += stride) {
+                        // @todo: add vec2 and other(needed?) support
                         vec4.set(tmpVec4, data[i + offset]
                                         , data[i + offset + 1]
                                         , data[i + offset + 2]
@@ -236,16 +242,6 @@
                         data[i + offset + 1] = tmpVec4[1];
                         data[i + offset + 2] = tmpVec4[2];
                     }
-                } else if (semantic.substring(0, 8) === 'TEXCOORD') {
-                    // @todo: Parse
-                } else if (semantic.substring(0, 5) === 'COLOR') {
-                    // @todo: Parse
-                } else if (semantic.substring(0, 5) === 'JOINT') {
-                    // @todo: Parse
-                } else if (semantic.substring(0, 11) === 'JOINTMATRIX') {
-                    // @todo: Parse
-                } else if (semantic.substring(0, 6) === 'WEIGHT') {
-                    // @todo: Parse
                 }
             }
             
