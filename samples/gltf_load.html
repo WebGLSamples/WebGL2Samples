@@ -123,7 +123,7 @@
         var vertexArray = gl.createVertexArray();
 
         // -- Load obj then render
-        var gltfUrl = '../../assets/gltf/cornell_box.gltf';
+        var gltfUrl = '../../assets/gltf/box.gltf';
         // loadObj(objURL, function(mesh) {
         loadGltfGeometry(gltfUrl, function(scene) {
 
@@ -149,7 +149,7 @@
                 scene.positionNumberOfComponents,
                 gl.FLOAT,
                 false,
-                scene.byteStride,
+                scene.positionByteStride,
                 scene.positionByteOffset
                 );
             gl.enableVertexAttribArray(POSITION_LOCATION);
@@ -159,7 +159,7 @@
                 scene.normalNumberOfComponents,
                 gl.FLOAT,
                 false,
-                scene.byteStride,
+                scene.normalByteStride,
                 scene.normalByteOffset
                 );
             gl.enableVertexAttribArray(NORMAL_LOCATION);
@@ -176,7 +176,7 @@
             var numIndices = scene.indices.length;
 
             var translate = vec3.create();
-            vec3.set(translate, 0, -2, -60);
+            vec3.set(translate, 0, 0, -10);
             var scale = vec3.create();
             vec3.set(scale, 1.0, 1.0, 1.0);
             var modelView = mat4.create();

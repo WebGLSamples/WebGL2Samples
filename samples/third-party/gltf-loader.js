@@ -160,12 +160,15 @@
 
             if (semantic.substring(0, 8) === 'POSITION') {
                 scene.positionByteOffset = attribute.byteOffset;
+                scene.positionByteStride = attribute.byteStride;
                 scene.positionNumberOfComponents = NumberOfComponents[attribute.type];
             } else if (semantic.substring(0, 6) === 'NORMAL') {
                 scene.normalByteOffset = attribute.byteOffset;
+                scene.normalByteStride = attribute.byteStride;
                 scene.normalNumberOfComponents = NumberOfComponents[attribute.type];
             } else if (semantic.substring(0, 8) === 'TEXCOORD') {
                 scene.texcoordByteOffset = attribute.byteOffset;
+                scene.texcoordByteStride = attribute.byteStride;
                 scene.texcoordNumberOfComponents = NumberOfComponents[attribute.type];
             } else if (semantic.substring(0, 5) === 'COLOR') {
                 // @todo: Parse
@@ -208,9 +211,8 @@
                 var accessorName = attributes[semantic];
                 attribute = accessors[accessorName];
 
-                stride = scene.byteStride / AttributeSize[attribute.componentType];
-                
                 if (semantic.substring(0, 8) === 'POSITION') {
+                    stride = scene.positionByteStride / AttributeSize[attribute.componentType];
                     offset = scene.positionByteOffset / AttributeSize[attribute.componentType];
                     for (var i = 0; i < data.length; i += stride) {
                         // @todo: add vec2 and other(needed?) support
@@ -227,6 +229,7 @@
                         }
                     }
                 } else if (semantic.substring(0, 6) === 'NORMAL') {
+                    stride = scene.normalByteStride / AttributeSize[attribute.componentType];
                     offset = scene.normalByteOffset / AttributeSize[attribute.componentType];
                     mat4.invert(inverseTransposeMatrix, matrix);
                     mat4.transpose(inverseTransposeMatrix, inverseTransposeMatrix);                    

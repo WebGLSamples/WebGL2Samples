@@ -151,7 +151,7 @@
                 scene.positionNumberOfComponents,
                 gl.FLOAT,
                 false,
-                scene.byteStride,
+                scene.positionByteStride,
                 scene.positionByteOffset
                 );
             gl.enableVertexAttribArray(POSITION_LOCATION);
@@ -161,7 +161,7 @@
                 scene.texcoordNumberOfComponents,
                 gl.FLOAT,
                 false,
-                scene.byteStride,
+                scene.texcoordByteStride,
                 scene.texcoordByteOffset
                 );
             gl.enableVertexAttribArray(TEXCOORD_LOCATION);
@@ -171,7 +171,7 @@
                 scene.normalNumberOfComponents,
                 gl.FLOAT,
                 false,
-                scene.byteStride,
+                scene.normalByteStride,
                 scene.normalByteOffset
                 );
             gl.enableVertexAttribArray(NORMAL_LOCATION);
