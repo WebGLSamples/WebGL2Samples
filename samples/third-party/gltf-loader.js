@@ -178,7 +178,7 @@
         });
     };
 
-    window.loadGltf = function(url, onload) {
+    window.loadGltfGeometry = function(url, onload) {
 
         // Save relative path to load .bin file
         GLTF.baseUri = getBaseUri(url);

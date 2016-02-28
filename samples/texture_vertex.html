@@ -124,9 +124,8 @@
         var texture;
 
         // -- Load obj then render
-        var relativePath = '../assets/gltf/';
-        var filename = 'plane.gltf';
-        loadGltf(relativePath, filename, function(scene) {
+        var gltfUrl = '../assets/gltf/plane.gltf';
+        loadGltfGeometry(gltfUrl, function(scene) {
             numIndices = scene.indices.length;
 
             // -- Initialize buffer

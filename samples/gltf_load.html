@@ -123,11 +123,9 @@
         var vertexArray = gl.createVertexArray();
 
         // -- Load obj then render
-        var gltfName = 'cornell_box.gltf';
-        var gltfRelativePath = '../../assets/gltf/';
-
+        var gltfUrl = '../../assets/gltf/cornell_box.gltf';
         // loadObj(objURL, function(mesh) {
-        loadGltf(gltfRelativePath, gltfName, function(scene) {
+        loadGltfGeometry(gltfUrl, function(scene) {
 
             // -- Initialize buffer
             var vertices = scene.vertices;
