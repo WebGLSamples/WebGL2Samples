@@ -31,8 +31,8 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[texture_format](http://webglsamples.org/WebGL2Samples/#texture_format)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_fetch](http://webglsamples.org/WebGL2Samples/#texture_fetch)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[texture_grad](http://webglsamples.org/WebGL2Samples/#texture_grad)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
-|[texture_3d](http://webglsamples.org/WebGL2Samples/#texture_3d)|:x:GL ERROR :GL_INVALID_OPERATION : glGenerateMipmap: Can not generate mips|:white_check_mark:|:x: drawArraysInstanced: Active texture 0 for target 0x806f is 'incomplete'|:white_check_mark:|
-|[texture_immutable](http://webglsamples.org/WebGL2Samples/#texture_immutable)|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark:|
+|[texture_3d](http://webglsamples.org/WebGL2Samples/#texture_3d)(currently not working for texture 3D)|:x:GL ERROR :GL_INVALID_OPERATION : glGenerateMipmap: Can not generate mips|:white_check_mark:|:x: drawArraysInstanced: Active texture 0 for target 0x806f is 'incomplete'|:white_check_mark:|
+|[texture_immutable](http://webglsamples.org/WebGL2Samples/#texture_immutable) (currently not working for texture 3D)|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark:|
 |[texture_integer](http://webglsamples.org/WebGL2Samples/#texture_integer)|:white_check_mark:|:grey_question:|:x: Error: Driver ran out of memory during upload|:grey_question:|
 |[texture_lod](http://webglsamples.org/WebGL2Samples/#texture_lod)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[texture_offset](http://webglsamples.org/WebGL2Samples/#texture_offset)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
