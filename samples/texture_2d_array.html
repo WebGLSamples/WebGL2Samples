@@ -185,14 +185,13 @@
             })();
         });
         
-        window.onunload = function() {
-            // -- Delete WebGL resources
-            gl.deleteBuffer(vertexPosBuffer);
-            gl.deleteBuffer(vertexTexBuffer);
-            gl.deleteTexture(texture);
-            gl.deleteProgram(program);
-            gl.deleteVertexArray(vertexArray);
-        };
+        // If you have a long-running page, and need to delete WebGL resources, use:
+        //
+        // gl.deleteBuffer(vertexPosBuffer);
+        // gl.deleteBuffer(vertexTexBuffer);
+        // gl.deleteTexture(texture);
+        // gl.deleteProgram(program);
+        // gl.deleteVertexArray(vertexArray);
     })();
     </script>
 
