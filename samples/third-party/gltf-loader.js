@@ -66,6 +66,7 @@
             mat4.multiply(curMatrix, matrix, curMatrix);
         } else {
             // translation, rotation, scale (TRS)
+            // @todo: these labels are optional
             vec3.set(translationVec3, node.translation[0], node.translation[1], node.translation[2]);
             quat.set(rotationQuat, node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
             mat4.fromRotationTranslation(TRMatrix, rotationQuat, translationVec3);
@@ -215,7 +216,7 @@
                 if (semantic.substring(0, 8) === 'POSITION') {
                     stride = scene.positionByteStride / AttributeSize[attribute.componentType];
                     offset = scene.positionByteOffset / AttributeSize[attribute.componentType];
-                    // offset += 18;
+                    //offset += 113595;
                     count = attribute.count;
                     // for (var i = 0; i < data.length; i += stride) {
                     //     // @todo: add vec2 and other(needed?) support
@@ -248,7 +249,7 @@
                 } else if (semantic.substring(0, 6) === 'NORMAL') {
                     stride = scene.normalByteStride / AttributeSize[attribute.componentType];
                     offset = scene.normalByteOffset / AttributeSize[attribute.componentType];
-                    //offset += 18;
+                    //offset += 113595;
                     count = attribute.count;
                     mat4.invert(inverseTransposeMatrix, matrix);
                     mat4.transpose(inverseTransposeMatrix, inverseTransposeMatrix);                    
