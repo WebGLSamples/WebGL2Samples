@@ -7,7 +7,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <script src="third-party/gl-matrix.js"></script>
+    <script src="third-party/gl-matrix-min.js"></script>
     <script src="third-party/noise3D.js"></script>
     <script src="utility.js"></script>
 
@@ -15,7 +15,7 @@
 
 <body>
     <div id="info">WebGL 2 Samples - texture_immutable</div>
-    <p id="description">Immutable texture refers to the texture's allocation, not the content of the texture. Therefore, new pixel data can be uploaded, but the size of the texture storage can't change.</p>
+    <p id="description">Immutable texture refers to the texture's allocation, not the content of the texture. Therefore, new pixel data can be uploaded, but the size of the texture storage can't change. (currently not working for texture 3D)</p>
 
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
