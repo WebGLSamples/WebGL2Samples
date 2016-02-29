@@ -7,7 +7,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <script src="third-party/gl-matrix.js"></script>
+    <script src="third-party/gl-matrix-min.js"></script>
     <script src="third-party/gltf-loader.js"></script>
     <script src="utility.js"></script>
 </head>
@@ -26,9 +26,9 @@
         precision highp float;
         precision highp int;
 
-        uniform mat4 mvMatrix;
-        uniform mat4 pMatrix;
-        uniform sampler2D displacementMap;
+        uniform mat4 u_model;
+        uniform mat4 u_viewProj;
+        uniform sampler2D u_disMap;
 
         layout(location = POSITION_LOCATION) in vec3 position;
         layout(location = TEXCOORD_LOCATION) in vec2 texcoord;
@@ -40,10 +40,10 @@
         void main()
         {
             st = texcoord;
-            float height = texture(displacementMap, texcoord).b;
+            float height = texture(u_disMap, texcoord).b;
             vec4 displacedPosition = vec4(position, 1.0) + vec4(normal * height, 0.0);
-            vPosition = vec3(mvMatrix * displacedPosition);
-            gl_Position = pMatrix * mvMatrix * displacedPosition;
+            vPosition = vec3(u_model * displacedPosition);
+            gl_Position = u_viewProj * u_model * displacedPosition;
         }
     </script>
 
@@ -53,7 +53,7 @@
         precision highp int;
         precision highp sampler2D;
 
-        uniform sampler2D diffuse;
+        uniform sampler2D u_diffuse;
 
         in vec2 st;
         in vec3 vPosition;
@@ -78,10 +78,10 @@
         void main()
         {
             vec2 sampleCoord = fract(st.xy);
-            float level = textureLevel(diffuse, st);
+            float level = textureLevel(u_diffuse, st);
 
             // Compute LOD using gradient
-            color = textureLod(diffuse, st, level);
+            color = textureLod(u_diffuse, st, level);
 
             // Compute flat normal using gradient
             vec3 fdx = dFdx(vPosition);
@@ -112,10 +112,10 @@
 
         // -- Init program
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
-        var mvMatrixLocation = gl.getUniformLocation(program, 'mvMatrix');
-        var pMatrixLocation = gl.getUniformLocation(program, 'pMatrix');
-        var diffuseLocation = gl.getUniformLocation(program, 'diffuse');
-        var displacementMapLocation = gl.getUniformLocation(program, 'displacementMap');
+        var unifModel = gl.getUniformLocation(program, 'u_model');
+        var unifViewProj = gl.getUniformLocation(program, 'u_viewProj');
+        var unifDiffuse = gl.getUniformLocation(program, 'u_diffuse');
+        var unifDisMap = gl.getUniformLocation(program, 'u_disMap');
 
         var vertexBuffer = gl.createBuffer();
         var vertexElementBuffer = gl.createBuffer();
@@ -212,14 +212,19 @@
             0.0, 0.0, 0.0, 1.0
         ]);
 
-        var viewMatrix = mat4.lookAt(
-            [4, 3, 300],
+        var view = mat4.create();
+        mat4.lookAt(view,
+            [4, 3, -1],
             [0, 0.5, 0],
             [0, 1, 0]
             );
 
-        var mvMatrix = mat4.multiply(viewMatrix, modelMatrix);
-        var perspectiveMatrix = mat4.perspective(0.45, 1, 1, 1000.0);
+        var model = mat4.create();
+        var perspective = mat4.create();
+        mat4.perspective(perspective, 0.45, 1, 1, 1000.0);
+
+        var viewProj = mat4.create();
+        mat4.multiply(viewProj, perspective, view);
 
         // -- Mouse Behaviour
 
@@ -244,11 +249,9 @@
             var deltaX = newX - lastMouseX;
             var deltaY = newY - lastMouseY;
 
-            var m = mat4.identity();
-            mat4.rotateX(m, deltaX / 100.0, m);
-            mat4.rotateY(m, deltaY / 100.0, m);
+            mat4.rotateX(model, model, deltaX / 100.0);
+            mat4.rotateY(model, model, deltaY / 100.0);
 
-            mat4.multiply(mvMatrix, m, mvMatrix);
             lastMouseX = newX;
             lastMouseY = newY;
         };
@@ -266,16 +269,16 @@
             orientation[1] = 0.00010; // pitch
             orientation[2] = 0.00005; // roll
 
-            mvMatrix = mat4.rotateX(mvMatrix, orientation[0] * Math.PI);
-            mvMatrix = mat4.rotateY(mvMatrix, orientation[1] * Math.PI);
-            mvMatrix = mat4.rotateZ(mvMatrix, orientation[2] * Math.PI);
+            mat4.rotateX(model, model, orientation[0] * Math.PI);
+            mat4.rotateY(model, model, orientation[1] * Math.PI);
+            mat4.rotateZ(model, model, orientation[2] * Math.PI);
 
             gl.bindVertexArray(vertexArray);
             gl.useProgram(program);
-            gl.uniformMatrix4fv(mvMatrixLocation, false, mvMatrix);
-            gl.uniformMatrix4fv(pMatrixLocation, false, perspectiveMatrix);
-            gl.uniform1i(diffuseLocation, 0);
-            gl.uniform1i(displacementMapLocation, 0);
+            gl.uniformMatrix4fv(unifModel, false, model);
+            gl.uniformMatrix4fv(unifViewProj, false, viewProj);
+            gl.uniform1i(unifDiffuse, 0);
+            gl.uniform1i(unifDisMap, 0);
 
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, texture);
