@@ -32,12 +32,10 @@
         layout(location = POSITION_LOCATION) in vec3 a_position;
         layout(location = TEXCOORD_LOCATION) in vec2 a_texCoord;
         layout(location = NORMAL_LOCATION) in vec3 a_normal;
-        layout(location = COLOR_LOCATION) in vec4 a_color;
 
         // Vertex shader outputs to fragment shader
         out vec2 v_texCoord;
         out vec3 v_normal;
-        out vec4 v_color;
         out vec3 v_lightDirection;
 
         void main()
@@ -50,7 +48,6 @@
             v_normal = vec3(u_viewProj * u_modelInvTrans * vec4(a_normal, 0.0));
 
             // Pass through
-            v_color = a_color;
             v_texCoord = a_texCoord;
         }
     </script>
@@ -71,14 +68,12 @@
 
         in vec2 v_texCoord;
         in vec3 v_normal;
-        in vec4 v_color;
         in vec3 v_lightDirection;
         out vec4 color;
 
         void main()
         {
             color = texture(s_tex2D, v_texCoord);
-            color = mix(v_color, color, 0.9);
 
             float lightIntensity = dot(normalize(v_normal), normalize(v_lightDirection));
             lightIntensity = lightIntensity, 0.0, 1.0 + u_ambient;
@@ -243,18 +238,6 @@
         gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        var colors = [];
-        var len = positions.length;
-        for (var ci = 0; ci < 24; ++ci) {
-            colors = colors.concat([0, 1, 1, 1]);
-        }
-        colors = new Int8Array(colors);
-
-        var vertexColBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexColBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
         // Element buffer
         var indexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -277,7 +260,6 @@
         var POSITION_LOCATION = 1;
         var TEXCOORD_LOCATION = 2;
         var NORMAL_LOCATION = 3;
-        var COLOR_LOCATION = 4;
 
         var vertexArray = gl.createVertexArray();
         gl.bindVertexArray(vertexArray);
@@ -295,11 +277,6 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
         gl.enableVertexAttribArray(TEXCOORD_LOCATION);
         gl.vertexAttribPointer(TEXCOORD_LOCATION, 2, gl.HALF_FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexColBuffer);
-        gl.enableVertexAttribArray(COLOR_LOCATION);
-        gl.vertexAttribPointer(COLOR_LOCATION, 4, gl.UNSIGNED_BYTE, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
