@@ -12,7 +12,10 @@
 
 <body>
     <div id="info">WebGL 2 Samples - texture_grad</div>
-
+    <p id="description">
+        This sample uses textureGrad for a texture lookup with explicit gradients for textures on each face of the cube. 
+    </p>
+    
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
@@ -323,15 +326,15 @@
             requestAnimationFrame(render);
         }
 
-        document.onunload = function() {
-            // Delete WebGL resources
-            gl.deleteBuffer(vertexPosBuffer);
-            gl.deleteBuffer(vertexTexBuffer);
-            gl.deleteBuffer(indexBuffer);
-            gl.deleteTexture(texture);
-            gl.deleteProgram(program);
-            gl.deleteVertexArray(vertexArray);
-        };
+        // If you have a long-running page, and need to delete WebGL resources, use:
+        // 
+        // gl.deleteBuffer(vertexPosBuffer);
+        // gl.deleteBuffer(vertexTexBuffer);
+        // gl.deleteBuffer(indexBuffer);
+        // gl.deleteTexture(texture);
+        // gl.deleteProgram(program);
+        // gl.deleteVertexArray(vertexArray);
+        
     })();
     </script>
 

@@ -20,6 +20,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[glsl_centroid](http://webglsamples.org/WebGL2Samples/#glsl_centroid)|:white_check_mark: |:grey_question:| :x: WebGL: renderbufferStorageMultisample: Multisampling is still under development, and is currently disabled.|:grey_question:|
 |[glsl_discard](http://webglsamples.org/WebGL2Samples/#glsl_discard)|:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
 |[glsl_flat_smooth_interpolators](http://webglsamples.org/WebGL2Samples/#glsl_flat_smooth_interpolators)|:white_check_mark: |:grey_question:| :white_check_mark: |:grey_question:|
+|[glsl_non_square_matrix](http://webglsamples.org/WebGL2Samples/#glsl_non_square_matrix)|:white_check_mark: |:grey_question:| :white_check_mark: |:grey_question:|
 |[query_occlusion](http://webglsamples.org/WebGL2Samples/#query_occlusion)|:white_check_mark:|:white_check_mark:| :white_check_mark:|:white_check_mark:|
 |[sampler_object](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:x:D3D not supported|:white_check_mark:| :x: D3D not supported|:white_check_mark:|
 |[sampler_wrap](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:| :x: Error: WebGL: samplerParameteri: invalid sampler|:white_check_mark:|
@@ -30,8 +31,8 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[texture_format](http://webglsamples.org/WebGL2Samples/#texture_format)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_fetch](http://webglsamples.org/WebGL2Samples/#texture_fetch)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[texture_grad](http://webglsamples.org/WebGL2Samples/#texture_grad)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
-|[texture_3d](http://webglsamples.org/WebGL2Samples/#texture_3d)|:x:GL ERROR :GL_INVALID_OPERATION : glGenerateMipmap: Can not generate mips|:white_check_mark:|:x: drawArraysInstanced: Active texture 0 for target 0x806f is 'incomplete'|:white_check_mark:|
-|[texture_immutable](http://webglsamples.org/WebGL2Samples/#texture_immutable)|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark:|
+|[texture_3d](http://webglsamples.org/WebGL2Samples/#texture_3d)(currently not working for texture 3D)|:x:GL ERROR :GL_INVALID_OPERATION : glGenerateMipmap: Can not generate mips|:white_check_mark:|:x: drawArraysInstanced: Active texture 0 for target 0x806f is 'incomplete'|:white_check_mark:|
+|[texture_immutable](http://webglsamples.org/WebGL2Samples/#texture_immutable) (currently not working for texture 3D)|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark:|
 |[texture_integer](http://webglsamples.org/WebGL2Samples/#texture_integer)|:white_check_mark:|:grey_question:|:x: Error: Driver ran out of memory during upload|:grey_question:|
 |[texture_lod](http://webglsamples.org/WebGL2Samples/#texture_lod)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[texture_offset](http://webglsamples.org/WebGL2Samples/#texture_offset)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
@@ -40,6 +41,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[texture_vertex](http://webglsamples.org/WebGL2Samples/#texture_vertex)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[transform_feedback_interleaved](http://webglsamples.org/WebGL2Samples/#transform_feedback_interleaved)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[transform_feedback_separated](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
+|[transform_feedback_separated_2](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated_2)|:white_check_mark:|:white_check_mark:|:grey_question:|:x: exceeded maxium varyings for transform feedback|
 |[fbo_rtt_texture_array](http://webglsamples.org/WebGL2Samples/#fbo_rtt_texture_array)|:x: crash|:white_check_mark:|:x: crash|:x: not working|
 |[fbo_blit](http://webglsamples.org/WebGL2Samples/#fbo_blit)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[fbo_multisample](http://webglsamples.org/WebGL2Samples/#fbo_multisample)|:white_check_mark:|:x: crashed|:x: WebGL: renderbufferStorageMultisample: Multisampling is still under development, and is currently disabled|:x: crashed|
