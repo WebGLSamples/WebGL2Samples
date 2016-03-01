@@ -11,7 +11,7 @@
 
 <body>
     <div id="info">WebGL 2 Samples - geo_vertex_format</div>
-    <div id="description"> This sample demonstrates the use of different vertex formats. gl.HALF_FLOAT for normals attribute and gl.UNSIGNED_BYTE for colors attribute.
+    <div id="description"> This sample demonstrates the use of different vertex formats. gl.HALF_FLOAT for normals and textures attribute.
 
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
@@ -89,7 +89,7 @@
     </script>
 
     <script src="utility.js"></script>
-    <script src="third-party/webgl2-half-float-array-converter.js"></script>
+    <script src="HalfFloatUtility.js"></script>
     <script>
     (function () {
         'use strict';
@@ -159,7 +159,7 @@
         gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        var normals = HALFFLOAT.Float16Array([
+        var normals = HalfFloat.Float16Array([
             // Front face
             0, 0, -1,
             0, 0, -1,
@@ -201,7 +201,7 @@
         gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        var texCoords = new Float32Array([
+        var texCoords = HalfFloat.Float16Array([
             // Front face
             0.0, 0.0,
             0.0, 1.0,
@@ -294,7 +294,7 @@
 
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
         gl.enableVertexAttribArray(TEXCOORD_LOCATION);
-        gl.vertexAttribPointer(TEXCOORD_LOCATION, 2, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(TEXCOORD_LOCATION, 2, gl.HALF_FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexColBuffer);

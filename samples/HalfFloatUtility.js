@@ -1,5 +1,5 @@
 
-var HALFFLOAT = HALFFLOAT || {};
+var HalfFloat = HalfFloat || {};
 
 (function(){
     'use strict';
@@ -42,7 +42,7 @@ var HALFFLOAT = HALFFLOAT || {};
     var sign;
     var exp;
     var frac;   
-    HALFFLOAT.encodeFloat16AsInt16 = function(value) {
+    HalfFloat.encodeFloat16AsInt16 = function(value) {
         // Inf unhandled here
         
         // https://en.wikipedia.org/wiki/Half-precision_floating-point_format
@@ -85,11 +85,11 @@ var HALFFLOAT = HALFFLOAT || {};
      * @param numArray: javaScript number Array
      */
     var i;
-    HALFFLOAT.Float16Array = function(numArray){
+    HalfFloat.Float16Array = function(numArray){
         var float16Array = new Int16Array(new ArrayBuffer(2 * numArray.length));
         var tmpArray = new Array(numArray.length);        
         for (i = 0; i < numArray.length; ++i) {
-            tmpArray[i] = HALFFLOAT.encodeFloat16AsInt16(numArray[i]);
+            tmpArray[i] = HalfFloat.encodeFloat16AsInt16(numArray[i]);
         }
         float16Array.set(tmpArray, 0);
         return float16Array;
