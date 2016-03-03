@@ -12,13 +12,13 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 
 ## Screenshots
 
-| Texture LOD | Flat/smooth interpolation |
+| [Texture LOD](http://webglsamples.org/WebGL2Samples/#texture_lod) | [Flat/smooth interpolation](http://webglsamples.org/WebGL2Samples/#glsl_flat_smooth_interpolators) |
 | --- | ----|
-|![Screenshot texture LOD](assets/img/screenshot_texture_lod.png) | ![Screenshot flat smooth](assets/img/screenshot_flat_smooth.png)|
+|[![Screenshot texture LOD](assets/img/screenshot_texture_lod.png)](http://webglsamples.org/WebGL2Samples/#texture_lod) | [![Screenshot flat smooth](assets/img/screenshot_flat_smooth.png)](http://webglsamples.org/WebGL2Samples/#glsl_flat_smooth_interpolators)|
 
-| Sampler object | Transform feedback |
+| [Sampler object wrap](http://webglsamples.org/WebGL2Samples/#sampler_wrap) | [Transform feedback](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated_2) |
 | --- | ----|
-|![Screenshot sampler object](assets/img/screenshot_sampler_object.png) | ![Screenshot transform feedback](assets/img/screenshot_transform_feedback.png)|
+|[![Screenshot sampler object wrap](assets/img/screenshot_sampler_object.png)](http://webglsamples.org/WebGL2Samples/#sampler_wrap) | [![Screenshot transform feedback](assets/img/screenshot_transform_feedback.png)](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated_2)|
 
 ## Samples
 
