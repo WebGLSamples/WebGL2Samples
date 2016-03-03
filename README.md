@@ -10,6 +10,16 @@ Short and easy to understand samples demonstrating WebGL 2 features by [Shuai Sh
 
 Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.com/Groovounet)) [OpenGL Samples Pack](https://github.com/g-truc/ogl-samples).
 
+## Screenshots
+
+| Texture LOD | Flat/smooth interpolation |
+| --- | ----|
+|![Screenshot texture LOD](assets/img/screenshot_texture_lod.png) | ![Screenshot flat smooth](assets/img/screenshot_flat_smooth.png)|
+
+| Sampler object | Transform feedback |
+| --- | ----|
+|![Screenshot sampler object](assets/img/screenshot_sampler_object.png) | ![Screenshot transform feedback](assets/img/screenshot_transform_feedback.png)|
+
 ## Samples
 
 |              | Chrome 50 Windows 10| Chrome 50 OSX 10.10| Firefox 46 Windows 10| Firefox 45 OSX 10.10|
