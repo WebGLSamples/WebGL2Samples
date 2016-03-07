@@ -17,13 +17,14 @@
         #version 300 es
         precision highp float;
         precision highp int;
-        layout(std140, column_major) uniform;
         
+        layout(std140, column_major) uniform;
+     
         struct Transform
         {
             mat4 P;
             mat4 MV;
-            mat3 Mnormal;
+            mat4 Mnormal;
         };
 
         uniform PerDraw
@@ -37,18 +38,22 @@
  
         out vec3 v_normal;
         out vec3 v_view;
-        out vec3 v_color;
+        out vec4 v_color;
 
         void main()
         {
             vec4 pEC = u_perDraw.transform.MV * vec4(position, 1.0);
+            //vec4 pEC = vec4(0.5*position, 1.0);
+            //vec4 pEC = u_perDraw.MV * vec4(position, 1.0);
 
-            v_normal = mat3(u_perDraw.transform.MV) * normal;
+            //v_normal = mat3(u_perDraw.transform.MV) * normal;
+            v_normal = (u_perDraw.transform.Mnormal * vec4(normal, 0.0)).xyz;
             v_view = - pEC.xyz;
-            v_color = color.rgb;
+            v_color = color;
 
             //gl_Position = u_perDraw.transform.P * pEC;
-            gl_Position = vec4(position, 1.0);
+            gl_Position = pEC;
+            //gl_Position = vec4(position, 1.0);
         }
     </script>
 
@@ -56,8 +61,9 @@
         #version 300 es
         precision highp float;
         precision highp int;
+        
         layout(std140, column_major) uniform;
-
+/*
         struct Material
         {
             vec3 ambient;
@@ -80,26 +86,27 @@
         {
             Light light;
         } u_perPass;
-
+*/
         
         in vec3 v_normal;
         in vec3 v_view;
-        in vec3 v_color;
+        in vec4 v_color;
 
         out vec4 color;
 
         void main()
         {
-            vec3 n = normalize(v_normal);
-            vec3 l = normalize(u_perPass.light.position + v_view);
-            vec3 v = normalize(v_view);
+            //vec3 n = normalize(v_normal);
+            //vec3 l = normalize(u_perPass.light.position + v_view);
+            //vec3 v = normalize(v_view);
 
-            vec3 diffuse = max(dot(n, l), 0.0) * u_perScene.material.diffuse;
-            vec3 r = reflect(-l, n);
-            vec3 specular = pow(max(dot(r, v), 0.0), u_perScene.material.shininess) * u_perScene.material.specular;
+            //vec3 diffuse = max(dot(n, l), 0.0) * u_perScene.material.diffuse;
+            //vec3 r = reflect(-l, n);
+            //vec3 specular = pow(max(dot(r, v), 0.0), u_perScene.material.shininess) * u_perScene.material.specular;
 
             //color = vec4(u_perScene.material.ambient + diffuse + specular, 1.0);
-            color = vec4(1.0, 1.0, 0.0, 1.0);
+            //color = vec4(1.0, 1.0, 0.0, 1.0);
+            color = v_color;
         }
     </script>
 
@@ -116,12 +123,9 @@
 
         // --Init WebGL Context
         var gl = canvas.getContext('webgl2', { antialias: false });
-        if (!gl) {
-            gl = canvas.getContext('experimental-webgl2', { antialias: false });
-        }
+
         var isWebGL2 = !!gl;
-        if(!isWebGL2)
-        {
+        if(!isWebGL2) {
             document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
             return;
         }
@@ -131,12 +135,12 @@
         gl.useProgram(program);
         
         var uniformPerDrawLocation = gl.getUniformBlockIndex(program, 'PerDraw');
-        var uniformPerSceneLocation = gl.getUniformBlockIndex(program, 'PerPass');
-        var uniformPerPassLocation = gl.getUniformBlockIndex(program, 'PerScene');
+        // var uniformPerSceneLocation = gl.getUniformBlockIndex(program, 'PerPass');
+        // var uniformPerPassLocation = gl.getUniformBlockIndex(program, 'PerScene');
         
         gl.uniformBlockBinding(program, uniformPerDrawLocation, 0);
-        gl.uniformBlockBinding(program, uniformPerPassLocation, 1);
-        gl.uniformBlockBinding(program, uniformPerSceneLocation, 2);
+        // gl.uniformBlockBinding(program, uniformPerPassLocation, 1);
+        // gl.uniformBlockBinding(program, uniformPerSceneLocation, 2);
 
         // -- Init Buffer
         var elementData = new Uint16Array([
@@ -160,26 +164,33 @@
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        // //mat4 P, mat4 MV, mat3 Mnormal
+        //mat4 P, mat4 MV, mat3 Mnormal
+        var transforms = new Float32Array([
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 0.0, 1.0,
+                
+                0.5, 0.0, 0.0, 0.0,
+                0.0, 0.5, 0.0, 0.0,
+                0.0, 0.0, 0.5, 0.0,
+                0.0, 0.0, 0.0, 1.0, 
+                
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 0.0, 1.0
+        ]);
         // var transform = new Float32Array([
-        //         1.0, 0.0, 0.0, 0.0,
-        //         0.0, 1.0, 0.0, 0.0,
-        //         0.0, 0.0, 1.0, 0.0,
-        //         0.0, 0.0, 0.0, 1.0,
-                
-        //         1.0, 0.0, 0.0, 0.0,
-        //         0.0, 1.0, 0.0, 0.0,
-        //         0.0, 0.0, 1.0, 0.0,
-        //         0.0, 0.0, 0.0, 1.0, 
-                
-        //         1.0, 0.0, 0.0, 
-        //         0.0, 1.0, 0.0, 
-        //         0.0, 0.0, 1.0  
+        //         0.5, 0.0, 0.0, 0.0,
+        //         0.0, 0.5, 0.0, 0.0,
+        //         0.0, 0.0, 0.5, 0.0,
+        //         0.0, 0.0, 0.0, 0.5
         // ]);
-        // var uniformPerDrawBuffer = gl.createBuffer();
-        // gl.bindBuffer(gl.UNIFORM_BUFFER, uniformPerDrawBuffer);
-        // gl.bufferData(gl.UNIFORM_BUFFER, transform, gl.DYNAMIC_DRAW);
-        // gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+        var uniformPerDrawBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.UNIFORM_BUFFER, uniformPerDrawBuffer);
+        gl.bufferData(gl.UNIFORM_BUFFER, transforms, gl.DYNAMIC_DRAW);
+        gl.bindBuffer(gl.UNIFORM_BUFFER, null);
         
         // var lightPos = new Float32Array([0.0, 0.0, 100.0 , 0.0]);
         // var uniformPerPassBuffer = gl.createBuffer();
@@ -205,15 +216,14 @@
         
         var vertexPosLocation = 0;
         var vertexNorLocation = 1;
-        var vertexColorLocation = 2
+        var vertexColorLocation = 2;      
         
-        gl.enableVertexAttribArray(vertexPosLocation);
-        gl.enableVertexAttribArray(vertexNorLocation);
-        gl.enableVertexAttribArray(vertexColorLocation);
-        
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);    
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer); 
+        gl.enableVertexAttribArray(vertexPosLocation);   
         gl.vertexAttribPointer(vertexPosLocation, 3, gl.FLOAT, false, 40, 0);
+        gl.enableVertexAttribArray(vertexNorLocation);
         gl.vertexAttribPointer(vertexNorLocation, 3, gl.FLOAT, false, 40, 12);
+        gl.enableVertexAttribArray(vertexColorLocation);
         gl.vertexAttribPointer(vertexColorLocation, 4, gl.FLOAT, false, 40, 24);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         
@@ -224,15 +234,13 @@
         // -- Render
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
-        
-        // gl.bindBufferBase(gl.UNIFORM_BUFFER, 0, uniformPerDrawBuffer);
+        gl.bindVertexArray(vertexArray);
+        gl.bindBufferBase(gl.UNIFORM_BUFFER, 0, uniformPerDrawBuffer);
         // gl.bindBufferBase(gl.UNIFORM_BUFFER, 1, uniformPerPassBuffer);
         // gl.bindBufferBase(gl.UNIFORM_BUFFER, 2, uniformPerSceneBuffer);
         
         var error = gl.getError();
         console.log(error);
-        
-        gl.bindVertexArray(vertexArray);
         
         gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
         //gl.drawElementsInstanced(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0, 1);
@@ -243,8 +251,8 @@
 
         // -- Delete WebGL resources
         gl.deleteBuffer(vertexBuffer);
-        gl.deleteBuffer(uniformPerSceneBuffer);
-        gl.deleteBuffer(uniformPerPassBuffer);
+        //gl.deleteBuffer(uniformPerSceneBuffer);
+        //gl.deleteBuffer(uniformPerPassBuffer);
         gl.deleteBuffer(uniformPerDrawBuffer);
         gl.deleteBuffer(elementBuffer);
         gl.deleteProgram(program);
