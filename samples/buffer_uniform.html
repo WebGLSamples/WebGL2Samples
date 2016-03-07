@@ -47,7 +47,8 @@
             v_view = - pEC.xyz;
             v_color = color.rgb;
 
-            gl_Position = u_perDraw.transform.P * pEC;
+            //gl_Position = u_perDraw.transform.P * pEC;
+            gl_Position = vec4(position, 1.0);
         }
     </script>
 
@@ -97,7 +98,8 @@
             vec3 r = reflect(-l, n);
             vec3 specular = pow(max(dot(r, v), 0.0), u_perScene.material.shininess) * u_perScene.material.specular;
 
-            color = vec4(u_perScene.material.ambient + diffuse + specular, 1.0);
+            //color = vec4(u_perScene.material.ambient + diffuse + specular, 1.0);
+            color = vec4(1.0, 1.0, 0.0, 1.0);
         }
     </script>
 
@@ -148,68 +150,72 @@
         
         //vec3 position, vec3 normal, vec4 color
         var vertices = new Float32Array([
-            -1.0, -1.0, 0.0, 0.0,   0.0, 0.0, 1.0, 0.0,    1.0, 0.0, 0.0, 1.0, 
-             1.0, -1.0, 0.0, 0.0,   0.0, 0.0, 1.0, 0.0,    0.0, 1.0, 0.0, 1.0, 
-             1.0, 1.0, 0.0,  0.0,    0.0, 0.0, 1.0, 0.0,    0.0, 0.0, 1.0, 1.0, 
-            -1.0, 1.0, 0.0,  0.0,    0.0, 0.0, 1.0, 0.0,    1.0, 1.0, 1.0, 1.0
+            -1.0, -1.0, 0.0,    0.0, 0.0, 1.0,     1.0, 0.0, 0.0, 1.0, 
+             1.0, -1.0, 0.0,    0.0, 0.0, 1.0,     0.0, 1.0, 0.0, 1.0, 
+             1.0, 1.0, 0.0,     0.0, 0.0, 1.0,     0.0, 0.0, 1.0, 1.0, 
+            -1.0, 1.0, 0.0,     0.0, 0.0, 1.0,     1.0, 1.0, 1.0, 1.0
         ]);
         var vertexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        //mat4 P, mat4 MV, mat3 Mnormal
-        var transform = new Float32Array([
-                1.0, 0.0, 0.0, 0.0,
-                0.0, 1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0,
-                0.0, 0.0, 0.0, 1.0,
+        // //mat4 P, mat4 MV, mat3 Mnormal
+        // var transform = new Float32Array([
+        //         1.0, 0.0, 0.0, 0.0,
+        //         0.0, 1.0, 0.0, 0.0,
+        //         0.0, 0.0, 1.0, 0.0,
+        //         0.0, 0.0, 0.0, 1.0,
                 
-                1.0, 0.0, 0.0, 0.0,
-                0.0, 1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0,
-                0.0, 0.0, 0.0, 1.0, 
+        //         1.0, 0.0, 0.0, 0.0,
+        //         0.0, 1.0, 0.0, 0.0,
+        //         0.0, 0.0, 1.0, 0.0,
+        //         0.0, 0.0, 0.0, 1.0, 
                 
-                1.0, 0.0, 0.0, 0.0,
-                0.0, 1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0    
-        ]);
-        var uniformPerDrawBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.UNIFORM_BUFFER, uniformPerDrawBuffer);
-        gl.bufferData(gl.UNIFORM_BUFFER, transform, gl.DYNAMIC_DRAW);
-        gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+        //         1.0, 0.0, 0.0, 
+        //         0.0, 1.0, 0.0, 
+        //         0.0, 0.0, 1.0  
+        // ]);
+        // var uniformPerDrawBuffer = gl.createBuffer();
+        // gl.bindBuffer(gl.UNIFORM_BUFFER, uniformPerDrawBuffer);
+        // gl.bufferData(gl.UNIFORM_BUFFER, transform, gl.DYNAMIC_DRAW);
+        // gl.bindBuffer(gl.UNIFORM_BUFFER, null);
         
-        var lightPos = new Float32Array([0.0, 0.0, 100.0 , 0.0]);
-        var uniformPerPassBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.UNIFORM_BUFFER, uniformPerPassBuffer);
-        gl.bufferData(gl.UNIFORM_BUFFER, lightPos, gl.STATIC_DRAW);
-        gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+        // var lightPos = new Float32Array([0.0, 0.0, 100.0 , 0.0]);
+        // var uniformPerPassBuffer = gl.createBuffer();
+        // gl.bindBuffer(gl.UNIFORM_BUFFER, uniformPerPassBuffer);
+        // gl.bufferData(gl.UNIFORM_BUFFER, lightPos, gl.STATIC_DRAW);
+        // gl.bindBuffer(gl.UNIFORM_BUFFER, null);
         
-        //vec3 ambient, diffuse, specular, float shininess
-        var material = new Float32Array([
-            0.1, 0.0, 0.0,  0.0,
-            0.0, 0.5, 0.0,  0.0,
-            0.0, 0.0, 0.5, 
-            128.0
-        ]);
-        var uniformPerSceneBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.UNIFORM_BUFFER, uniformPerSceneBuffer);
-        gl.bufferData(gl.UNIFORM_BUFFER, material, gl.STATIC_DRAW);
-        gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+        // //vec3 ambient, diffuse, specular, float shininess
+        // var material = new Float32Array([
+        //     0.1, 0.0, 0.0,  0.0,
+        //     0.0, 0.5, 0.0,  0.0,
+        //     0.0, 0.0, 0.5, 
+        //     128.0
+        // ]);
+        // var uniformPerSceneBuffer = gl.createBuffer();
+        // gl.bindBuffer(gl.UNIFORM_BUFFER, uniformPerSceneBuffer);
+        // gl.bufferData(gl.UNIFORM_BUFFER, material, gl.STATIC_DRAW);
+        // gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 
         // -- Init Vertex Array
         var vertexArray = gl.createVertexArray();
         gl.bindVertexArray(vertexArray);
         
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);    
-        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 48, 0);
-        gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 48, 16);
-        gl.vertexAttribPointer(2, 4, gl.FLOAT, false, 48, 32);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        var vertexPosLocation = 0;
+        var vertexNorLocation = 1;
+        var vertexColorLocation = 2
         
-        gl.enableVertexAttribArray(0);
-        gl.enableVertexAttribArray(1);
-        gl.enableVertexAttribArray(2);
+        gl.enableVertexAttribArray(vertexPosLocation);
+        gl.enableVertexAttribArray(vertexNorLocation);
+        gl.enableVertexAttribArray(vertexColorLocation);
+        
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);    
+        gl.vertexAttribPointer(vertexPosLocation, 3, gl.FLOAT, false, 40, 0);
+        gl.vertexAttribPointer(vertexNorLocation, 3, gl.FLOAT, false, 40, 12);
+        gl.vertexAttribPointer(vertexColorLocation, 4, gl.FLOAT, false, 40, 24);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
         
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementBuffer);
         
@@ -219,11 +225,12 @@
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         
-        gl.bindBufferBase(gl.UNIFORM_BUFFER, 0, uniformPerDrawBuffer);
-        gl.bindBufferBase(gl.UNIFORM_BUFFER, 1, uniformPerPassBuffer);
-        gl.bindBufferBase(gl.UNIFORM_BUFFER, 2, uniformPerSceneBuffer);
+        // gl.bindBufferBase(gl.UNIFORM_BUFFER, 0, uniformPerDrawBuffer);
+        // gl.bindBufferBase(gl.UNIFORM_BUFFER, 1, uniformPerPassBuffer);
+        // gl.bindBufferBase(gl.UNIFORM_BUFFER, 2, uniformPerSceneBuffer);
         
         var error = gl.getError();
+        console.log(error);
         
         gl.bindVertexArray(vertexArray);
         
@@ -232,6 +239,7 @@
         //gl.drawArrays(gl.TRIANGLES, 0, 3);
         
         error = gl.getError();
+        console.log(error);
 
         // -- Delete WebGL resources
         gl.deleteBuffer(vertexBuffer);
