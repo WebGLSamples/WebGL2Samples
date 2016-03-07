@@ -12,7 +12,14 @@
 
 <body>
     <div id="info">WebGL 2 Samples - texture_srgb</div>
+    <p id="description">
+        Texture files are stored in non-linear sRGB color space format in storage. In this sample, the fragment shader automatically converts our texture from non-linear sRGB color space to linear RGB color space.
+        <br>
+        This is useful since because then we could work with the filtering math in linear space, then convert back to sRGB space for the color output.
+        <br>
+        The output below is applied to a Guassian blur filter.
 
+    </p>
     <!-- Shader code is modified adapted from xissburg at http://xissburg.com/faster-gaussian-blur-in-glsl/ -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
@@ -258,9 +265,9 @@
             gl.useProgram(program);
 
             var matrix = new Float32Array([
-                1.0, 0.0, 0.0, 0.0,
-                0.0, 1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0,
+                .5, 0.0, 0.0, 0.0,
+                0.0, .5, 0.0, 0.0,
+                0.0, 0.0, .5, 0.0,
                 0.0, 0.0, 0.0, 1.0
             ]);
             gl.uniformMatrix4fv(uniformMvpLocation, false, matrix);
@@ -279,6 +286,7 @@
         }
     })();
     </script>
+    <div id="highlightedLines"  style="display: none">#L241</div>
 
 </body>
 

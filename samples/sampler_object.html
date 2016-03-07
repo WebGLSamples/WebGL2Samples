@@ -12,6 +12,12 @@
 
 <body>
     <div id="info">WebGL 2 Samples - sampler_object</div>
+    <p id="description">
+    This sample demonstrates using 2 sampler objects for texture filtering.
+    <br>
+    BOTTOM: Linear filtering / TOP: Nearest filtering
+    </p>
+
 
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
@@ -188,9 +194,9 @@
             gl.useProgram(program);
 
             var matrix = new Float32Array([
-                1.0, 0.0, 0.0, 0.0,
-                0.0, 1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0,
+                0.8, 0.0, 0.0, 0.0,
+                0.0, 0.8, 0.0, 0.0,
+                0.0, 0.0, 0.8, 0.0,
                 0.0, 0.0, 0.0, 1.0
             ]);
             gl.uniformMatrix4fv(uniformMvpLocation, false, matrix);
@@ -220,6 +226,7 @@
         }
     })();
     </script>
+    <div id="highlightedLines"  style="display: none">#L139-L160</div>
 
 </body>
 

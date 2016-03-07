@@ -213,7 +213,7 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindVertexArray(null);
 
-        // -- Init TransformFeedback 
+        // -- Init TransformFeedback
         var transformFeedback = gl.createTransformFeedback();
 
         // -- Render
@@ -224,7 +224,7 @@
         // First draw, capture the attributes
         // Disable rasterization, vertices processing only
         gl.enable(gl.RASTERIZER_DISCARD);
-        
+
         gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
 
         gl.useProgram(programs[PROGRAM_TRANSFORM]);
@@ -265,5 +265,7 @@
         gl.deleteVertexArray(vertexArrays[PROGRAM_FEEDBACK]);
     })();
     </script>
+    <div id="highlightedLines"  style="display: none">#L108-L255</div>
+
 </body>
 </html>
