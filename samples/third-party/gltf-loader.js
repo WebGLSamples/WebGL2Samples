@@ -216,22 +216,8 @@
                 if (semantic.substring(0, 8) === 'POSITION') {
                     stride = scene.positionByteStride / AttributeSize[attribute.componentType];
                     offset = scene.positionByteOffset / AttributeSize[attribute.componentType];
-                    //offset += 113595;
                     count = attribute.count;
-                    // for (var i = 0; i < data.length; i += stride) {
-                    //     // @todo: add vec2 and other(needed?) support
-                    //     if(scene.positionNumberOfComponents === 3) {
-                    //         vec4.set(tmpVec4, data[i + offset]
-                    //                         , data[i + offset + 1]
-                    //                         , data[i + offset + 2]
-                    //                         , 1);
-                    //         vec4.transformMat4(tmpVec4, tmpVec4, matrix);
-                    //         vec4.scale(tmpVec4, tmpVec4, tmpVec4[3]);
-                    //         data[i + offset] = tmpVec4[0];
-                    //         data[i + offset + 1] = tmpVec4[1];
-                    //         data[i + offset + 2] = tmpVec4[2];
-                    //     }
-                    // }
+
                     for (var i = 0; i < count; ++i) {
                         // @todo: add vec2 and other(needed?) support
                         if(scene.positionNumberOfComponents === 3) {
@@ -249,22 +235,10 @@
                 } else if (semantic.substring(0, 6) === 'NORMAL') {
                     stride = scene.normalByteStride / AttributeSize[attribute.componentType];
                     offset = scene.normalByteOffset / AttributeSize[attribute.componentType];
-                    //offset += 113595;
                     count = attribute.count;
                     mat4.invert(inverseTransposeMatrix, matrix);
                     mat4.transpose(inverseTransposeMatrix, inverseTransposeMatrix);                    
-                    // for (var i = 0; i < data.length; i += stride) {
-                    //     // @todo: add vec2 and other(needed?) support
-                    //     vec4.set(tmpVec4, data[i + offset]
-                    //                     , data[i + offset + 1]
-                    //                     , data[i + offset + 2]
-                    //                     , 0);
-                    //     vec4.transformMat4(tmpVec4, tmpVec4, inverseTransposeMatrix);
-                    //     vec4.normalize(tmpVec4, tmpVec4);
-                    //     data[i + offset] = tmpVec4[0];
-                    //     data[i + offset + 1] = tmpVec4[1];
-                    //     data[i + offset + 2] = tmpVec4[2];
-                    // }
+
                     for (var i = 0; i < count; ++i) {
                         // @todo: add vec2 and other(needed?) support
                         vec4.set(tmpVec4, data[stride * i + offset]
