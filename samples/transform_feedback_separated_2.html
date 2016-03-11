@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <script src="utility.js"></script>
-    <script src="third-party/gl-matrix.js"></script>
+    <script src="third-party/gl-matrix-min.js"></script>
     <script src="third-party/noise3D.js"></script>
 </head>
 
@@ -105,7 +105,7 @@
             } else {
                 gl_Position = vec4(-100.0, -100.0, 0.0, 1.0);
             }
-            gl_PointSize = 10.0;
+            gl_PointSize = 2.0;
         }
     </script>
 
@@ -149,7 +149,7 @@
 
         // -- Declare variables for the particle system
 
-        var NUM_PARTICLES = 200;
+        var NUM_PARTICLES = 1000;
         var ACCELERATION = -1.0;
 
         var appStartTime = Date.now();

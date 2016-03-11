@@ -11,6 +11,9 @@
 
 <body>
     <div id="info">WebGL 2 Samples - fbo_blit</div>
+    <p id="description">
+        This samples demonstrates blitting on frame buffer objects.
+    </p>
 
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
@@ -71,7 +74,7 @@
         var mvpLocation = gl.getUniformLocation(program, 'MVP');
         var diffuseLocation = gl.getUniformLocation(program, 'diffuse');
 
-        // -- Init buffers: 
+        // -- Init buffers:
         var positions = new Float32Array([
             -1.0, -1.0,
              1.0, -1.0,
@@ -117,12 +120,12 @@
         gl.bindVertexArray(null);
 
         loadImage('../assets/img/Di-3d.png', function(image) {
-            
+
             var FRAMEBUFFER_SIZE = {
-                x: image.width, 
+                x: image.width,
                 y: image.height
             };
-            
+
             // -- Init Texture
             var textureDiffuse = gl.createTexture();
             gl.activeTexture(gl.TEXTURE0);
@@ -131,26 +134,26 @@
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-            
+
             var textureColorBuffer = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, textureColorBuffer);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
             gl.bindTexture(gl.TEXTURE_2D, null);
-            
+
             // -- Init Frame Buffer
             var framebufferRender = gl.createFramebuffer();
             var framebufferResolve = gl.createFramebuffer();
-            
+
             var colorRenderbuffer = gl.createRenderbuffer();
             gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
             gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y);
-            
+
             gl.bindFramebuffer(gl.FRAMEBUFFER, framebufferRender);
             gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            
+
             gl.bindFramebuffer(gl.FRAMEBUFFER, framebufferResolve);
             gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, textureColorBuffer, 0);
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -158,12 +161,12 @@
             // -- Render
             gl.useProgram(program);
             gl.uniform1i(diffuseLocation, 0);
-            
+
             // Pass 1
             gl.bindFramebuffer(gl.FRAMEBUFFER, framebufferRender);
             gl.viewport(0, 0, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y);
             gl.clearBufferfv(gl.COLOR, 0, [0.3, 0.3, 0.3, 1.0]);
-            
+
             // Render FBO
             var SCALE = new Float32Array([
                 0.8, 0.0, 0.0, 0.0,
@@ -177,12 +180,12 @@
             gl.bindVertexArray(vertexArray);
             gl.drawArrays(gl.TRIANGLES, 0, 6);
             gl.bindTexture(gl.TEXTURE_2D, null);
-            
+
             // Blit framebuffers
             gl.bindFramebuffer(gl.READ_FRAMEBUFFER, framebufferRender);
             gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebufferResolve);
             gl.clearBufferfv(gl.COLOR, 0, [0.7, 0.0, 0.0, 1.0]);
-            
+
             var TILE = 4;
             var BORDER = 2;
             for(var j = 0; j < TILE; j++) {
@@ -190,23 +193,23 @@
                     if((i + j) % 2) {
                         continue;
                     }
-                    
+
                     gl.blitFramebuffer(
-                        0, 0, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y, 
-                        FRAMEBUFFER_SIZE.x / TILE * (i + 0) + BORDER, 
-                        FRAMEBUFFER_SIZE.x / TILE * (j + 0) + BORDER, 
-                        FRAMEBUFFER_SIZE.y / TILE * (i + 1) - BORDER, 
-                        FRAMEBUFFER_SIZE.y / TILE * (j + 1) - BORDER, 
+                        0, 0, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y,
+                        FRAMEBUFFER_SIZE.x / TILE * (i + 0) + BORDER,
+                        FRAMEBUFFER_SIZE.x / TILE * (j + 0) + BORDER,
+                        FRAMEBUFFER_SIZE.y / TILE * (i + 1) - BORDER,
+                        FRAMEBUFFER_SIZE.y / TILE * (j + 1) - BORDER,
                         gl.COLOR_BUFFER_BIT, gl.LINEAR
                     );
                 }
             }
-                        
+
             // Pass 2
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             gl.viewport(0, 0, canvas.width, canvas.height);
             gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 1.0]);
-            
+
             // Render FB
             var IDENTITY = new Float32Array([
                 1.0, 0.0, 0.0, 0.0,

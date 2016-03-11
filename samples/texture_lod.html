@@ -273,16 +273,16 @@
             requestAnimationFrame(render);
         }
         
-        window.onunload = function() {
-            // -- Delete WebGL resources
-            gl.deleteBuffer(vertexPosBuffer);
-            gl.deleteBuffer(vertexTexBuffer);
-            for (var j = 0; j < textures.length; ++j) {
-                gl.deleteTexture(textures[j]);
-            }
-            gl.deleteVertexArray(vertexArray);
-            gl.deleteProgram(program);
-        };
+        // If you have a long-running page, and need to delete WebGL resources, use:
+        //
+        // gl.deleteBuffer(vertexPosBuffer);
+        // gl.deleteBuffer(vertexTexBuffer);
+        // for (var j = 0; j < textures.length; ++j) {
+        //     gl.deleteTexture(textures[j]);
+        // }
+        // gl.deleteVertexArray(vertexArray);
+        // gl.deleteProgram(program);
+            
     })();
     </script>
 

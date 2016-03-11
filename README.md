@@ -10,6 +10,16 @@ Short and easy to understand samples demonstrating WebGL 2 features by [Shuai Sh
 
 Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.com/Groovounet)) [OpenGL Samples Pack](https://github.com/g-truc/ogl-samples).
 
+## Screenshots
+
+| [Texture LOD](http://webglsamples.org/WebGL2Samples/#texture_lod) | [Flat/smooth interpolation](http://webglsamples.org/WebGL2Samples/#glsl_flat_smooth_interpolators) |
+| --- | ----|
+|[![Screenshot texture LOD](assets/img/screenshot_texture_lod.png)](http://webglsamples.org/WebGL2Samples/#texture_lod) | [![Screenshot flat smooth](assets/img/screenshot_flat_smooth.png)](http://webglsamples.org/WebGL2Samples/#glsl_flat_smooth_interpolators)|
+
+| [Sampler object wrap](http://webglsamples.org/WebGL2Samples/#sampler_wrap) | [Transform feedback](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated_2) |
+| --- | ----|
+|[![Screenshot sampler object wrap](assets/img/screenshot_sampler_object.png)](http://webglsamples.org/WebGL2Samples/#sampler_wrap) | [![Screenshot transform feedback](assets/img/screenshot_transform_feedback.png)](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated_2)|
+
 ## Samples
 
 |              | Chrome 50 Windows 10| Chrome 50 OSX 10.10| Firefox 46 Windows 10| Firefox 45 OSX 10.10|
@@ -31,8 +41,8 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[texture_format](http://webglsamples.org/WebGL2Samples/#texture_format)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_fetch](http://webglsamples.org/WebGL2Samples/#texture_fetch)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[texture_grad](http://webglsamples.org/WebGL2Samples/#texture_grad)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
-|[texture_3d](http://webglsamples.org/WebGL2Samples/#texture_3d)|:x:GL ERROR :GL_INVALID_OPERATION : glGenerateMipmap: Can not generate mips|:white_check_mark:|:x: drawArraysInstanced: Active texture 0 for target 0x806f is 'incomplete'|:white_check_mark:|
-|[texture_immutable](http://webglsamples.org/WebGL2Samples/#texture_immutable)|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark:|
+|[texture_3d](http://webglsamples.org/WebGL2Samples/#texture_3d)(currently not working for texture 3D)|:x:GL ERROR :GL_INVALID_OPERATION : glGenerateMipmap: Can not generate mips|:white_check_mark:|:x: drawArraysInstanced: Active texture 0 for target 0x806f is 'incomplete'|:white_check_mark:|
+|[texture_immutable](http://webglsamples.org/WebGL2Samples/#texture_immutable) (currently not working for texture 3D)|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark:|
 |[texture_integer](http://webglsamples.org/WebGL2Samples/#texture_integer)|:white_check_mark:|:grey_question:|:x: Error: Driver ran out of memory during upload|:grey_question:|
 |[texture_lod](http://webglsamples.org/WebGL2Samples/#texture_lod)|:white_check_mark:|:grey_question:|:white_check_mark:|:grey_question:|
 |[texture_offset](http://webglsamples.org/WebGL2Samples/#texture_offset)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
