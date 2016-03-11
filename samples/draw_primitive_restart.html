@@ -89,7 +89,7 @@
             0, 1, 2, MAX_UNSIGNED_SHORT, 2, 3, 1
         ]);
         // var indices = new Uint16Array([
-        //     0, 1, 2, 2, 3, 1
+        //     0, 1, 2, 3
         // ]);
         var vertexElementBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexElementBuffer);
@@ -117,7 +117,7 @@
         gl.bindVertexArray(vertexArray);
 
         //gl.drawArrays(gl.TRIANGLES, 0, 6);
-        gl.drawElements(gl.TRIANGLES_STRIP, 3, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(gl.TRIANGLE_STRIP, 7, gl.UNSIGNED_SHORT, 0);
         //gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 
         // -- Delete WebGL resources
