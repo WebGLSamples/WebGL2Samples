@@ -92,6 +92,13 @@ To run JSHint automatically when a file is saved, run the following and leave it
 npm run jsHint-watch
 ```
 
+## Notes
+
+### About WebGL resource deletion
+
+Usually it is not necessary to manually use delete calls when unloading the page. 
+Click [here](https://www.khronos.org/registry/webgl/specs/latest/1.0/#3) for more details. 
+
 ## Contributions
 
 This is a community project.  We welcome contributions!  Check out the [issues](https://github.com/WebGLSamples/WebGL2Samples/issues) for ideas on what to contribute.
