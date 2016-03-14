@@ -11,7 +11,11 @@
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - texture_lod<br/>Drag Mouse to zoom</div>
+    <div id="info">WebGL 2 Samples - texture_lod</div>
+    <p id="description">
+        Drag Mouse to zoom in and out<br/>TOP_LEFT: Default, TOP_RIGHT: Both min and max lod is set to 3.0
+        <br/>BOTTOM_LEFT: lod bias = 3.5, BOTTOM_RIGHT: lod bias = 4.0
+    </p>
 
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
@@ -269,16 +273,16 @@
             requestAnimationFrame(render);
         }
         
-        window.onunload = function() {
-            // -- Delete WebGL resources
-            gl.deleteBuffer(vertexPosBuffer);
-            gl.deleteBuffer(vertexTexBuffer);
-            for (var j = 0; j < textures.length; ++j) {
-                gl.deleteTexture(textures[j]);
-            }
-            gl.deleteVertexArray(vertexArray);
-            gl.deleteProgram(program);
-        };
+        // If you have a long-running page, and need to delete WebGL resources, use:
+        //
+        // gl.deleteBuffer(vertexPosBuffer);
+        // gl.deleteBuffer(vertexTexBuffer);
+        // for (var j = 0; j < textures.length; ++j) {
+        //     gl.deleteTexture(textures[j]);
+        // }
+        // gl.deleteVertexArray(vertexArray);
+        // gl.deleteProgram(program);
+            
     })();
     </script>
 

@@ -11,6 +11,10 @@
 
 <body>
     <div id="info">WebGL 2 Samples - transform_feedback_interleaved</div>
+    <p id="description">
+        This simple sample shows how to use transform feedback. The first draw has no rasterization, but output the position and color attribute as the input of each vertex in the second draw.<br/>
+        Each attribute of the transform feedback output is stored in one buffer (interleaved).
+    </p>
 
     <script id="vs-transform" type="x-shader/x-vertex">
         #version 300 es
@@ -20,12 +24,12 @@
         uniform mat4 MVP;
         layout(location = 0) in vec4 position;
 
-        out vec4 color;
+        out vec4 v_color;
 
         void main()
         {
             gl_Position = MVP * position;
-            color = vec4(clamp(vec2(position), 0.0, 1.0), 0.0, 1.0);
+            v_color = vec4(clamp(vec2(position), 0.0, 1.0), 0.0, 1.0);
         }
     </script>
 
@@ -115,8 +119,8 @@
             gl.attachShader(programTransform, fshaderTransform);
             gl.deleteShader(fshaderTransform);
 
-            var strings = ['gl_Position', 'color'];
-            gl.transformFeedbackVaryings(programTransform, strings, gl.INTERLEAVED_ATTRIBS);
+            var varyings = ['gl_Position', 'v_color'];
+            gl.transformFeedbackVaryings(programTransform, varyings, gl.INTERLEAVED_ATTRIBS);
             gl.linkProgram(programTransform);
 
             // check

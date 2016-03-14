@@ -1,40 +1,36 @@
 <!DOCTYPE html>
-<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-glsl-discard.cpp -->
 <html lang="en">
 
 <head>
-    <title>WebGL 2 Samples - glsl_discard</title>
+    <title>WebGL 2 Samples - glsl_non_square_matrix</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - glsl_discard</div>
+    <div id="info">WebGL 2 Samples - glsl_non_square_matrix</div>
     <p id="description">
-        Fragments with `length(uv - 0.5) > 0.5` are discarded in the fragment shader. 
+        We use a mat4x3 to store the MVP homogenous matrix. The translation needs to be done as an extra step by adding the translation column in the matrix to the position. 
     </p>
-
+    
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
-        #define POSITION_LOCATION 0
-        #define TEXCOORD_LOCATION 4
-        
         precision highp float;
         precision highp int;
 
-        uniform mat4 MVP;
+        uniform mat4x3 MVP;
 
-        layout(location = POSITION_LOCATION) in vec2 position;
-        layout(location = TEXCOORD_LOCATION) in vec2 texcoord;
+        layout(location = 0) in vec2 position;
+        layout(location = 1) in vec2 texcoord;
 
         out vec2 uv;
 
         void main()
         {
             uv = texcoord;
-            gl_Position = MVP * vec4(position, 0.0, 1.0);
+            gl_Position = vec4(MVP * vec4(position, 0.0, 1.0) + MVP[3], 1.0);
         }
     </script>
 
@@ -51,11 +47,6 @@
 
         void main()
         {
-            if(length(uv - 0.5) > 0.5)
-            {
-                discard;
-            }
-
             color = texture(diffuse, uv);
         }
     </script>
@@ -119,7 +110,7 @@
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        var vertexTexLocation = 4; // set with GLSL layout qualifier
+        var vertexTexLocation = 1; // set with GLSL layout qualifier
         gl.enableVertexAttribArray(vertexTexLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
         gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, 0, 0);
@@ -142,14 +133,14 @@
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             var matrix = new Float32Array([
-                0.5, 0.0, 0.0, 0.0,
-                0.0, 0.5, 0.0, 0.0,
-                0.0, 0.0, 0.5, 0.0,
-                0.0, 0.0, 0.0, 1.0
+                0.5, 0.0, 0.0, 
+                0.0, 0.5, 0.0, 
+                0.0, 0.0, 0.5, 
+                0.2, -0.2, 0.0      //translation
             ]);
 
             gl.useProgram(program);
-            gl.uniformMatrix4fv(mvpLocation, false, matrix);
+            gl.uniformMatrix4x3fv(mvpLocation, false, matrix);
             gl.uniform1i(diffuseLocation, 0);
 
             gl.bindVertexArray(vertexArray);
