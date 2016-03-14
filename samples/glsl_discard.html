@@ -29,11 +29,11 @@
         layout(location = POSITION_LOCATION) in vec2 position;
         layout(location = TEXCOORD_LOCATION) in vec2 texcoord;
 
-        out vec2 uv;
+        out vec2 v_st;
 
         void main()
         {
-            uv = texcoord;
+            v_st = texcoord;
             gl_Position = MVP * vec4(position, 0.0, 1.0);
         }
     </script>
@@ -45,18 +45,18 @@
 
         uniform sampler2D diffuse;
 
-        in vec2 uv;
+        in vec2 v_st;
 
         out vec4 color;
 
         void main()
         {
-            if(length(uv - 0.5) > 0.5)
+            if(length(v_st - 0.5) > 0.5)
             {
                 discard;
             }
 
-            color = texture(diffuse, uv);
+            color = texture(diffuse, v_st);
         }
     </script>
 

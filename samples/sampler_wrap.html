@@ -30,11 +30,11 @@
         layout(location = POSITION_LOCATION) in vec2 position;
         layout(location = TEXCOORD_LOCATION) in vec2 textureCoordinates;
 
-        out vec2 st;
+        out vec2 v_st;
 
         void main()
         {
-            st = textureCoordinates;
+            v_st = textureCoordinates;
             gl_Position = mvp * vec4(position, 0.0, 1.0);
         }
     </script>
@@ -48,13 +48,13 @@
 
         uniform sampler2D diffuse;
 
-        in vec2 st;
+        in vec2 v_st;
 
         layout(location = FRAG_COLOR_LOCATION) out vec4 color;
 
         void main()
         {
-            color = texture(diffuse, st);
+            color = texture(diffuse, v_st);
         }
     </script>
 
