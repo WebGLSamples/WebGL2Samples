@@ -19,14 +19,17 @@
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
+        #define POSITION_LOCATION 0
+        #define TEXCOORD_LOCATION 4
+        
         precision highp float;
         precision highp int;
 
         uniform mat4 mvMatrix;
         uniform mat4 pMatrix;
 
-        layout(location = 0) in vec3 position;
-        layout(location = 1) in vec2 texcoord;
+        layout(location = POSITION_LOCATION) in vec3 position;
+        layout(location = TEXCOORD_LOCATION) in vec2 texcoord;
 
         out vec2 st;
         out vec3 vPosition;
@@ -202,7 +205,7 @@
         gl.vertexAttribPointer(vertexPosLocation, 3, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        var vertexTexLocation = 1; // set with GLSL layout qualifier
+        var vertexTexLocation = 4; // set with GLSL layout qualifier
         gl.enableVertexAttribArray(vertexTexLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
         gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, 0, 0);
