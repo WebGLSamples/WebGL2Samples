@@ -96,8 +96,11 @@ npm run jsHint-watch
 
 ### About WebGL resource deletion
 
-Usually it is not necessary to manually use delete calls when unloading the page. 
-Click [here](https://www.khronos.org/registry/webgl/specs/latest/1.0/#3) for more details. 
+WebGL applications should, in general, use the delete* APIs to manage their resources (buffers, textures, etc.) rather than relying on the browser's garbage collector to reclaim them. Note that many of the samples here do not delete their resources explicitly; this is the case because they would only be reclaimed upon page unload, and it's neither necessary nor desirable to install an onunload handler only for the purpose of destroying WebGL resources. See the following pages for more details:
+
+https://www.khronos.org/registry/webgl/specs/latest/1.0/#3
+
+https://bugs.chromium.org/p/chromium/issues/detail?id=5638
 
 ## Contributions
 
