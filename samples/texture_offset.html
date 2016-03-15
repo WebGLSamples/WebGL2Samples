@@ -11,23 +11,29 @@
 
 <body>
     <div id="info">WebGL 2 Samples - texture_offset</div>
-
+    <p id="description">
+        This sample demonstrates the use of textureOffset(). <br>
+        LEFT: With offset / RIGHT: Without offset
+    </p>
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
+        #define POSITION_LOCATION 0
+        #define TEXCOORD_LOCATION 4
+        
         precision highp float;
         precision highp int;
 
         uniform mat4 MVP;
 
-        layout(location = 0) in vec2 position;
-        layout(location = 1) in vec2 texcoord;
+        layout(location = POSITION_LOCATION) in vec2 position;
+        layout(location = TEXCOORD_LOCATION) in vec2 texcoord;
 
-        out vec2 st;
+        out vec2 v_st;
 
         void main()
         {
-            st = texcoord;
+            v_st = texcoord;
             gl_Position = MVP * vec4(position, 0.0, 1.0);
         }
     </script>
@@ -40,7 +46,7 @@
         uniform sampler2D diffuse;
         uniform ivec2 offset;
 
-        in vec2 st;
+        in vec2 v_st;
 
         out vec4 color;
 
@@ -96,7 +102,7 @@
         void main()
         {
             ivec2 textureSize = textureSize(diffuse, 0);
-            color = textureCatmullrom(diffuse, st, vec2(offset) / vec2(textureSize));
+            color = textureCatmullrom(diffuse, v_st, vec2(offset) / vec2(textureSize));
         }
     </script>
 
@@ -107,7 +113,7 @@
 
         uniform sampler2D diffuse;
 
-        in vec2 st;
+        in vec2 v_st;
 
         out vec4 color;
 
@@ -165,7 +171,7 @@
 
         void main()
         {
-            color = textureCatmullrom(diffuse, st);
+            color = textureCatmullrom(diffuse, v_st);
         }
     </script>
 
@@ -255,7 +261,7 @@
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        var vertexTexLocation = 1; // set with GLSL layout qualifier
+        var vertexTexLocation = 4; // set with GLSL layout qualifier
         gl.enableVertexAttribArray(vertexTexLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
         gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, 0, 0);
@@ -317,6 +323,7 @@
         });
     })();
     </script>
+    <div id="highlightedLines"  style="display: none">#L66-L84</div>
 
 </body>
 

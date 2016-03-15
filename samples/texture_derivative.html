@@ -15,26 +15,29 @@
     <p id="description">
         The mixed color of each face is computed with glsl built-in derivative functions in fragment shader.
     </p>
-    
+
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
+        #define POSITION_LOCATION 0
+        #define TEXCOORD_LOCATION 4
+        
         precision highp float;
         precision highp int;
 
         uniform mat4 mvMatrix;
         uniform mat4 pMatrix;
 
-        layout(location = 0) in vec3 position;
-        layout(location = 1) in vec2 texcoord;
+        layout(location = POSITION_LOCATION) in vec3 position;
+        layout(location = TEXCOORD_LOCATION) in vec2 texcoord;
 
-        out vec2 st;
-        out vec3 vPosition;
+        out vec2 v_uv;
+        out vec3 v_position;
 
         void main()
         {
-            st = texcoord;
-            vPosition = vec3(mvMatrix * vec4(position, 1.0));
+            v_uv = texcoord;
+            v_position = vec3(mvMatrix * vec4(position, 1.0));
             gl_Position = pMatrix * mvMatrix * vec4(position, 1.0);
         }
     </script>
@@ -47,18 +50,18 @@
 
         uniform sampler2D diffuse;
 
-        in vec2 st;
-        in vec3 vPosition;
+        in vec2 v_uv;
+        in vec3 v_position;
 
         out vec4 color;
 
         void main()
         {
-            color = texture(diffuse, st);
+            color = texture(diffuse, v_uv);
 
             // Compute flat normal using gradient
-            vec3 fdx = vec3(dFdx(vPosition.x), dFdx(vPosition.y), dFdx(vPosition.z));
-            vec3 fdy = vec3(dFdy(vPosition.x), dFdy(vPosition.y), dFdy(vPosition.z));
+            vec3 fdx = vec3(dFdx(v_position.x), dFdx(v_position.y), dFdx(v_position.z));
+            vec3 fdy = vec3(dFdy(v_position.x), dFdy(v_position.y), dFdy(v_position.z));
 
             vec3 N = normalize(cross(fdx, fdy));
             color = mix(color, vec4(N, 1.0), 0.5);
@@ -202,7 +205,7 @@
         gl.vertexAttribPointer(vertexPosLocation, 3, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        var vertexTexLocation = 1; // set with GLSL layout qualifier
+        var vertexTexLocation = 4; // set with GLSL layout qualifier
         gl.enableVertexAttribArray(vertexTexLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
         gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, 0, 0);
@@ -330,9 +333,10 @@
         // gl.deleteTexture(texture);
         // gl.deleteProgram(program);
         // gl.deleteVertexArray(vertexArray);
-        
+
     })();
     </script>
+    <div id="highlightedLines"  style="display: none">#L60-L63</div>
 
 </body>
 
