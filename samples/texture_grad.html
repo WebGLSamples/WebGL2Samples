@@ -19,21 +19,24 @@
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
+        #define POSITION_LOCATION 0
+        #define TEXCOORD_LOCATION 4
+        
         precision highp float;
         precision highp int;
 
         uniform mat4 mvMatrix;
         uniform mat4 pMatrix;
 
-        layout(location = 0) in vec3 position;
-        layout(location = 1) in vec2 texcoord;
+        layout(location = POSITION_LOCATION) in vec3 position;
+        layout(location = TEXCOORD_LOCATION) in vec2 texcoord;
 
-        out vec2 st;
+        out vec2 v_uv;
         out vec3 vPosition;
 
         void main()
         {
-            st = texcoord;
+            v_uv = texcoord;
             vPosition = vec3(mvMatrix * vec4(position, 1.0));
             gl_Position = pMatrix * mvMatrix * vec4(position, 1.0);
         }
@@ -47,7 +50,7 @@
 
         uniform sampler2D diffuse;
 
-        in vec2 st;
+        in vec2 v_uv;
         in vec3 vPosition;
 
         out vec4 color;
@@ -55,9 +58,9 @@
         void main()
         {
             vec2 size = vec2(textureSize(diffuse, 0));
-            vec2 dx = dFdx(st * size);
-            vec2 dy = dFdy(st * size);
-            color = textureGrad(diffuse, st, dx, dy);
+            vec2 dx = dFdx(v_uv * size);
+            vec2 dy = dFdy(v_uv * size);
+            color = textureGrad(diffuse, v_uv, dx, dy);
 
             // Compute flat normal using gradient
             vec3 fdx = vec3(dFdx(vPosition.x), dFdx(vPosition.y), dFdx(vPosition.z));
@@ -205,7 +208,7 @@
         gl.vertexAttribPointer(vertexPosLocation, 3, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        var vertexTexLocation = 1; // set with GLSL layout qualifier
+        var vertexTexLocation = 4; // set with GLSL layout qualifier
         gl.enableVertexAttribArray(vertexTexLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
         gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, 0, 0);
@@ -337,7 +340,7 @@
         
     })();
     </script>
-
+    <div id="highlightedLines"  style="display: none">#L60</div>
 </body>
 
 </html>

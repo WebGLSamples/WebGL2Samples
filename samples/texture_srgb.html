@@ -12,7 +12,14 @@
 
 <body>
     <div id="info">WebGL 2 Samples - texture_srgb</div>
+    <p id="description">
+        Texture files are stored in non-linear sRGB color space format in storage. In this sample, the fragment shader automatically converts our texture from non-linear sRGB color space to linear RGB color space.
+        <br>
+        This is useful since because then we could work with the filtering math in linear space, then convert back to sRGB space for the color output.
+        <br>
+        The output below is applied to a Guassian blur filter.
 
+    </p>
     <!-- Shader code is modified adapted from xissburg at http://xissburg.com/faster-gaussian-blur-in-glsl/ -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
@@ -27,43 +34,43 @@
         layout(location = POSITION_LOCATION) in vec2 position;
         layout(location = TEXCOORD_LOCATION) in vec2 textureCoordinates;
 
-        out vec2 st;
+        out vec2 v_st;
         out vec2 v_blurTexCoords[14];
         out vec2 h_blurTexCoords[14];
 
         void main()
         {
-            st = textureCoordinates;
+            v_st = textureCoordinates;
             gl_Position = mvp * vec4(position, 0.0, 1.0) ;
-            v_blurTexCoords[ 0] = st + vec2(0.0, -0.050);
-            v_blurTexCoords[ 1] = st + vec2(0.0, -0.036);
-            v_blurTexCoords[ 2] = st + vec2(0.0, -0.020);
-            v_blurTexCoords[ 3] = st + vec2(0.0, -0.016);
-            v_blurTexCoords[ 4] = st + vec2(0.0, -0.012);
-            v_blurTexCoords[ 5] = st + vec2(0.0, -0.008);
-            v_blurTexCoords[ 6] = st + vec2(0.0, -0.004);
-            v_blurTexCoords[ 7] = st + vec2(0.0,  0.004);
-            v_blurTexCoords[ 8] = st + vec2(0.0,  0.008);
-            v_blurTexCoords[ 9] = st + vec2(0.0,  0.012);
-            v_blurTexCoords[10] = st + vec2(0.0,  0.016);
-            v_blurTexCoords[11] = st + vec2(0.0,  0.020);
-            v_blurTexCoords[12] = st + vec2(0.0,  0.036);
-            v_blurTexCoords[13] = st + vec2(0.0,  0.050);
+            v_blurTexCoords[ 0] = v_st + vec2(0.0, -0.050);
+            v_blurTexCoords[ 1] = v_st + vec2(0.0, -0.036);
+            v_blurTexCoords[ 2] = v_st + vec2(0.0, -0.020);
+            v_blurTexCoords[ 3] = v_st + vec2(0.0, -0.016);
+            v_blurTexCoords[ 4] = v_st + vec2(0.0, -0.012);
+            v_blurTexCoords[ 5] = v_st + vec2(0.0, -0.008);
+            v_blurTexCoords[ 6] = v_st + vec2(0.0, -0.004);
+            v_blurTexCoords[ 7] = v_st + vec2(0.0,  0.004);
+            v_blurTexCoords[ 8] = v_st + vec2(0.0,  0.008);
+            v_blurTexCoords[ 9] = v_st + vec2(0.0,  0.012);
+            v_blurTexCoords[10] = v_st + vec2(0.0,  0.016);
+            v_blurTexCoords[11] = v_st + vec2(0.0,  0.020);
+            v_blurTexCoords[12] = v_st + vec2(0.0,  0.036);
+            v_blurTexCoords[13] = v_st + vec2(0.0,  0.050);
 
-            h_blurTexCoords[ 0] = st + vec2(-0.050, 0.0);
-            h_blurTexCoords[ 1] = st + vec2(-0.036, 0.0);
-            h_blurTexCoords[ 2] = st + vec2(-0.020, 0.0);
-            h_blurTexCoords[ 3] = st + vec2(-0.016, 0.0);
-            h_blurTexCoords[ 4] = st + vec2(-0.012, 0.0);
-            h_blurTexCoords[ 5] = st + vec2(-0.008, 0.0);
-            h_blurTexCoords[ 6] = st + vec2(-0.004, 0.0);
-            h_blurTexCoords[ 7] = st + vec2( 0.004, 0.0);
-            h_blurTexCoords[ 8] = st + vec2( 0.008, 0.0);
-            h_blurTexCoords[ 9] = st + vec2( 0.012, 0.0);
-            h_blurTexCoords[10] = st + vec2( 0.016, 0.0);
-            h_blurTexCoords[11] = st + vec2( 0.020, 0.0);
-            h_blurTexCoords[12] = st + vec2( 0.036, 0.0);
-            h_blurTexCoords[13] = st + vec2( 0.050, 0.0);
+            h_blurTexCoords[ 0] = v_st + vec2(-0.050, 0.0);
+            h_blurTexCoords[ 1] = v_st + vec2(-0.036, 0.0);
+            h_blurTexCoords[ 2] = v_st + vec2(-0.020, 0.0);
+            h_blurTexCoords[ 3] = v_st + vec2(-0.016, 0.0);
+            h_blurTexCoords[ 4] = v_st + vec2(-0.012, 0.0);
+            h_blurTexCoords[ 5] = v_st + vec2(-0.008, 0.0);
+            h_blurTexCoords[ 6] = v_st + vec2(-0.004, 0.0);
+            h_blurTexCoords[ 7] = v_st + vec2( 0.004, 0.0);
+            h_blurTexCoords[ 8] = v_st + vec2( 0.008, 0.0);
+            h_blurTexCoords[ 9] = v_st + vec2( 0.012, 0.0);
+            h_blurTexCoords[10] = v_st + vec2( 0.016, 0.0);
+            h_blurTexCoords[11] = v_st + vec2( 0.020, 0.0);
+            h_blurTexCoords[12] = v_st + vec2( 0.036, 0.0);
+            h_blurTexCoords[13] = v_st + vec2( 0.050, 0.0);
         }
     </script>
 
@@ -84,7 +91,7 @@
         in vec2 v_blurTexCoords[14];
         in vec2 h_blurTexCoords[14];
 
-        in vec2 st;
+        in vec2 v_st;
 
         layout(location = FRAG_COLOR_LOCATION) out vec4 color;
 
@@ -112,14 +119,14 @@
 
         void main()
         {
-            vec2 sampleCoord = fract(st.xy);
+            vec2 sampleCoord = fract(v_st.xy);
 
             // *N.B*: Since we fetched in a sRGB texture format, fragment shader automatically converted
             // from non-linear sRGB color space to linear RGB color space for us.
             // This is useful since then we could work with the filtering math in linear space,
             // then convert back to sRGB space for the color output.
             // In this example, we will use a Gaussian filter for blurring.
-            vec4 colorRgb = vec4(texture(material.diffuse, st).rgb, 1.0);
+            vec4 colorRgb = vec4(texture(material.diffuse, v_st).rgb, 1.0);
             colorRgb = mix(colorRgb, texture(material.diffuse, v_blurTexCoords[ 0]), sampleCoord.y);
             colorRgb = mix(colorRgb, texture(material.diffuse, v_blurTexCoords[ 1]), sampleCoord.y);
             colorRgb = mix(colorRgb, texture(material.diffuse, v_blurTexCoords[ 2]), sampleCoord.y);
@@ -258,9 +265,9 @@
             gl.useProgram(program);
 
             var matrix = new Float32Array([
-                1.0, 0.0, 0.0, 0.0,
-                0.0, 1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0,
+                0.5, 0.0, 0.0, 0.0,
+                0.0, 0.5, 0.0, 0.0,
+                0.0, 0.0, 0.5, 0.0,
                 0.0, 0.0, 0.0, 1.0
             ]);
             gl.uniformMatrix4fv(uniformMvpLocation, false, matrix);
@@ -279,6 +286,7 @@
         }
     })();
     </script>
+    <div id="highlightedLines"  style="display: none">#L241</div>
 
 </body>
 

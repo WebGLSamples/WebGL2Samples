@@ -257,6 +257,9 @@
                 "transform_feedback_interleaved",
                 "transform_feedback_separated",
                 "transform_feedback_separated_2"
+            ],
+            "Geometry": [
+                "geo_vertex_format"
             ]
         };
 
@@ -294,7 +297,10 @@
             var array = location.href.split( '/' );
             array.pop();
 
-            window.open( 'view-source:' +array.join( '/' ) + '/samples/' + selected + '.html' );
+            var sampleDoc = viewer.contentDocument || viewer.contentWindow.document;
+            var highlightedLines = sampleDoc.getElementById('highlightedLines') || '';
+            var lines = !!highlightedLines ? highlightedLines.innerHTML : '';
+            window.open( 'https://github.com/WebGLSamples/WebGL2Samples/blob/master/samples/' + selected + '.html' + lines );
 
         }, false );
         button.style.display = 'none';
