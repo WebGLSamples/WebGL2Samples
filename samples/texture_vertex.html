@@ -35,14 +35,14 @@
         layout(location = TEXCOORD_LOCATION) in vec2 texcoord;
 
         out vec2 v_st;
-        out vec3 vPosition;
+        out vec3 v_position;
 
         void main()
         {
             v_st = texcoord;
             float height = texture(displacementMap, texcoord).b;
             vec4 displacedPosition = vec4(position, 1.0) + vec4(normal * height, 0.0);
-            vPosition = vec3(mvMatrix * displacedPosition);
+            v_position = vec3(mvMatrix * displacedPosition);
             gl_Position = pMatrix * mvMatrix * displacedPosition;
         }
     </script>
@@ -56,7 +56,7 @@
         uniform sampler2D diffuse;
 
         in vec2 v_st;
-        in vec3 vPosition;
+        in vec3 v_position;
 
         out vec4 color;
 
@@ -84,8 +84,8 @@
             color = textureLod(diffuse, v_st, level);
 
             // Compute flat normal using gradient
-            vec3 fdx = dFdx(vPosition);
-            vec3 fdy = dFdy(vPosition);
+            vec3 fdx = dFdx(v_position);
+            vec3 fdy = dFdy(v_position);
 
             vec3 N = normalize(cross(fdx, fdy));
             color = mix(color, vec4(N, 1.0), 0.5);
@@ -206,21 +206,22 @@
         // -- Initialize render variables
         var orientation = [0.0, 0.0, 0.0];
 
-        var modelMatrix = mat4.create([
-            1.0, 0.0, 0.0, 0.0,
-            0.0, 1.0, 0.0, 0.0,
-            0.0, 0.0, 1.0, 0.0,
-            0.0, 0.0, 0.0, 1.0
-        ]);
+        var modelMatrix = mat4.create();
+        
+        var eyeVec3 = vec3.create();
+        vec3.set(eyeVec3, 4, 3, 1);
+        var centerVec3 = vec3.create();
+        vec3.set(centerVec3, 0, 0.5, 0);
+        var upVec3 = vec3.create();
+        vec3.set(upVec3, 0, 1, 0);
 
-        var viewMatrix = mat4.lookAt(
-            [4, 3, 300],
-            [0, 0.5, 0],
-            [0, 1, 0]
-            );
+        var viewMatrix = mat4.create();
+        mat4.lookAt(viewMatrix, eyeVec3, centerVec3, upVec3);
 
-        var mvMatrix = mat4.multiply(viewMatrix, modelMatrix);
-        var perspectiveMatrix = mat4.perspective(0.45, 1, 1, 1000.0);
+        var mvMatrix = mat4.create();
+        mat4.multiply(mvMatrix, viewMatrix, modelMatrix);
+        var perspectiveMatrix = mat4.create();
+        mat4.perspective(perspectiveMatrix, 0.785, 1, 1, 1000);
 
         // -- Mouse Behaviour
 
@@ -245,11 +246,11 @@
             var deltaX = newX - lastMouseX;
             var deltaY = newY - lastMouseY;
 
-            var m = mat4.identity();
-            mat4.rotateX(m, deltaX / 100.0, m);
-            mat4.rotateY(m, deltaY / 100.0, m);
+            var m = mat4.create();
+            mat4.rotateX(m, m, deltaX / 100.0);
+            mat4.rotateY(m, m, deltaY / 100.0);
 
-            mat4.multiply(mvMatrix, m, mvMatrix);
+            mat4.multiply(mvMatrix, mvMatrix, m);
             lastMouseX = newX;
             lastMouseY = newY;
         };
@@ -260,16 +261,14 @@
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             gl.enable(gl.DEPTH_TEST);
-            // gl.enable(gl.CULL_FACE);
-            // gl.cullFace(gl.BACK);
 
             orientation[0] = 0.00020; // yaw
             orientation[1] = 0.00010; // pitch
             orientation[2] = 0.00005; // roll
 
-            mvMatrix = mat4.rotateX(mvMatrix, orientation[0] * Math.PI);
-            mvMatrix = mat4.rotateY(mvMatrix, orientation[1] * Math.PI);
-            mvMatrix = mat4.rotateZ(mvMatrix, orientation[2] * Math.PI);
+            mat4.rotateX(mvMatrix, mvMatrix, orientation[0] * Math.PI);
+            mat4.rotateY(mvMatrix, mvMatrix, orientation[1] * Math.PI);
+            mat4.rotateZ(mvMatrix, mvMatrix, orientation[2] * Math.PI);
 
             gl.bindVertexArray(vertexArray);
             gl.useProgram(program);
