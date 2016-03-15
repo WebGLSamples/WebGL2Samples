@@ -19,6 +19,10 @@
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
+        #define POSITION_LOCATION 0
+        #define NORMAL_LOCATION 1
+        #define TEXCOORD_LOCATION 4
+        
         precision highp float;
         precision highp int;
 
@@ -26,16 +30,16 @@
         uniform mat4 pMatrix;
         uniform sampler2D displacementMap;
 
-        layout(location = 0) in vec3 position;
-        layout(location = 1) in vec2 texcoord;
-        layout(location = 2) in vec3 normal;
+        layout(location = POSITION_LOCATION) in vec3 position;
+        layout(location = NORMAL_LOCATION) in vec3 normal;
+        layout(location = TEXCOORD_LOCATION) in vec2 texcoord;
 
-        out vec2 st;
+        out vec2 v_st;
         out vec3 vPosition;
 
         void main()
         {
-            st = texcoord;
+            v_st = texcoord;
             float height = texture(displacementMap, texcoord).b;
             vec4 displacedPosition = vec4(position, 1.0) + vec4(normal * height, 0.0);
             vPosition = vec3(mvMatrix * displacedPosition);
@@ -51,19 +55,19 @@
 
         uniform sampler2D diffuse;
 
-        in vec2 st;
+        in vec2 v_st;
         in vec3 vPosition;
 
         out vec4 color;
 
-        float textureLevel(in sampler2D sampler, in vec2 st)
+        float textureLevel(in sampler2D sampler, in vec2 v_st)
         {
             vec2 size = vec2(textureSize(sampler, 0));
 
             float levelCount = max(log2(size.x), log2(size.y));
 
-            vec2 dx = dFdx(st * size);
-            vec2 dy = dFdy(st * size);
+            vec2 dx = dFdx(v_st * size);
+            vec2 dy = dFdy(v_st * size);
             float d = max(dot(dx, dx), dot(dy, dy));
 
             d = clamp(d, 1.0, pow(2.0, (levelCount - 1.0) * 2.0));
@@ -73,11 +77,11 @@
 
         void main()
         {
-            vec2 sampleCoord = fract(st.xy);
-            float level = textureLevel(diffuse, st);
+            vec2 sampleCoord = fract(v_st.xy);
+            float level = textureLevel(diffuse, v_st);
 
             // Compute LOD using gradient
-            color = textureLod(diffuse, st, level);
+            color = textureLod(diffuse, v_st, level);
 
             // Compute flat normal using gradient
             vec3 fdx = dFdx(vPosition);
@@ -155,13 +159,13 @@
             gl.enableVertexAttribArray(vertexPosLocation);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-            var vertexTexPosLocation = 1; // set with GLSL layout qualifier
+            var vertexTexPosLocation = 4; // set with GLSL layout qualifier
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexPosBuffer);
             gl.vertexAttribPointer(vertexTexPosLocation, 2, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(vertexTexPosLocation);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-            var vertexNormalLocation = 2; // set with GLSL layout qualifier
+            var vertexNormalLocation = 1; // set with GLSL layout qualifier
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
             gl.vertexAttribPointer(vertexNormalLocation, 3, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(vertexNormalLocation);

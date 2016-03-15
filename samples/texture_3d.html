@@ -34,7 +34,7 @@
         layout(location = TEXCOORD_LOCATION) in vec2 in_texcoord;
 
         // Output 3D texture coordinate after transformation
-        out vec3 texcoord;
+        out vec3 v_texcoord;
 
         // Matrix to transform the texture coordinates into 3D space
         uniform mat4 orientation;
@@ -43,7 +43,7 @@
         {
             // Multiply the texture coordinate by the transformation
             // matrix to place it into 3D space
-            texcoord = (orientation * vec4(in_texcoord - vec2(0.5, 0.5), 0.5, 1.0)).stp;
+            v_texcoord = (orientation * vec4(in_texcoord - vec2(0.5, 0.5), 0.5, 1.0)).stp;
             gl_Position = vec4(position, 0.0, 1.0);
         }
 
@@ -58,13 +58,13 @@
 
         uniform sampler3D diffuse;
 
-        in vec3 texcoord;
+        in vec3 v_texcoord;
 
         out vec4 color;
 
         void main()
         {
-            color = texture(diffuse, texcoord);
+            color = texture(diffuse, v_texcoord);
         }
     </script>
 

@@ -20,7 +20,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 | --- | ----|
 |[![Screenshot sampler object wrap](assets/img/screenshot_sampler_object.png)](http://webglsamples.org/WebGL2Samples/#sampler_wrap) | [![Screenshot transform feedback](assets/img/screenshot_transform_feedback.png)](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated_2)|
 
-## Samples
+## Samples Compatibility
 
 |              | Chrome 50 Windows 10| Chrome 50 OSX 10.10| Firefox 46 Windows 10| Firefox 45 OSX 10.10|
 |--------------|:-----------------:|:--------------------------------------:|:-----------------:|:-----------------------:|
@@ -98,6 +98,10 @@ npm run jsHint-watch
 This is a community project.  We welcome contributions!  Check out the [issues](https://github.com/WebGLSamples/WebGL2Samples/issues) for ideas on what to contribute.
 
 When you open a pull request, please make sure that GitHub reports that "All checks have passed", indicated by the white checkmark in a green circle on top of the "Merge pull request" button.  Travis CI is used to run JSHint on your branch, and [CLA assistant](https://cla-assistant.io/) is used for signing a Contributor License Agreement (CLA).  Submit an [issue](https://github.com/WebGLSamples/WebGL2Samples/issues) if you have any questions.
+
+## About WebGL Resource Deletion
+
+Long-running dynamic pages should explicitly delete WebGL resources as described in the [spec](https://www.khronos.org/registry/webgl/specs/latest/1.0/#3).
 
 ## WebGL 2 Resources
 
