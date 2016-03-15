@@ -15,6 +15,8 @@
 
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
+        #define POSITION_LOCATION 0
+
         precision highp float;
         precision highp int;
 
@@ -25,7 +27,7 @@
             mat4 MVP[2];
         } transform;
 
-        layout(location=0) in vec2 pos;
+        layout(location = POSITION_LOCATION) in vec2 pos;
         flat out int instance;
 
         void main()
@@ -123,8 +125,9 @@
         gl.bindBufferBase(gl.UNIFORM_BUFFER, 0, uniformTransformBuffer);
         gl.bindBufferBase(gl.UNIFORM_BUFFER, 1, uniformMaterialBuffer);
 
-        gl.enableVertexAttribArray(0);
-        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+        var vertexPosLocation = 0; // set with GLSL layout qualifier
+        gl.enableVertexAttribArray(vertexPosLocation);
+        gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 2);
 
         // -- Delete WebGL resources
