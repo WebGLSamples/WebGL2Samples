@@ -13,7 +13,7 @@
 <body>
     <div id="info">WebGL 2 Samples - sampler_wrap</div>
     <p id="description">
-        This sample demonstrates texture wrapping.
+        This sample demonstrates texture wrapping (view source for details).
     </p>
 
     <!-- WebGL 2 shaders -->
@@ -109,14 +109,14 @@
             x: windowSize.x / 2,
             y: windowSize.y / 2,
             z: windowSize.x / 2,
-            w: windowSize.y / 2
+            w: windowSize.y / 2 - 60
         };
 
         viewport[Corners.TOP_LEFT] = {
             x: 0,
             y: windowSize.y / 2,
             z: windowSize.x / 2,
-            w: windowSize.y / 2
+            w: windowSize.y / 2 - 60
         };
 
         // -- Initialize program
@@ -255,6 +255,7 @@
         }
     })();
     </script>
+    <div id="highlightedLines"  style="display: none">#L178-L194</div>
 
 </body>
 
