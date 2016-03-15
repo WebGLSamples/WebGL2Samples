@@ -12,6 +12,9 @@
 
 <body>
     <div id="info">WebGL 2 Samples - sampler_wrap</div>
+    <p id="description">
+        This sample demonstrates texture wrapping.
+    </p>
 
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
@@ -65,12 +68,8 @@
         document.body.appendChild(canvas);
 
         var gl = canvas.getContext( 'webgl2', { antialias: false } );
-        if (!gl) {
-            gl = canvas.getContext( 'experimental-webgl2', { antialias: false } );
-        }
         var isWebGL2 = !!gl;
-        if(!isWebGL2)
-        {
+        if(!isWebGL2) {
             document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
             return;
         }
@@ -92,15 +91,8 @@
 
         var viewport = new Array(Corners.MAX);
 
-        viewport[Corners.TOP_LEFT] = {
+        viewport[Corners.BOTTOM_LEFT] = {
             x: 0,
-            y: 0,
-            z: windowSize.x / 2,
-            w: windowSize.y / 2
-        };
-
-        viewport[Corners.TOP_RIGHT] = {
-            x: windowSize.x / 2,
             y: 0,
             z: windowSize.x / 2,
             w: windowSize.y / 2
@@ -108,12 +100,19 @@
 
         viewport[Corners.BOTTOM_RIGHT] = {
             x: windowSize.x / 2,
+            y: 0,
+            z: windowSize.x / 2,
+            w: windowSize.y / 2
+        };
+
+        viewport[Corners.TOP_RIGHT] = {
+            x: windowSize.x / 2,
             y: windowSize.y / 2,
             z: windowSize.x / 2,
             w: windowSize.y / 2
         };
 
-        viewport[Corners.BOTTOM_LEFT] = {
+        viewport[Corners.TOP_LEFT] = {
             x: 0,
             y: windowSize.y / 2,
             z: windowSize.x / 2,

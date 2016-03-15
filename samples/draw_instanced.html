@@ -11,6 +11,9 @@
 
 <body>
     <div id="info">WebGL 2 Samples - draw_instanced</div>
+    <p id="description">
+        This samples demonstrates the use of gl.DrawArraysInstanced()
+    </p>
 
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
@@ -54,12 +57,8 @@
 
         // -- Init WebGL Context
         var gl = canvas.getContext('webgl2', { antialias: false });
-        if (!gl) {
-            gl = canvas.getContext('experimental-webgl2', { antialias: false });
-        }
         var isWebGL2 = !!gl;
-        if(!isWebGL2)
-        {
+        if(!isWebGL2) {
             document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
             return;
         }
@@ -81,19 +80,19 @@
         // -- Init Vertex Array
         var vertexArray = gl.createVertexArray();
         gl.bindVertexArray(vertexArray);
-        
+
         var vertexPosLocation = 0;  // set with GLSL layout qualifier
         gl.enableVertexAttribArray(vertexPosLocation);
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
-        
+
         gl.bindVertexArray(null);
 
         // -- Render
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
-        
+
         gl.bindVertexArray(vertexArray);
-        
+
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 2);
 
         // -- Delete WebGL resources

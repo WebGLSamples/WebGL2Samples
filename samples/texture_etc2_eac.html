@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-glsl-discard.cpp -->
+
 <html lang="en">
 
 <head>
-    <title>WebGL 2 Samples - glsl_discard</title>
+    <title>WebGL 2 Samples - texture_etc2_eac</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - glsl_discard</div>
+    <div id="info">WebGL 2 Samples - texture_etc2_eac</div>
     <p id="description">
-        Fragments with `length(uv - 0.5) > 0.5` are discarded in the fragment shader. 
+        The ETC2-EAC compressed texture is created by calling compressedTexImage2D.
     </p>
-
+    
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
@@ -48,11 +48,6 @@
 
         void main()
         {
-            if(length(uv - 0.5) > 0.5)
-            {
-                discard;
-            }
-
             color = texture(diffuse, uv);
         }
     </script>
@@ -124,15 +119,44 @@
 
         gl.bindVertexArray(null);
 
-        loadImage('../assets/img/Di-3d.png', function(image) {
+        // -- Load compressed texture data
+        var IMAGE_SIZE = {
+            width: 512, 
+            height: 512
+        };
+        var KTX_HEADER_OFFSET = 68;
+        
+        var xhr = new XMLHttpRequest();
+        //The ktx file is generated using MailTextureCompressionTool http://malideveloper.arm.com/resources/tools/mali-gpu-texture-compression-tool/
+        //Other tools can be found here: https://www.khronos.org/opengles/sdk/tools/KTX/
+        //more detials about ktx file can be found here: https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/
+        xhr.open('GET', '../assets/img/Di-3d.ktx', true);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = function(e) {
+            if (this.status != 200) {
+                return;
+            }
+            
+            var tmpArrayBuffer = new Uint8Array(this.response);
+            var pixels = tmpArrayBuffer.subarray(KTX_HEADER_OFFSET, KTX_HEADER_OFFSET+IMAGE_SIZE.width * IMAGE_SIZE.height);
+            
             // -- Init Texture
             var texture = gl.createTexture();
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            
+            gl.compressedTexImage2D(
+                gl.TEXTURE_2D, 
+                0, 
+                gl.COMPRESSED_RGBA8_ETC2_EAC, 
+                IMAGE_SIZE.width, 
+                IMAGE_SIZE.height, 
+                0, 
+                pixels
+            );
 
             // -- Render
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -159,7 +183,10 @@
             gl.deleteTexture(texture);
             gl.deleteProgram(program);
             gl.deleteVertexArray(vertexArray);
-        });
+        };
+        
+        xhr.send();
+
     })();
     </script>
 

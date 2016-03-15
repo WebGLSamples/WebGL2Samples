@@ -208,8 +208,15 @@
 
         var files = {
             "Draw": [
+                "draw_image_space",
                 "draw_instanced",
                 "draw_range_arrays"
+            ],
+            "Frame Buffer Object": [
+                "fbo_blit",
+                "fbo_multisample",
+                "fbo_new_blend_equation",
+                "fbo_rtt_texture_array"
             ],
             "Sampler": [
                 "sampler_object",
@@ -217,14 +224,39 @@
                 "sampler_wrap"
             ],
             "GLSL": [
-                "glsl_discard"
+                "glsl_centroid",
+                "glsl_discard",
+                "glsl_flat_smooth_interpolators",
+                "glsl_non_square_matrix"
             ],
             "Query": [
                 "query_occlusion"
             ],
             "Buffer":[
                 "buffer_uniform",
-                "draw_instanced_ubo"
+                "draw_instanced_ubo",
+                "buffer_copy"
+            ],
+            "Texture": [
+                "texture_2d_array",
+                "texture_3d",
+                "texture_derivative",
+                "texture_etc2_eac",
+                "texture_fetch",
+                "texture_format",
+                "texture_grad",
+                "texture_immutable",
+                "texture_integer",
+                "texture_lod",
+                "texture_offset",
+                "texture_pixel_store",
+                "texture_srgb",
+                "texture_vertex"
+            ],
+            "Transform Feedback": [
+                "transform_feedback_interleaved",
+                "transform_feedback_separated",
+                "transform_feedback_separated_2"
             ]
         };
 

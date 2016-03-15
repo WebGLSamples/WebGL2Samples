@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-fbo-rtt-texture-array.cpp -->
+<html lang="en">
+
+<head>
+    <title>WebGL 2 Samples - fbo_rtt_texture_array</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="utility.js"></script>
+</head>
+
+<body>
+    <div id="info">WebGL 2 Samples - fbo_rtt_texture_array</div>
+    <p id="description">
+        This sample demonstrates rendering to texture in a frame buffer using a texture array.
+    </p>
+
+    <script id="vs-layer" type="x-shader/x-vertex">
+        #version 300 es
+        #define POSITION_LOCATION 0
+        #define TEXCOORD_LOCATION 4
+
+        precision highp float;
+        precision highp int;
+
+        uniform mat4 mvp;
+
+        layout(location = POSITION_LOCATION) in vec2 position;
+        layout(location = TEXCOORD_LOCATION) in vec2 textureCoordinates;
+
+        out vec2 st;
+
+        void main()
+        {
+            st = textureCoordinates;
+            gl_Position = mvp * vec4(position, 0.0, 1.0);
+        }
+    </script>
+
+    <script id="fs-layer" type="x-shader/x-fragment">
+        #version 300 es
+
+        precision highp float;
+        precision highp int;
+        precision lowp sampler2DArray;
+
+        uniform sampler2DArray diffuse;
+        uniform int layer;
+
+        in vec2 st;
+
+        out vec4 color;
+
+        void main()
+        {
+            color = texture(diffuse, vec3(st, float(layer)));
+        }
+    </script>
+
+    <script id="vs-multiple-output" type="x-shader/x-vertex">
+        #version 300 es
+        #define POSITION_LOCATION 0
+
+        precision highp float;
+        precision highp int;
+
+        uniform mat4 mvp;
+
+        layout(location = POSITION_LOCATION) in vec2 position;
+
+        void main()
+        {
+            gl_Position = mvp * vec4(position, 0.0, 1.0);
+        }
+    </script>
+
+    <script id="fs-multiple-output" type="x-shader/x-fragment">
+        #version 300 es
+
+        precision highp float;
+        precision highp int;
+
+        layout(location = 0) out vec4 red;
+        layout(location = 1) out vec4 green;
+        layout(location = 2) out vec4 blue;
+
+        void main()
+        {
+            red = vec4(1.0, 0.0, 0.0, 1.0);
+            green = vec4(0.0, 1.0, 0.0, 1.0);
+            blue = vec4(0.0, 0.0, 1.0, 1.0);
+        }
+    </script>
+
+    <script>
+    (function()  {
+        'use strict';
+
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.min(window.innerWidth, window.innerHeight);
+        canvas.height = canvas.width;
+        document.body.appendChild(canvas);
+
+        var gl = canvas.getContext( 'webgl2', { antialias: false } );
+        var isWebGL2 = !!gl;
+        if(!isWebGL2) {
+            document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
+            return;
+        }
+
+        // -- Divide viewport
+
+        var windowSize = {
+            x: canvas.width,
+            y: canvas.height
+        };
+
+        var Textures = {
+            RED: 0,
+            GREEN: 1,
+            BLUE: 2,
+            MAX: 3
+        };
+
+        var viewport = new Array(Textures.MAX);
+
+        viewport[Textures.RED] = {
+            x: windowSize.x / 2,
+            y: 0,
+            z: windowSize.x / 2,
+            w: windowSize.y / 2
+        };
+
+        viewport[Textures.GREEN] = {
+            x: windowSize.x / 2,
+            y: windowSize.y / 2,
+            z: windowSize.x / 2,
+            w: windowSize.y / 2
+        };
+
+        viewport[Textures.BLUE] = {
+            x: 0,
+            y: windowSize.y / 2,
+            z: windowSize.x / 2,
+            w: windowSize.y / 2
+        };
+
+        // -- Initialize program
+
+        // Multiple out shaders
+        var multipleOutputProgram = createProgram(gl, getShaderSource('vs-multiple-output'), getShaderSource('fs-multiple-output'));
+
+        var multipleOutputUniformMvpLocation = gl.getUniformLocation(multipleOutputProgram, 'mvp');
+
+        // Layer shaders
+        var layerProgram = createProgram(gl, getShaderSource('vs-layer'), getShaderSource('fs-layer'));
+
+        var layerUniformMvpLocation = gl.getUniformLocation(layerProgram, 'mvp');
+        var layerUniformDiffuseLocation = gl.getUniformLocation(layerProgram, 'diffuse');
+        var layerUniformLayerLocation = gl.getUniformLocation(layerProgram, 'layer');
+
+        // -- Initialize buffer
+
+        var positions = new Float32Array([
+            -1.0, -1.0,
+             1.0, -1.0,
+             1.0,  1.0,
+             1.0,  1.0,
+            -1.0,  1.0,
+            -1.0, -1.0
+        ]);
+        var vertexPosBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var texcoords = new Float32Array([
+            0.0, 0.0,
+            1.0, 0.0,
+            1.0, 1.0,
+            1.0, 1.0,
+            0.0, 1.0,
+            0.0, 0.0
+        ]);
+        var vertexTexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, texcoords, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        // -- Initialize vertex array
+
+        var multipleOutputVertexArray = gl.createVertexArray();
+        gl.bindVertexArray(multipleOutputVertexArray);
+
+        var multipleOutputVertexPosLocation = 0; // set with GLSL layout qualifier
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        gl.vertexAttribPointer(multipleOutputVertexPosLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(multipleOutputVertexPosLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        gl.bindVertexArray(null);
+
+        var layerVertexArray = gl.createVertexArray();
+        gl.bindVertexArray(layerVertexArray);
+
+        var layerVertexPosLocation = 0; // set with GLSL layout qualifier
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        gl.vertexAttribPointer(layerVertexPosLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(layerVertexPosLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var layerVertexTexLocation = 4; // set with GLSL layout qualifier
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
+        gl.vertexAttribPointer(layerVertexTexLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(layerVertexTexLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        gl.bindVertexArray(null);
+
+        // -- Initialize texture
+
+        gl.activeTexture(gl.TEXTURE0);
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, texture);
+        gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_BASE_LEVEL, 0);
+        gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAX_LEVEL, 0);
+        gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        gl.texImage3D(gl.TEXTURE_2D_ARRAY,
+            0,
+            gl.RGB8,
+            windowSize.x / 2, // frame buffer size is half screen
+            windowSize.y / 2,
+            3,//depth
+            0,
+            gl.RGB,
+            gl.UNSIGNED_BYTE,
+            null);
+
+        // -- Initialize frame buffer
+
+        var frameBuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, frameBuffer);
+
+        var drawBuffers = new Array(3);
+        drawBuffers[Textures.RED] = gl.COLOR_ATTACHMENT0;
+        drawBuffers[Textures.GREEN] = gl.COLOR_ATTACHMENT1;
+        drawBuffers[Textures.BLUE] = gl.COLOR_ATTACHMENT2;
+
+        gl.framebufferTextureLayer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, texture, 0, Textures.RED);
+        gl.framebufferTextureLayer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT1, texture, 0, Textures.GREEN);
+        gl.framebufferTextureLayer(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT2, texture, 0, Textures.BLUE);
+
+        var status = gl.checkFramebufferStatus(gl.DRAW_FRAMEBUFFER);
+        if (status != gl.FRAMEBUFFER_COMPLETE) {
+            console.log('fb status: ' + status.toString(16));
+            return;
+        }
+
+        gl.drawBuffers(drawBuffers);
+
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+
+        // -- Render
+
+        // Clear color buffer
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        // Pass 1
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, frameBuffer);
+
+        // Bind program
+        gl.useProgram(multipleOutputProgram);
+
+        var matrix = new Float32Array([
+            1.0, 0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0
+        ]);
+        gl.uniformMatrix4fv(multipleOutputUniformMvpLocation, false, matrix);
+        gl.bindVertexArray(multipleOutputVertexArray);
+        gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
+
+        // Pass 2
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+
+        // Bind program
+        gl.useProgram(layerProgram);
+        gl.uniformMatrix4fv(layerUniformMvpLocation, false, matrix);
+        gl.uniform1i(layerUniformDiffuseLocation, 0);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, texture);
+        gl.bindVertexArray(layerVertexArray);
+
+        status = gl.checkFramebufferStatus(gl.DRAW_FRAMEBUFFER);
+        if (status != gl.FRAMEBUFFER_COMPLETE) {
+            console.log('fb status: ' + status.toString(16));
+            return;
+        }
+
+        for(var i = 0; i < Textures.MAX; ++i)
+        {
+            gl.viewport(viewport[i].x, viewport[i].y, viewport[i].z, viewport[i].w);
+            gl.uniform1i(layerUniformLayerLocation, i);
+
+            gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
+        }
+
+
+        // Clean up
+        gl.deleteBuffer(vertexPosBuffer);
+        gl.deleteBuffer(vertexTexBuffer);
+        gl.deleteVertexArray(multipleOutputVertexArray);
+        gl.deleteVertexArray(layerVertexArray);
+        gl.deleteFramebuffer(frameBuffer);
+        gl.deleteTexture(texture);
+        gl.deleteProgram(multipleOutputProgram);
+        gl.deleteProgram(layerProgram);
+
+    })();
+    </script>
+
+</body>
+
+</html>

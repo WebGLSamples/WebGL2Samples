@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-glsl-discard.cpp -->
+<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-texture-integer.cpp -->
 <html lang="en">
 
 <head>
-    <title>WebGL 2 Samples - glsl_discard</title>
+    <title>WebGL 2 Samples - texture_integer</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - glsl_discard</div>
+    <div id="info">WebGL 2 Samples - texture_integer</div>
     <p id="description">
-        Fragments with `length(uv - 0.5) > 0.5` are discarded in the fragment shader. 
+        The texture is using an uint sampler. We deliberately do a multiplication and a division to show the difference from a float sampler.
     </p>
 
     <!-- WebGL 2 shaders -->
@@ -26,11 +26,11 @@
         layout(location = 0) in vec2 position;
         layout(location = 1) in vec2 texcoord;
 
-        out vec2 uv;
+        out vec2 st;
 
         void main()
         {
-            uv = texcoord;
+            st = texcoord;
             gl_Position = MVP * vec4(position, 0.0, 1.0);
         }
     </script>
@@ -39,21 +39,18 @@
         #version 300 es
         precision highp float;
         precision highp int;
+        precision highp usampler2D;
 
-        uniform sampler2D diffuse;
+        uniform usampler2D diffuse;
 
-        in vec2 uv;
+        in vec2 st;
 
         out vec4 color;
 
         void main()
         {
-            if(length(uv - 0.5) > 0.5)
-            {
-                discard;
-            }
-
-            color = texture(diffuse, uv);
+            uvec4 intColor = texture(diffuse, st) / 32u * 32u;
+            color = vec4(intColor) / 255.0;
         }
     </script>
 
@@ -79,7 +76,7 @@
         var mvpLocation = gl.getUniformLocation(program, 'MVP');
         var diffuseLocation = gl.getUniformLocation(program, 'diffuse');
 
-        // -- Init buffers: vec2 Position, vec2 Texcoord
+        // -- Init buffers
         var positions = new Float32Array([
             -1.0, -1.0,
              1.0, -1.0,
@@ -130,7 +127,7 @@
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8UI, gl.RGBA_INTEGER, gl.UNSIGNED_BYTE, image);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 

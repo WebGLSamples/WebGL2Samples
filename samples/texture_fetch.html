@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-glsl-discard.cpp -->
+<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-texture-fetch.cpp -->
 <html lang="en">
 
 <head>
-    <title>WebGL 2 Samples - glsl_discard</title>
+    <title>WebGL 2 Samples - texture_fetch</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - glsl_discard</div>
+    <div id="info">WebGL 2 Samples - texture_fetch</div>
     <p id="description">
-        Fragments with `length(uv - 0.5) > 0.5` are discarded in the fragment shader. 
+        GLSL built-in function texelFetch is used for manual bilinear filtering.
     </p>
-
+    
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
@@ -26,11 +26,11 @@
         layout(location = 0) in vec2 position;
         layout(location = 1) in vec2 texcoord;
 
-        out vec2 uv;
+        out vec2 st;
 
         void main()
         {
-            uv = texcoord;
+            st = texcoord;
             gl_Position = MVP * vec4(position, 0.0, 1.0);
         }
     </script>
@@ -42,18 +42,27 @@
 
         uniform sampler2D diffuse;
 
-        in vec2 uv;
+        in vec2 st;
 
         out vec4 color;
 
         void main()
         {
-            if(length(uv - 0.5) > 0.5)
-            {
-                discard;
-            }
-
-            color = texture(diffuse, uv);
+            vec2 size = vec2(textureSize(diffuse, 0) - 1);
+            vec2 texcoord = st * size;
+            ivec2 coord = ivec2(texcoord);
+            
+            vec4 texel00 = texelFetch(diffuse, coord + ivec2(0, 0), 0);
+            vec4 texel10 = texelFetch(diffuse, coord + ivec2(1, 0), 0);
+            vec4 texel11 = texelFetch(diffuse, coord + ivec2(1, 1), 0);
+            vec4 texel01 = texelFetch(diffuse, coord + ivec2(0, 1), 0);
+            
+            vec2 sampleCoord = fract(texcoord.xy);
+            
+            vec4 texel0 = mix(texel00, texel01, sampleCoord.y);
+            vec4 texel1 = mix(texel10, texel11, sampleCoord.y);
+            
+            color = mix(texel0, texel1, sampleCoord.x);
         }
     </script>
 

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-fbo-blit.cpp -->
+<html lang="en">
+
+<head>
+    <title>WebGL 2 Samples - fbo_blit</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="info">WebGL 2 Samples - fbo_blit</div>
+    <p id="description">
+        This samples demonstrates blitting on frame buffer objects.
+    </p>
+
+    <!-- WebGL 2 shaders -->
+    <script id="vs" type="x-shader/x-vertex">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        uniform mat4 MVP;
+
+        layout(location = 0) in vec2 position;
+        layout(location = 1) in vec2 texcoord;
+
+        out vec2 st;
+
+        void main()
+        {
+            st = texcoord;
+            gl_Position = MVP * vec4(position, 0.0, 1.0);
+        }
+    </script>
+
+    <script id="fs" type="x-shader/x-fragment">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        uniform sampler2D diffuse;
+
+        in vec2 st;
+
+        out vec4 color;
+
+        void main()
+        {
+            color = texture(diffuse, st);
+        }
+    </script>
+
+    <script src="utility.js"></script>
+    <script>
+    (function () {
+        'use strict';
+
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.min(window.innerWidth, window.innerHeight);
+        canvas.height = canvas.width;
+        document.body.appendChild(canvas);
+
+        var gl = canvas.getContext( 'webgl2', { antialias: false } );
+        var isWebGL2 = !!gl;
+        if(!isWebGL2) {
+            document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
+            return;
+        }
+
+        // -- Init program
+        var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
+        var mvpLocation = gl.getUniformLocation(program, 'MVP');
+        var diffuseLocation = gl.getUniformLocation(program, 'diffuse');
+
+        // -- Init buffers:
+        var positions = new Float32Array([
+            -1.0, -1.0,
+             1.0, -1.0,
+             1.0,  1.0,
+             1.0,  1.0,
+            -1.0,  1.0,
+            -1.0, -1.0
+        ]);
+        var vertexPosBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var texCoords = new Float32Array([
+            0.0, 1.0,
+            1.0, 1.0,
+            1.0, 0.0,
+            1.0, 0.0,
+            0.0, 0.0,
+            0.0, 1.0
+        ]);
+        var vertexTexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        // -- Init VertexArray
+        var vertexArray = gl.createVertexArray();
+        gl.bindVertexArray(vertexArray);
+
+        var vertexPosLocation = 0; // set with GLSL layout qualifier
+        gl.enableVertexAttribArray(vertexPosLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var vertexTexLocation = 1; // set with GLSL layout qualifier
+        gl.enableVertexAttribArray(vertexTexLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
+        gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        gl.bindVertexArray(null);
+
+        loadImage('../assets/img/Di-3d.png', function(image) {
+
+            var FRAMEBUFFER_SIZE = {
+                x: image.width,
+                y: image.height
+            };
+
+            // -- Init Texture
+            var textureDiffuse = gl.createTexture();
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, textureDiffuse);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+            var textureColorBuffer = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, textureColorBuffer);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+
+            // -- Init Frame Buffer
+            var framebufferRender = gl.createFramebuffer();
+            var framebufferResolve = gl.createFramebuffer();
+
+            var colorRenderbuffer = gl.createRenderbuffer();
+            gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
+            gl.renderbufferStorage(gl.RENDERBUFFER, gl.RGBA4, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y);
+
+            gl.bindFramebuffer(gl.FRAMEBUFFER, framebufferRender);
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+            gl.bindFramebuffer(gl.FRAMEBUFFER, framebufferResolve);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, textureColorBuffer, 0);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+            // -- Render
+            gl.useProgram(program);
+            gl.uniform1i(diffuseLocation, 0);
+
+            // Pass 1
+            gl.bindFramebuffer(gl.FRAMEBUFFER, framebufferRender);
+            gl.viewport(0, 0, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y);
+            gl.clearBufferfv(gl.COLOR, 0, [0.3, 0.3, 0.3, 1.0]);
+
+            // Render FBO
+            var SCALE = new Float32Array([
+                0.8, 0.0, 0.0, 0.0,
+                0.0, 0.8, 0.0, 0.0,
+                0.0, 0.0, 0.8, 0.0,
+                0.0, 0.0, 0.0, 1.0
+            ]);
+            gl.uniformMatrix4fv(mvpLocation, false, SCALE);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, textureDiffuse);
+            gl.bindVertexArray(vertexArray);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+
+            // Blit framebuffers
+            gl.bindFramebuffer(gl.READ_FRAMEBUFFER, framebufferRender);
+            gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebufferResolve);
+            gl.clearBufferfv(gl.COLOR, 0, [0.7, 0.0, 0.0, 1.0]);
+
+            var TILE = 4;
+            var BORDER = 2;
+            for(var j = 0; j < TILE; j++) {
+                for(var i = 0; i < TILE; i++) {
+                    if((i + j) % 2) {
+                        continue;
+                    }
+
+                    gl.blitFramebuffer(
+                        0, 0, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y,
+                        FRAMEBUFFER_SIZE.x / TILE * (i + 0) + BORDER,
+                        FRAMEBUFFER_SIZE.x / TILE * (j + 0) + BORDER,
+                        FRAMEBUFFER_SIZE.y / TILE * (i + 1) - BORDER,
+                        FRAMEBUFFER_SIZE.y / TILE * (j + 1) - BORDER,
+                        gl.COLOR_BUFFER_BIT, gl.LINEAR
+                    );
+                }
+            }
+
+            // Pass 2
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 1.0]);
+
+            // Render FB
+            var IDENTITY = new Float32Array([
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 0.0, 1.0
+            ]);
+            gl.uniformMatrix4fv(mvpLocation, false, IDENTITY);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, textureColorBuffer);
+            gl.bindVertexArray(vertexArray);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            // Delete WebGL resources
+            gl.deleteFramebuffer(framebufferRender);
+            gl.deleteFramebuffer(framebufferResolve);
+            gl.deleteRenderbuffer(colorRenderbuffer);
+            gl.deleteBuffer(vertexPosBuffer);
+            gl.deleteBuffer(vertexTexBuffer);
+            gl.deleteTexture(textureDiffuse);
+            gl.deleteTexture(textureColorBuffer);
+            gl.deleteProgram(program);
+            gl.deleteVertexArray(vertexArray);
+        });
+    })();
+    </script>
+
+</body>
+
+</html>

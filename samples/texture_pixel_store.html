@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-glsl-discard.cpp -->
+<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-texture-pixel-store.cpp -->
 <html lang="en">
 
 <head>
-    <title>WebGL 2 Samples - glsl_discard</title>
+    <title>WebGL 2 Samples - texture_pixel_store</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - glsl_discard</div>
+    <div id="info">WebGL 2 Samples - texture_pixel_store</div>
     <p id="description">
-        Fragments with `length(uv - 0.5) > 0.5` are discarded in the fragment shader. 
+        Use pixelStorei to only store a part of the loaded image as the texture
     </p>
 
     <!-- WebGL 2 shaders -->
@@ -26,11 +26,11 @@
         layout(location = 0) in vec2 position;
         layout(location = 1) in vec2 texcoord;
 
-        out vec2 uv;
+        out vec2 st;
 
         void main()
         {
-            uv = texcoord;
+            st = texcoord;
             gl_Position = MVP * vec4(position, 0.0, 1.0);
         }
     </script>
@@ -42,18 +42,13 @@
 
         uniform sampler2D diffuse;
 
-        in vec2 uv;
+        in vec2 st;
 
         out vec4 color;
 
         void main()
         {
-            if(length(uv - 0.5) > 0.5)
-            {
-                discard;
-            }
-
-            color = texture(diffuse, uv);
+            color = texture(diffuse, st);
         }
     </script>
 
@@ -129,10 +124,29 @@
             var texture = gl.createTexture();
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+            gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+            gl.pixelStorei(gl.UNPACK_ROW_LENGTH, image.width);
+            gl.pixelStorei(gl.UNPACK_SKIP_PIXELS, image.width / 4);
+            gl.pixelStorei(gl.UNPACK_SKIP_ROWS, image.height / 4);
+            
+            // use canvas to get the pixel data array of the image
+            var canvas = document.createElement('canvas');
+            canvas.width = image.width;
+            canvas.height = image.height;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(image, 0, 0);
+            var imageData = ctx.getImageData(0, 0, image.width, image.height);
+            var pixels = new Uint8Array(imageData.data.buffer);
+            
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image.width / 2, image.height / 2, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+            
+            gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+            gl.pixelStorei(gl.UNPACK_ROW_LENGTH, 0);
+            gl.pixelStorei(gl.UNPACK_SKIP_PIXELS, 0);
+            gl.pixelStorei(gl.UNPACK_SKIP_ROWS, 0);
 
             // -- Render
             gl.clearColor(0.0, 0.0, 0.0, 1.0);

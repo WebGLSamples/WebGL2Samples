@@ -15,6 +15,18 @@ body {
     padding: 5px;
 }
 
+#description {
+    position: absolute;
+    top: 20px;
+    width: 100%;
+    padding: 5px;
+}
+
+.float {
+    float: left;
+    top: 10px;
+}
+
 a {
     color: #0080ff;
 }

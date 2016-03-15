@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<!-- Ported from the OpenGL Samples Pack https://github.com/g-truc/ogl-samples/blob/master/tests/gl-330-sampler-object.cpp -->
 <html lang="en">
 
 <head>
-    <title>WebGL 2 Samples - sampler_object</title>
+    <title>WebGL 2 Samples - fbo_new_blend_equation</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
@@ -11,8 +10,12 @@
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - sampler_object</div>
-
+    <div id="info">WebGL 2 Samples - fbo_new_blend_equation</div>
+    <p id="description">
+        TOP_LEFT: DST, TOP_RIGHT: SRC<br/>BOTTOM_LEFT: gl.blendEquation(gl.MAX), BOTTOM_RIGHT: gl.blendEquation(gl.MIN)
+    </p>
+    
+    <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
         #define POSITION_LOCATION 0
@@ -26,12 +29,12 @@
         layout(location = POSITION_LOCATION) in vec2 position;
         layout(location = TEXCOORD_LOCATION) in vec2 textureCoordinates;
 
-        out vec2 st;
+        out vec2 v_st;
 
         void main()
         {
-            st = textureCoordinates;
-            gl_Position = mvp * vec4(position, 0.0, 1.0) ;
+            v_st = textureCoordinates;
+            gl_Position = mvp * vec4(position, 0.0, 1.0);
         }
     </script>
 
@@ -42,24 +45,15 @@
         precision highp float;
         precision highp int;
 
-        struct Material
-        {
-            sampler2D diffuse[2];
-        };
+        uniform sampler2D diffuse;
 
-        uniform Material material;
-
-        in vec2 st;
+        in vec2 v_st;
 
         layout(location = FRAG_COLOR_LOCATION) out vec4 color;
 
         void main()
         {
-            if (st.y / st.x < 1.0) {
-                color = texture(material.diffuse[0], st);
-            } else {
-                color = texture(material.diffuse[1], st) * 0.77;
-            }
+            color = texture(diffuse, v_st);
         }
     </script>
 
@@ -79,16 +73,62 @@
             return;
         }
 
+        // -- Divide viewport
+
+        var windowSize = {
+            x: canvas.width,
+            y: canvas.height
+        };
+
+        var Corners = {
+            TOP_LEFT: 0,
+            TOP_RIGHT: 1,
+            BOTTOM_RIGHT: 2,
+            BOTTOM_LEFT: 3,
+            MAX: 4
+        };
+
+        var viewport = new Array(Corners.MAX);
+
+        viewport[Corners.BOTTOM_LEFT] = {
+            x: 0,
+            y: 0,
+            z: windowSize.x / 2,
+            w: windowSize.y / 2
+        };
+
+        viewport[Corners.BOTTOM_RIGHT] = {
+            x: windowSize.x / 2,
+            y: 0,
+            z: windowSize.x / 2,
+            w: windowSize.y / 2
+        };
+
+        viewport[Corners.TOP_RIGHT] = {
+            x: windowSize.x / 2,
+            y: windowSize.y / 2,
+            z: windowSize.x / 2,
+            w: windowSize.y / 2
+        };
+
+        viewport[Corners.TOP_LEFT] = {
+            x: 0,
+            y: windowSize.y / 2,
+            z: windowSize.x / 2,
+            w: windowSize.y / 2
+        };
+
         // -- Initialize program
 
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
 
-        var uniformMvpLocation = gl.getUniformLocation(program,'mvp');
-        var uniformDiffuse0Location = gl.getUniformLocation(program,'material.diffuse[0]');
-        var uniformDiffuse1Location = gl.getUniformLocation(program, 'material.diffuse[1]');
+        var uniformMvpLocation = gl.getUniformLocation(program,"mvp");
+        var uniformDiffuseLocation = gl.getUniformLocation(program,"diffuse");
 
         // -- Initialize buffer
 
+        var vertexPosBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
         var positions = new Float32Array([
             -1.0, -1.0,
              1.0, -1.0,
@@ -97,11 +137,11 @@
             -1.0,  1.0,
             -1.0, -1.0
         ]);
-        var vertexPosBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
+        var vertexTexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
         var texcoords = new Float32Array([
             0.0, 1.0,
             1.0, 1.0,
@@ -110,12 +150,10 @@
             0.0, 0.0,
             0.0, 1.0
         ]);
-        var vertexTexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, texcoords, gl.STATIC_DRAW);
-        gl.bindBuffer(gl.ARRAY_BUFFER,null);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        // -- Initialize vertex array
+        // -- Initilize vertex array
 
         var vertexArray = gl.createVertexArray();
         gl.bindVertexArray(vertexArray);
@@ -134,38 +172,14 @@
 
         gl.bindVertexArray(null);
 
-        // -- Initialize samplers
-
-        var samplerA = gl.createSampler();
-
-        gl.samplerParameteri(samplerA, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_NEAREST);
-        gl.samplerParameteri(samplerA, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.samplerParameteri(samplerA, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.samplerParameteri(samplerA, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.samplerParameteri(samplerA, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
-        gl.samplerParameterf(samplerA, gl.TEXTURE_MIN_LOD, -1000.0);
-        gl.samplerParameterf(samplerA, gl.TEXTURE_MAX_LOD, 1000.0);
-        gl.samplerParameteri(samplerA, gl.TEXTURE_COMPARE_MODE, gl.NONE);
-        gl.samplerParameteri(samplerA, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL);
-
-        var samplerB = gl.createSampler();
-        gl.samplerParameteri(samplerB, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-        gl.samplerParameteri(samplerB, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.samplerParameteri(samplerB, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.samplerParameteri(samplerB, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.samplerParameteri(samplerB, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
-        gl.samplerParameterf(samplerB, gl.TEXTURE_MIN_LOD, -1000.0);
-        gl.samplerParameterf(samplerB, gl.TEXTURE_MAX_LOD, 1000.0);
-        gl.samplerParameteri(samplerB, gl.TEXTURE_COMPARE_MODE, gl.NONE);
-        gl.samplerParameteri(samplerB, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL);
-
         // -- Load texture then render
-
         var imageUrl = '../assets/img/Di-3d.png';
         var texture;
         loadImage(imageUrl, function(image) {
             texture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             gl.texImage2D(
                 gl.TEXTURE_2D,
                 0, // Level of details
@@ -174,14 +188,14 @@
                 gl.UNSIGNED_BYTE, // Size of each channel
                 image
             );
-            gl.generateMipmap(gl.TEXTURE_2D);
 
+            gl.generateMipmap(gl.TEXTURE_2D);
             render();
         });
 
-       function render() {
+        function render() {
             // Clear color buffer
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clearColor(0.5, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             // Bind program
@@ -194,26 +208,42 @@
                 0.0, 0.0, 0.0, 1.0
             ]);
             gl.uniformMatrix4fv(uniformMvpLocation, false, matrix);
-            gl.uniform1i(uniformDiffuse0Location, 0);
-            gl.uniform1i(uniformDiffuse1Location, 1);
-
-            gl.bindVertexArray(vertexArray);
+            gl.uniform1i(uniformDiffuseLocation, 0);
 
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.bindSampler(0, samplerA);
 
-            gl.activeTexture(gl.TEXTURE1);
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.bindSampler(1, samplerB);
+            gl.bindVertexArray(vertexArray);
 
-            gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
+            gl.enable(gl.BLEND);
+            
+            for (var i = 0; i < Corners.MAX; ++i) {
+                gl.viewport(viewport[i].x, viewport[i].y, viewport[i].z, viewport[i].w);
+                
+                if(i == Corners.TOP_LEFT)
+                {
+                    //pass
+                }
+                else if(i == Corners.TOP_RIGHT)
+                {
+                    gl.drawArrays(gl.TRIANGLES, 0, 6);
+                }
+                else if(i == Corners.BOTTOM_RIGHT)
+                {
+                    gl.blendEquation(gl.MIN);
+                    gl.drawArrays(gl.TRIANGLES, 0, 6);
+                    
+                }
+                else if(i == Corners.BOTTOM_LEFT)
+                {
+                    gl.blendEquation(gl.MAX);
+                    gl.drawArrays(gl.TRIANGLES, 0, 6);
+                }
+            }
 
-            // Cleanup
+            // -- Clean up
             gl.deleteBuffer(vertexPosBuffer);
             gl.deleteBuffer(vertexTexBuffer);
-            gl.deleteSampler(samplerA);
-            gl.deleteSampler(samplerB);
             gl.deleteVertexArray(vertexArray);
             gl.deleteTexture(texture);
             gl.deleteProgram(program);
