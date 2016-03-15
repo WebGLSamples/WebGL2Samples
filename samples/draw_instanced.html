@@ -17,10 +17,12 @@
 
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
+        #define POSITION_LOCATION 0
+        
         precision highp float;
         precision highp int;
 
-        layout(location = 0) in vec2 pos;
+        layout(location = POSITION_LOCATION) in vec2 pos;
         flat out int instance;
 
         void main()
@@ -101,5 +103,6 @@
         gl.deleteVertexArray(vertexArray);
     })();
     </script>
+    <div id="highlightedLines"  style="display: none">#L96</div>
 </body>
 </html>

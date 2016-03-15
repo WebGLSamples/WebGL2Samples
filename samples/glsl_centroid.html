@@ -17,13 +17,16 @@
     <!-- WebGL 2 shaders -->
     <script id="vs-render" type="x-shader/x-vertex">
         #version 300 es
+        #define POSITION_LOCATION 0
+        #define ATTRIBUTE_DATA_LOCATION 6
+        
         precision highp float;
         precision highp int;
 
         uniform mat4 MVP;
 
-        layout(location = 0) in vec2 position;
-        layout(location = 1) in float data;
+        layout(location = POSITION_LOCATION) in vec2 position;
+        layout(location = ATTRIBUTE_DATA_LOCATION) in float data;
         
         out float v_attribute;
 
@@ -52,13 +55,16 @@
     
     <script id="vs-render-centroid" type="x-shader/x-vertex">
         #version 300 es
+        #define POSITION_LOCATION 0
+        #define ATTRIBUTE_DATA_LOCATION 6
+        
         precision highp float;
         precision highp int;
 
         uniform mat4 MVP;
 
-        layout(location = 0) in vec2 position;
-        layout(location = 1) in float data;
+        layout(location = POSITION_LOCATION) in vec2 position;
+        layout(location = ATTRIBUTE_DATA_LOCATION) in float data;
         
         centroid out float v_attribute;
 
@@ -95,11 +101,11 @@
         layout(location = 0) in vec2 position;
         layout(location = 1) in vec2 texcoord;
 
-        out vec2 uv;
+        out vec2 v_st;
 
         void main()
         {
-            uv = texcoord;
+            v_st = texcoord;
             gl_Position = MVP * vec4(position, 0.0, 1.0);
         }
     </script>
@@ -111,13 +117,13 @@
 
         uniform sampler2D diffuse;
 
-        in vec2 uv;
+        in vec2 v_st;
 
         out vec4 color;
 
         void main()
         {
-            color = texture(diffuse, uv);
+            color = texture(diffuse, v_st);
         }
     </script>
 
@@ -296,7 +302,7 @@
         ];
         
         var vertexPosLocation = 0;
-        var vertexDataLocation = 1;
+        var vertexDataLocation = 6;
         
         gl.bindVertexArray(vertexArrays[PROGRAM.TEXTURE]);
         gl.enableVertexAttribArray(vertexPosLocation);
@@ -424,7 +430,7 @@
         
     })();
     </script>
-
+    <div id="highlightedLines"  style="display: none">#L63</div>
 </body>
 
 </html>
