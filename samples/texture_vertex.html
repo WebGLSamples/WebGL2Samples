@@ -7,7 +7,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <script src="third-party/gl-matrix.js"></script>
+    <script src="third-party/gl-matrix-min.js"></script>
     <script src="third-party/gltf-loader.js"></script>
     <script src="utility.js"></script>
 </head>
@@ -20,9 +20,9 @@
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
         #define POSITION_LOCATION 0
-        #define TEXCOORD_LOCATION 1
-        #define NORMAL_LOCATION 2
-
+        #define NORMAL_LOCATION 1
+        #define TEXCOORD_LOCATION 4
+        
         precision highp float;
         precision highp int;
 
@@ -31,15 +31,15 @@
         uniform sampler2D displacementMap;
 
         layout(location = POSITION_LOCATION) in vec3 position;
-        layout(location = TEXCOORD_LOCATION) in vec2 texcoord;
         layout(location = NORMAL_LOCATION) in vec3 normal;
+        layout(location = TEXCOORD_LOCATION) in vec2 texcoord;
 
-        out vec2 st;
+        out vec2 v_st;
         out vec3 vPosition;
 
         void main()
         {
-            st = texcoord;
+            v_st = texcoord;
             float height = texture(displacementMap, texcoord).b;
             vec4 displacedPosition = vec4(position, 1.0) + vec4(normal * height, 0.0);
             vPosition = vec3(mvMatrix * displacedPosition);
@@ -55,19 +55,19 @@
 
         uniform sampler2D diffuse;
 
-        in vec2 st;
+        in vec2 v_st;
         in vec3 vPosition;
 
         out vec4 color;
 
-        float textureLevel(in sampler2D sampler, in vec2 st)
+        float textureLevel(in sampler2D sampler, in vec2 v_st)
         {
             vec2 size = vec2(textureSize(sampler, 0));
 
             float levelCount = max(log2(size.x), log2(size.y));
 
-            vec2 dx = dFdx(st * size);
-            vec2 dy = dFdy(st * size);
+            vec2 dx = dFdx(v_st * size);
+            vec2 dy = dFdy(v_st * size);
             float d = max(dot(dx, dx), dot(dy, dy));
 
             d = clamp(d, 1.0, pow(2.0, (levelCount - 1.0) * 2.0));
@@ -77,11 +77,11 @@
 
         void main()
         {
-            vec2 sampleCoord = fract(st.xy);
-            float level = textureLevel(diffuse, st);
+            vec2 sampleCoord = fract(v_st.xy);
+            float level = textureLevel(diffuse, v_st);
 
             // Compute LOD using gradient
-            color = textureLod(diffuse, st, level);
+            color = textureLod(diffuse, v_st, level);
 
             // Compute flat normal using gradient
             vec3 fdx = dFdx(vPosition);
@@ -141,8 +141,8 @@
 
             // -- Initialize vertex array
             var POSITION_LOCATION = 0; // set with GLSL layout qualifier
-            var TEXCOORD_LOCATION = 1; // set with GLSL layout qualifier
-            var NORMAL_LOCATION = 2; // set with GLSL layout qualifier
+            var TEXCOORD_LOCATION = 4; // set with GLSL layout qualifier
+            var NORMAL_LOCATION = 1; // set with GLSL layout qualifier
 
             gl.bindVertexArray(vertexArray);
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
@@ -175,6 +175,7 @@
                 scene.normalByteOffset
                 );
             gl.enableVertexAttribArray(NORMAL_LOCATION);
+
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexElementBuffer);
@@ -294,6 +295,7 @@
         // gl.deleteVertexArray(vertexArray);
     })();
     </script>
+    <div id="highlightedLines"  style="display: none">#L39</div>
 
 </body>
 
