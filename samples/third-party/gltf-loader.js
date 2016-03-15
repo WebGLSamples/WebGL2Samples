@@ -284,7 +284,7 @@
             head.appendChild(script);
         })('third-party/gl-matrix-min.js', 
             (function() {
-            // Save relative path to load .bin file
+            // Save path to load .bin file
             GLTF.baseUri = getBaseUri(url);
             
             // matrix transform preparation
