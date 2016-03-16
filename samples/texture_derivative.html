@@ -11,9 +11,9 @@
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - texture_derivativ</div>
+    <div id="info">WebGL 2 Samples - texture_derivative</div>
     <p id="description">
-        The mixed color of each face is computed with glsl built-in derivative functions in fragment shader.
+        This sample demonstrates using dFdx and dFdy (glsl built-in derivative functions in fragment shader) to compute normals.
     </p>
 
     <!-- WebGL 2 shaders -->
@@ -241,14 +241,8 @@
         // -- Initialize render variables
         var orientation = [0.0, 0.0, 0.0];
 
-        var modelMatrix = mat4.create([
-            0.5, 0.0, 0.0, 0.0,
-            0.0, 0.5, 0.0, 0.0,
-            0.0, 0.0, 0.5, 0.0,
-            0.0, 0.0, 0.0, 1.0
-        ]);
+        var modelMatrix = mat4.create();
 
-        //var mvMatrix = mat4.multiply(viewMatrix, modelMatrix);
         var mvMatrix = mat4.create();
         var translate = vec3.create();
         vec3.set(translate, 0, 0, -10);

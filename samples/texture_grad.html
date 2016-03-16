@@ -245,14 +245,8 @@
         // -- Initialize render variables
         var orientation = [0.0, 0.0, 0.0];
 
-        var modelMatrix = mat4.create([
-            0.5, 0.0, 0.0, 0.0,
-            0.0, 0.5, 0.0, 0.0,
-            0.0, 0.0, 0.5, 0.0,
-            0.0, 0.0, 0.0, 1.0
-        ]);
+        var modelMatrix = mat4.create();
 
-        //var mvMatrix = mat4.multiply(viewMatrix, modelMatrix);
         var mvMatrix = mat4.create();
         var translate = vec3.create();
         vec3.set(translate, 0, 0, -10);
