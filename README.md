@@ -41,7 +41,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[texture_format](http://webglsamples.org/WebGL2Samples/#texture_format)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_fetch](http://webglsamples.org/WebGL2Samples/#texture_fetch)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_grad](http://webglsamples.org/WebGL2Samples/#texture_grad)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|[texture_3d](http://webglsamples.org/WebGL2Samples/#texture_3d)(currently not working for texture 3D)|:x:GL ERROR :GL_INVALID_OPERATION : glGenerateMipmap: Can not generate mips|:x: not working|:x: drawArraysInstanced: Active texture 0 for target 0x806f is 'incomplete'|:x: not working|
+|[texture_3d](http://webglsamples.org/WebGL2Samples/#texture_3d)|:white_check_mark:|:x: not working|:x: with no error message|:x: not working|
 |[texture_immutable](http://webglsamples.org/WebGL2Samples/#texture_immutable) (currently not working for texture 3D)|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark:|
 |[texture_integer](http://webglsamples.org/WebGL2Samples/#texture_integer)|:white_check_mark:|:white_check_mark:|:x: Error: Driver ran out of memory during upload|:white_check_mark:|
 |[texture_lod](http://webglsamples.org/WebGL2Samples/#texture_lod)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
@@ -54,7 +54,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[transform_feedback_separated_2](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated_2)|:white_check_mark:|:white_check_mark:|:x: exceeded maxium varyings for transform|:x: exceeded maxium varyings for transform feedback|
 |[fbo_rtt_texture_array](http://webglsamples.org/WebGL2Samples/#fbo_rtt_texture_array)|:x: crash|:white_check_mark:|:x: crash|:x: not working|
 |[fbo_blit](http://webglsamples.org/WebGL2Samples/#fbo_blit)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|[fbo_multisample](http://webglsamples.org/WebGL2Samples/#fbo_multisample)|:white_check_mark:|:x: crashed|:x: No error report but no multisampled effect|:x: crashed|
+|[fbo_multisample](http://webglsamples.org/WebGL2Samples/#fbo_multisample)|:white_check_mark:|:x: crashed|:white_check_mark:|:x: crashed|
 |[fbo_new_blend_equation](http://webglsamples.org/WebGL2Samples/#fbo_new_blend_equation)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[buffer_copy](http://webglsamples.org/WebGL2Samples/#buffer_copy)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[geo_texture_format](http://webglsamples.org/WebGL2Samples/#geo_texture_format)|:white_check_mark:|:white_check_mark:|:x:Error: WebGL: drawElementsInstanced: integer overflow occured while checking vertex attrib 3|:x:Error: WebGL: drawElementsInstanced: integer overflow occured while checking vertex attrib 2|
