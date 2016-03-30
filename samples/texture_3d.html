@@ -130,13 +130,18 @@
         };
 
         // -- Initialize texture
-
+        
+        // Note By @kenrussel: The sample was changed from R32F to R8 for best portability. 
+        // not all devices can render to floating-point textures 
+        // (and, further, this functionality is in a WebGL extension: EXT_color_buffer_float), 
+        // and renderability is a requirement for generating mipmaps.
+        
         var SIZE = 32;
-        var data = new Float32Array(SIZE * SIZE * SIZE);
+        var data = new Uint8Array(SIZE * SIZE * SIZE);
         for (var k = 0; k < SIZE; ++k) {
             for (var j = 0; j < SIZE; ++j) {
                 for (var i = 0; i < SIZE; ++i) {
-                    data[i + j * SIZE + k * SIZE * SIZE] = snoise([i, j, k]);
+                    data[i + j * SIZE + k * SIZE * SIZE] = snoise([i, j, k]) * 256;
                 }
             }
         }
@@ -152,25 +157,25 @@
         gl.texImage3D(
             gl.TEXTURE_3D,  // target
             0,              // level
-            gl.R32F,        // internalformat
+            gl.R8,        // internalformat
             SIZE,           // width
             SIZE,           // height
             SIZE,           // depth
             0,              // border
             gl.RED,         // format
-            gl.FLOAT,       // type
+            gl.UNSIGNED_BYTE,       // type
             data            // pixel
             );
 
-        // -- Initialize program
+        gl.generateMipmap(gl.TEXTURE_3D);
 
+        // -- Initialize program
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
 
         var uniformTextureMatrixLocation = gl.getUniformLocation(program, 'orientation');
         var uniformDiffuseLocation = gl.getUniformLocation(program, 'diffuse');
 
         // -- Initialize buffer
-
         var positions = new Float32Array([
             -1.0, -1.0,
              1.0, -1.0,
@@ -217,6 +222,7 @@
         gl.bindVertexArray(null);
 
         // -- Render
+        
         var orientation = [0.0, 0.0, 0.0];
 
         requestAnimationFrame(render);
@@ -282,7 +288,7 @@
         }
     })();
     </script>
-    <div id="highlightedLines"  style="display: none">#L134-L163</div>
+    <div id="highlightedLines"  style="display: none">#L132-L170</div>
 
 </body>
 
