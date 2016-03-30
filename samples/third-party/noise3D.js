@@ -110,13 +110,13 @@
         // vec3 x0 =   v - i + dot(i, vec3(C.x, C.x, C.x) );
         var temp0 = vec3.create();
         var temp3 = vec3.dot(v, [C[1], C[1], C[1]]);
-        vec3.add(v, [temp3, temp3, temp3], temp0);
+        vec3.add(temp0, [temp3, temp3, temp3], v);
         var i  = [Math.floor(temp0[0]), Math.floor(temp0[1]), Math.floor(temp0[2])];
         var temp1 = vec3.create();
-        vec3.subtract(v, i, temp1);
+        vec3.subtract(temp1, v, i);
         var temp2 = vec3.dot(i, [C[0], C[0], C[0]]);
         var x0 = vec3.create();
-        vec3.add(temp1, [temp2, temp2, temp2], x0);
+        vec3.add(x0, [temp2, temp2, temp2], temp1);
 
         // vec3 g = step(vec3(x0.y, x0.z, x0.x), vec3(x0.x, x0.y, x0.z));
         // vec3 l = 1.0f - g;
@@ -131,15 +131,15 @@
         // vec3 x2 = x0 - i2 + vec3(C.y, C.y, C.y); // 2.0*C.x = 1/3 = C.y
         // vec3 x3 = x0 - vec3(D.y, D.y, D.y);      // -1.0+3.0*C.x = -0.5 = -D.y
         var temp4 = vec3.create();
-        vec3.subtract(x0, i1, temp4);
+        vec3.subtract(temp4, x0, i1);
         var x1 = vec3.create();
-        vec3.add(temp4, [C[0], C[0], C[0]], x1);
+        vec3.add(x1, [C[0], C[0], C[0]], temp4);
         var temp5 = vec3.create();
-        vec3.subtract(x0, i2, temp5);
+        vec3.subtract(temp5, x0, i2);
         var x2 = vec3.create();
-        vec3.add(temp5, [C[1], C[1], C[1]], x2);
+        vec3.add(x2, [C[1], C[1], C[1]], temp5);
         var x3 = vec3.create();
-        vec3.subtract(x0, [D[1], D[1], D[1]], x3);
+        vec3.subtract(x3, x0, [D[1], D[1], D[1]]);
 
         // i = mod289(i);
         // vec4 p = permute( permute( permute(
