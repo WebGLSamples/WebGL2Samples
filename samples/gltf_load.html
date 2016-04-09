@@ -102,8 +102,8 @@
         'use strict';
 
         var canvas = document.createElement('canvas');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        canvas.width = Math.min(window.innerWidth, window.innerHeight);
+        canvas.height = canvas.width;
         document.body.appendChild(canvas);
 
         var gl = canvas.getContext( 'webgl2', { antialias: false } );
@@ -123,7 +123,8 @@
         var vertexArray = gl.createVertexArray();
 
         // -- Load obj then render
-        var gltfUrl = '../../assets/gltf/box.gltf';
+        //var gltfUrl = '../../assets/gltf/2_cylinder_engine.gltf';
+        var gltfUrl = '../../assets/gltf/duck.gltf';
         // loadObj(objURL, function(mesh) {
         loadGltfGeometry(gltfUrl, function(scene) {
 
@@ -178,7 +179,8 @@
             var translate = vec3.create();
             vec3.set(translate, 0, 0, -10);
             var scale = vec3.create();
-            vec3.set(scale, 1.0, 1.0, 1.0);
+            var s = 1;
+            vec3.set(scale, s, s, s);
             //vec3.set(scale, 0.1, 0.1, 0.1);
             var modelView = mat4.create();
             mat4.translate(modelView, modelView, translate);
