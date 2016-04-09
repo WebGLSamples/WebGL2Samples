@@ -24,8 +24,18 @@
     // @todo: load multiple scences
     GLTF.Scene = function() {
         this.vertices = [];
+        
         this.indices = [];
     };
+    
+    function arrayBuffer2TypedArray(resource, byteOffset, length, componentType) {
+        switch(componentType) {
+            // @todo: finish
+            case 5123: return new Uint16Array(resource, byteOffset, length);
+            case 5126: return new Float32Array(resource, byteOffset, length);
+            default: return null; 
+        }
+    }
 
     var parseGltf = function(json, onload) {
 
@@ -132,7 +142,8 @@
             var count = accessor.count; // Number of attributes
 
             // @todo: assuming float32
-            var data = new Int16Array(resource, byteOffset, count * numberOfComponents);
+            //var data = new Int16Array(resource, byteOffset, count * numberOfComponents);
+            var data = arrayBuffer2TypedArray(resource, byteOffset, count * numberOfComponents, accessor.componentType);
 
             if (data) {
                 scene.indices = data;
@@ -197,11 +208,8 @@
 
         // @todo: optimize so we only need to load resources once
         loadArrayBuffer(uri, function(resource) {
-
-            var byteOffset = bufferView.byteOffset;
-
-            // @todo: assuming float32
-            var data = new Float32Array(resource);
+            
+            var data;
             
             var stride;
             var offset;
@@ -212,6 +220,8 @@
             for (var semantic in attributes) {
                 var accessorName = attributes[semantic];
                 attribute = accessors[accessorName];
+                
+                data = arrayBuffer2TypedArray(resource, bufferView.byteOffset, bufferView.byteLength / AttributeSize[attribute.componentType], attribute.componentType); 
 
                 if (semantic.substring(0, 8) === 'POSITION') {
                     stride = scene.positionByteStride / AttributeSize[attribute.componentType];
