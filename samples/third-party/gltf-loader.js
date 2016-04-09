@@ -31,6 +31,7 @@
     function arrayBuffer2TypedArray(resource, byteOffset, length, componentType) {
         switch(componentType) {
             // @todo: finish
+            case 5122: return new Int16Array(resource, byteOffset, length);
             case 5123: return new Uint16Array(resource, byteOffset, length);
             case 5126: return new Float32Array(resource, byteOffset, length);
             default: return null; 
