@@ -22,6 +22,8 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 
 ## Samples Compatibility
 
+:warning: glTF loader is still in development and contains bug. Samples using glTF loader now are just for demo.   
+
 |              | Chrome Canary 51 Windows 10| Chrome Canary 51 OSX 10.10| Firefox Developer Edition 47 Windows 10| Firefox Developer Edition 47 OSX 10.10|
 |--------------|:-----------------:|:--------------------------------------:|:-----------------:|:-----------------------:|
 |[draw_image_space](http://webglsamples.org/WebGL2Samples/#draw_image_space)|:x: `gl_VertexID` not supported|:x: `gl_VertexID` not supported|:x: `gl_VertexID` not supported|:x: `gl_VertexID` not supported|
