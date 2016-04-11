@@ -75,6 +75,7 @@
                 curMatrix[i] = node.matrix[i];
             }
             mat4.multiply(curMatrix, matrix, curMatrix);
+            //mat4.multiply(curMatrix, curMatrix, matrix);
         } else {
             // translation, rotation, scale (TRS)
             // @todo: these labels are optional
@@ -172,6 +173,7 @@
             attribute = accessors[accessorName];
 
             if (semantic.substring(0, 8) === 'POSITION') {
+                // @todo: ?? bytestride is accessor specific. 
                 scene.positionByteOffset = attribute.byteOffset;
                 scene.positionByteStride = attribute.byteStride;
                 scene.positionNumberOfComponents = NumberOfComponents[attribute.type];
@@ -226,6 +228,8 @@
 
                 if (semantic.substring(0, 8) === 'POSITION') {
                     stride = scene.positionByteStride / AttributeSize[attribute.componentType];
+                    
+                    // @todo: offset is specific to accessor
                     offset = scene.positionByteOffset / AttributeSize[attribute.componentType];
                     count = attribute.count;
 
@@ -237,7 +241,7 @@
                                             , data[stride * i + offset + 2]
                                             , 1);
                             vec4.transformMat4(tmpVec4, tmpVec4, matrix);
-                            vec4.scale(tmpVec4, tmpVec4, tmpVec4[3]);
+                            vec4.scale(tmpVec4, tmpVec4, 1 / tmpVec4[3]);
                             data[stride * i + offset] = tmpVec4[0];
                             data[stride * i + offset + 1] = tmpVec4[1];
                             data[stride * i + offset + 2] = tmpVec4[2];
