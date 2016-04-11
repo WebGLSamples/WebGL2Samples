@@ -167,22 +167,53 @@
         // *N.B*: Attribute semantics can be of the form
         //        [semantic]_[set_index], e.g., TEXCOORD_0, TEXCOORD_1, etc.
 
+        
+        // Update scene byte stride
+        //scene.byteStride = attribute.byteStride;
+
+        // Get the buffer that contains data attributes
+
+        // @todo: Can we trust that all vertex attributes are stored
+        // in the same buffer?
+        var bufferViewName;
+        var bufferView;
+        var bufferName;
+        var buffer;
+        var uri;
+
+
         var attribute;
         for (var semantic in attributes) {
             var accessorName = attributes[semantic];
             attribute = accessors[accessorName];
+            
+            // ?
+            bufferViewName = attribute.bufferView;
+            bufferView = json.bufferViews[bufferViewName];
+            bufferName = bufferView.buffer;
+            buffer = json.buffers[bufferName];
+            uri = GLTF.baseUri + buffer.uri;
 
             if (semantic.substring(0, 8) === 'POSITION') {
                 // @todo: ?? bytestride is accessor specific. 
                 scene.positionByteOffset = attribute.byteOffset;
+                //scene.positionByteOffset = bufferView.byteOffset;
                 scene.positionByteStride = attribute.byteStride;
                 scene.positionNumberOfComponents = NumberOfComponents[attribute.type];
             } else if (semantic.substring(0, 6) === 'NORMAL') {
                 scene.normalByteOffset = attribute.byteOffset;
+                
+                //? two types of vertex attribute order?
+                
+                // p,p,p,...,p, n,n,n,n,..., t,t,t,t...
+                // p,n,t, p,n,t, ...
+                
+                //scene.normalByteOffset = bufferView.byteOffset;
                 scene.normalByteStride = attribute.byteStride;
                 scene.normalNumberOfComponents = NumberOfComponents[attribute.type];
             } else if (semantic.substring(0, 8) === 'TEXCOORD') {
-                scene.texcoordByteOffset = attribute.byteOffset;
+                //scene.texcoordByteOffset = attribute.byteOffset;
+                scene.texcoordByteOffset = bufferView.byteOffset;
                 scene.texcoordByteStride = attribute.byteStride;
                 scene.texcoordNumberOfComponents = NumberOfComponents[attribute.type];
             } else if (semantic.substring(0, 5) === 'COLOR') {
@@ -196,18 +227,7 @@
             }
         }
 
-        // Update scene byte stride
-        scene.byteStride = attribute.byteStride;
 
-        // Get the buffer that contains data attributes
-
-        // @todo: Can we trust that all vertex attributes are stored
-        // in the same buffer?
-        var bufferViewName = attribute.bufferView;
-        var bufferView = json.bufferViews[bufferViewName];
-        var bufferName = bufferView.buffer;
-        var buffer = json.buffers[bufferName];
-        var uri = GLTF.baseUri + buffer.uri;
 
         // @todo: optimize so we only need to load resources once
         loadArrayBuffer(uri, function(resource) {
@@ -227,10 +247,12 @@
                 data = arrayBuffer2TypedArray(resource, bufferView.byteOffset, bufferView.byteLength / AttributeSize[attribute.componentType], attribute.componentType); 
 
                 if (semantic.substring(0, 8) === 'POSITION') {
-                    stride = scene.positionByteStride / AttributeSize[attribute.componentType];
+                    //stride = scene.positionByteStride / AttributeSize[attribute.componentType];
+                    stride = attribute.byteStride / AttributeSize[attribute.componentType];
                     
                     // @todo: offset is specific to accessor
-                    offset = scene.positionByteOffset / AttributeSize[attribute.componentType];
+                    //offset = scene.positionByteOffset / AttributeSize[attribute.componentType];
+                    offset = attribute.byteOffset / AttributeSize[attribute.componentType];
                     count = attribute.count;
 
                     for (var i = 0; i < count; ++i) {
@@ -248,8 +270,10 @@
                         }
                     }
                 } else if (semantic.substring(0, 6) === 'NORMAL') {
-                    stride = scene.normalByteStride / AttributeSize[attribute.componentType];
-                    offset = scene.normalByteOffset / AttributeSize[attribute.componentType];
+                    //stride = scene.normalByteStride / AttributeSize[attribute.componentType];
+                    //offset = scene.normalByteOffset / AttributeSize[attribute.componentType];
+                    stride = attribute.byteStride / AttributeSize[attribute.componentType];
+                    offset = attribute.byteOffset / AttributeSize[attribute.componentType];
                     count = attribute.count;
                     mat4.invert(inverseTransposeMatrix, matrix);
                     mat4.transpose(inverseTransposeMatrix, inverseTransposeMatrix);                    
