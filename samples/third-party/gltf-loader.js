@@ -23,9 +23,15 @@
 
     // @todo: load multiple scences
     GLTF.Scene = function() {
-        this.vertices = [];
-        
-        this.indices = [];
+        //this.vertices = [];
+        //this.indices = [];
+        this.vertices = null;
+        this.indices = null;
+    };
+    
+    GLTF.CachedBuffer = function(name, resource) {
+        this.name = name;
+        this.buffer = resource;
     };
     
     function arrayBuffer2TypedArray(resource, byteOffset, length, componentType) {
@@ -135,24 +141,43 @@
         var buffer = json.buffers[bufferName];
         var uri = GLTF.baseUri + buffer.uri;
 
+
+        if(!scene.indices) {
+            
+        }
+
         // @todo: optimize so we only need to load resources once
         loadArrayBuffer(uri, function(resource) {
 
-            var byteOffset = bufferView.byteOffset;
-            var byteLength = bufferView.byteLength;
-            var attributeSize = AttributeSize[accessor.componentType];
-            var numberOfComponents = NumberOfComponents[accessor.type];
-            var count = accessor.count; // Number of attributes
+            // var byteOffset = bufferView.byteOffset;
+            // var byteLength = bufferView.byteLength;
+            // var attributeSize = AttributeSize[accessor.componentType];
+            // var numberOfComponents = NumberOfComponents[accessor.type];
+            // var count = accessor.count; // Number of attributes
 
             // @todo: assuming float32
             //var data = new Int16Array(resource, byteOffset, count * numberOfComponents);
             //var data = arrayBuffer2TypedArray(resource, byteOffset, count * numberOfComponents, accessor.componentType);
-            var data = arrayBuffer2TypedArray(resource, byteOffset, byteLength / attributeSize, accessor.componentType);
+            
+            // var data = arrayBuffer2TypedArray(resource, byteOffset, byteLength / attributeSize, accessor.componentType);
 
-            if (data) {
-                scene.indices = data;
-                callback();
+            // if (data) {
+            //     scene.indices = data;
+            //     callback();
+            // }
+            
+            
+            // @todo: multiple cached buffer   
+            if (!scene.indices) {
+                var byteOffset = bufferView.byteOffset;
+                var byteLength = bufferView.byteLength;
+                var attributeSize = AttributeSize[accessor.componentType];
+                var numberOfComponents = NumberOfComponents[accessor.type];
+                var count = accessor.count; // Number of attributes
+                scene.indices = arrayBuffer2TypedArray(resource, byteOffset, byteLength / attributeSize, accessor.componentType);
+                //callback();
             }
+            callback();
         });
     };
 
