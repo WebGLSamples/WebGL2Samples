@@ -139,13 +139,15 @@
         loadArrayBuffer(uri, function(resource) {
 
             var byteOffset = bufferView.byteOffset;
+            var byteLength = bufferView.byteLength;
             var attributeSize = AttributeSize[accessor.componentType];
             var numberOfComponents = NumberOfComponents[accessor.type];
             var count = accessor.count; // Number of attributes
 
             // @todo: assuming float32
             //var data = new Int16Array(resource, byteOffset, count * numberOfComponents);
-            var data = arrayBuffer2TypedArray(resource, byteOffset, count * numberOfComponents, accessor.componentType);
+            //var data = arrayBuffer2TypedArray(resource, byteOffset, count * numberOfComponents, accessor.componentType);
+            var data = arrayBuffer2TypedArray(resource, byteOffset, byteLength / attributeSize, accessor.componentType);
 
             if (data) {
                 scene.indices = data;
