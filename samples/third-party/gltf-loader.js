@@ -1,7 +1,13 @@
 (function() {
     'use strict';
 
-    var GLTF = {};
+    //singleton for now
+    var GLTF = {
+        bufferRequested: 0,
+        bufferLoaded: 0,
+        buffers: {},
+        bufferViews: {}
+    };
 
     var AttributeSize = {
         5120: 1, // BYTE
@@ -21,6 +27,7 @@
         'MAT4': 16
     };
 
+
     // @todo: load multiple scences
     // @todo: multiple buffer view
     GLTF.Scene = function() {
@@ -30,10 +37,51 @@
         this.indices = null;
     };
     
-    GLTF.CachedBuffer = function(name, resource) {
-        this.name = name;
-        this.buffer = resource;
-    };
+    function init() {
+        GLTF.bufferRequested = 0;
+        GLTF.bufferLoaded = 0;
+        GLTF.buffers = {};
+        GLTF.bufferViews = {};
+    }
+    
+    // GLTF.CachedBuffer = function(name, resource) {
+    //     this.name = name;
+    //     this.buffer = resource;
+    // };
+    
+    // GLTF.CachedBufferView = function(name, data) {
+    //     this.name = name;
+    //     this.bufferView = data;
+    // }
+    
+    function accessBuffer(name, uri, handleDataFn) {
+        var buffer = GLTF.buffers[name];
+        if(!buffer) {
+            // load buffer for the first time
+            console.log("first load buffer");
+            loadArrayBuffer(uri, function(resource) {
+                GLTF.buffers[name] = resource;
+                handleDataFn(resource);
+            });
+        } else {
+            // no need to load buffer from file
+            // use cached ones
+            console.log("use cached buffer");
+            handleDataFn(buffer);
+        }
+    }
+    
+    function accessBufferView(bufferViewInfo, resource) {
+        if(!GLTF.bufferViews[bufferViewInfo.name]) {
+            // first load
+            console.log("first access bufferView" + bufferViewInfo.name);
+            GLTF.bufferViews[bufferViewInfo.name] = arrayBuffer2TypedArray(resource, bufferViewInfo.byteOffset, bufferViewInfo.length, bufferViewInfo.componentType);
+            return GLTF.bufferViews[bufferViewInfo.name];
+        } else {
+            console.log("cached access bufferView" + bufferViewInfo.name);
+            return GLTF.bufferViews[bufferViewInfo.name];
+        }
+    }
     
     function arrayBuffer2TypedArray(resource, byteOffset, length, componentType) {
         switch(componentType) {
@@ -47,6 +95,8 @@
 
     var parseGltf = function(json, onload) {
 
+        init();
+        
         var newScene = new GLTF.Scene;
 
         // Iterate through every scene
@@ -143,43 +193,49 @@
         var uri = GLTF.baseUri + buffer.uri;
 
 
-        if(!scene.indices) {
-            
-        }
-
-        // @todo: optimize so we only need to load resources once
-        loadArrayBuffer(uri, function(resource) {
-
-            // var byteOffset = bufferView.byteOffset;
-            // var byteLength = bufferView.byteLength;
-            // var attributeSize = AttributeSize[accessor.componentType];
-            // var numberOfComponents = NumberOfComponents[accessor.type];
-            // var count = accessor.count; // Number of attributes
-
-            // @todo: assuming float32
-            //var data = new Int16Array(resource, byteOffset, count * numberOfComponents);
-            //var data = arrayBuffer2TypedArray(resource, byteOffset, count * numberOfComponents, accessor.componentType);
-            
-            // var data = arrayBuffer2TypedArray(resource, byteOffset, byteLength / attributeSize, accessor.componentType);
-
-            // if (data) {
-            //     scene.indices = data;
-            //     callback();
-            // }
-            
-            
-            // @todo: multiple cached buffer   
-            if (!scene.indices) {
-                var byteOffset = bufferView.byteOffset;
+        accessBuffer(bufferName, uri, function(resource) {
+            var byteOffset = bufferView.byteOffset;
                 var byteLength = bufferView.byteLength;
                 var attributeSize = AttributeSize[accessor.componentType];
                 var numberOfComponents = NumberOfComponents[accessor.type];
                 var count = accessor.count; // Number of attributes
                 scene.indices = arrayBuffer2TypedArray(resource, byteOffset, byteLength / attributeSize, accessor.componentType);
                 callback();
-            }
-            //callback();
         });
+
+        // // @todo: optimize so we only need to load resources once
+        // loadArrayBuffer(uri, function(resource) {
+
+        //     // var byteOffset = bufferView.byteOffset;
+        //     // var byteLength = bufferView.byteLength;
+        //     // var attributeSize = AttributeSize[accessor.componentType];
+        //     // var numberOfComponents = NumberOfComponents[accessor.type];
+        //     // var count = accessor.count; // Number of attributes
+
+        //     // @todo: assuming float32
+        //     //var data = new Int16Array(resource, byteOffset, count * numberOfComponents);
+        //     //var data = arrayBuffer2TypedArray(resource, byteOffset, count * numberOfComponents, accessor.componentType);
+            
+        //     // var data = arrayBuffer2TypedArray(resource, byteOffset, byteLength / attributeSize, accessor.componentType);
+
+        //     // if (data) {
+        //     //     scene.indices = data;
+        //     //     callback();
+        //     // }
+            
+            
+        //     // @todo: multiple cached buffer   
+        //     if (!scene.indices) {
+        //         var byteOffset = bufferView.byteOffset;
+        //         var byteLength = bufferView.byteLength;
+        //         var attributeSize = AttributeSize[accessor.componentType];
+        //         var numberOfComponents = NumberOfComponents[accessor.type];
+        //         var count = accessor.count; // Number of attributes
+        //         scene.indices = arrayBuffer2TypedArray(resource, byteOffset, byteLength / attributeSize, accessor.componentType);
+        //         callback();
+        //     }
+        //     //callback();
+        // });
     };
 
     
@@ -256,9 +312,7 @@
         }
 
 
-
-        // @todo: optimize so we only need to load resources once
-        loadArrayBuffer(uri, function(resource) {
+        accessBuffer(bufferName, uri, function(resource) {
             
             var data;
             
@@ -266,13 +320,23 @@
             var offset;
             var count;
             
+            var bufferViewInfo;
+            
             // apply transformations
             // attributes are interleaved
             for (var semantic in attributes) {
                 var accessorName = attributes[semantic];
                 attribute = accessors[accessorName];
                 
-                data = arrayBuffer2TypedArray(resource, bufferView.byteOffset, bufferView.byteLength / AttributeSize[attribute.componentType], attribute.componentType); 
+                bufferViewInfo = {
+                    name: bufferView.name,
+                    byteOffset : bufferView.byteOffset,
+                    length: bufferView.byteLength / AttributeSize[attribute.componentType],
+                    componentType: attribute.componentType
+                };
+                
+                data = accessBufferView(bufferViewInfo, resource);
+                //data = arrayBuffer2TypedArray(resource, bufferView.byteOffset, bufferView.byteLength / AttributeSize[attribute.componentType], attribute.componentType); 
 
                 if (semantic.substring(0, 8) === 'POSITION') {
                     //stride = scene.positionByteStride / AttributeSize[attribute.componentType];
@@ -328,6 +392,79 @@
                 callback(scene);
             }
         });
+
+
+        // // @todo: optimize so we only need to load resources once
+        // loadArrayBuffer(uri, function(resource) {
+            
+        //     var data;
+            
+        //     var stride;
+        //     var offset;
+        //     var count;
+            
+        //     // apply transformations
+        //     // attributes are interleaved
+        //     for (var semantic in attributes) {
+        //         var accessorName = attributes[semantic];
+        //         attribute = accessors[accessorName];
+                
+        //         data = arrayBuffer2TypedArray(resource, bufferView.byteOffset, bufferView.byteLength / AttributeSize[attribute.componentType], attribute.componentType); 
+
+        //         if (semantic.substring(0, 8) === 'POSITION') {
+        //             //stride = scene.positionByteStride / AttributeSize[attribute.componentType];
+        //             stride = attribute.byteStride / AttributeSize[attribute.componentType];
+                    
+        //             // @todo: offset is specific to accessor
+        //             //offset = scene.positionByteOffset / AttributeSize[attribute.componentType];
+        //             offset = attribute.byteOffset / AttributeSize[attribute.componentType];
+        //             count = attribute.count;
+
+        //             for (var i = 0; i < count; ++i) {
+        //                 // @todo: add vec2 and other(needed?) support
+        //                 if(scene.positionNumberOfComponents === 3) {
+        //                     vec4.set(tmpVec4, data[stride * i + offset]
+        //                                     , data[stride * i + offset + 1]
+        //                                     , data[stride * i + offset + 2]
+        //                                     , 1);
+        //                     vec4.transformMat4(tmpVec4, tmpVec4, matrix);
+        //                     vec4.scale(tmpVec4, tmpVec4, 1 / tmpVec4[3]);
+        //                     data[stride * i + offset] = tmpVec4[0];
+        //                     data[stride * i + offset + 1] = tmpVec4[1];
+        //                     data[stride * i + offset + 2] = tmpVec4[2];
+        //                 }
+        //             }
+        //         } else if (semantic.substring(0, 6) === 'NORMAL') {
+        //             //stride = scene.normalByteStride / AttributeSize[attribute.componentType];
+        //             //offset = scene.normalByteOffset / AttributeSize[attribute.componentType];
+        //             stride = attribute.byteStride / AttributeSize[attribute.componentType];
+        //             offset = attribute.byteOffset / AttributeSize[attribute.componentType];
+        //             count = attribute.count;
+        //             mat4.invert(inverseTransposeMatrix, matrix);
+        //             mat4.transpose(inverseTransposeMatrix, inverseTransposeMatrix);                    
+
+        //             for (var i = 0; i < count; ++i) {
+        //                 // @todo: add vec2 and other(needed?) support
+        //                 vec4.set(tmpVec4, data[stride * i + offset]
+        //                                 , data[stride * i + offset + 1]
+        //                                 , data[stride * i + offset + 2]
+        //                                 , 0);
+        //                 vec4.transformMat4(tmpVec4, tmpVec4, inverseTransposeMatrix);
+        //                 vec4.normalize(tmpVec4, tmpVec4);
+        //                 data[stride * i + offset] = tmpVec4[0];
+        //                 data[stride * i + offset + 1] = tmpVec4[1];
+        //                 data[stride * i + offset + 2] = tmpVec4[2];
+        //             }
+        //         }
+        //     }
+            
+        //     if (data) {
+        //         scene.vertices = data;
+
+        //         // Completed loading
+        //         callback(scene);
+        //     }
+        // });
     };
 
     window.loadGltfGeometry = function(url, onload) {
