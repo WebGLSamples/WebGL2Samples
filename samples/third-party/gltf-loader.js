@@ -22,6 +22,7 @@
     };
 
     // @todo: load multiple scences
+    // @todo: multiple buffer view
     GLTF.Scene = function() {
         //this.vertices = [];
         //this.indices = [];
@@ -175,9 +176,9 @@
                 var numberOfComponents = NumberOfComponents[accessor.type];
                 var count = accessor.count; // Number of attributes
                 scene.indices = arrayBuffer2TypedArray(resource, byteOffset, byteLength / attributeSize, accessor.componentType);
-                //callback();
+                callback();
             }
-            callback();
+            //callback();
         });
     };
 
@@ -239,8 +240,8 @@
                 scene.normalByteStride = attribute.byteStride;
                 scene.normalNumberOfComponents = NumberOfComponents[attribute.type];
             } else if (semantic.substring(0, 8) === 'TEXCOORD') {
-                //scene.texcoordByteOffset = attribute.byteOffset;
-                scene.texcoordByteOffset = bufferView.byteOffset;
+                scene.texcoordByteOffset = attribute.byteOffset;
+                //scene.texcoordByteOffset = bufferView.byteOffset;
                 scene.texcoordByteStride = attribute.byteStride;
                 scene.texcoordNumberOfComponents = NumberOfComponents[attribute.type];
             } else if (semantic.substring(0, 5) === 'COLOR') {
