@@ -22,7 +22,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 
 ## Samples Compatibility
 
-:warning: glTF loader is still in development and contains bug. Samples using glTF loader now are just for demo.   
+:warning: glTF loader is still in development and contains bug. Samples using glTF loader now are just for demo.
 
 |              | Chrome Canary 52 Windows 10| Chrome Canary 51 OSX 10.10| Firefox Developer Edition 47 Windows 10| Firefox Developer Edition 47 OSX 10.10|
 |--------------|:-----------------:|:--------------------------------------:|:-----------------:|:-----------------------:|
@@ -43,7 +43,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[texture_format](http://webglsamples.org/WebGL2Samples/#texture_format)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_fetch](http://webglsamples.org/WebGL2Samples/#texture_fetch)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_grad](http://webglsamples.org/WebGL2Samples/#texture_grad)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|[texture_3d](http://webglsamples.org/WebGL2Samples/#texture_3d)|:white_check_mark:|:x: not working|:white_check_mark:|:x: not working|
+|[texture_3d](http://webglsamples.org/WebGL2Samples/#texture_3d)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_immutable](http://webglsamples.org/WebGL2Samples/#texture_immutable) (currently not working for texture 3D)|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark:|
 |[texture_integer](http://webglsamples.org/WebGL2Samples/#texture_integer)|:white_check_mark:|:white_check_mark:|:x: Error: Driver ran out of memory during upload|:white_check_mark:|
 |[texture_lod](http://webglsamples.org/WebGL2Samples/#texture_lod)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
