@@ -22,9 +22,9 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 
 ## Samples Compatibility
 
-:warning: glTF loader is still in development and contains bug. Samples using glTF loader now are just for demo.   
+:warning: glTF loader is still in development and contains bug. Samples using glTF loader now are just for demo.
 
-|              | Chrome Canary 51 Windows 10| Chrome Canary 51 OSX 10.10| Firefox Developer Edition 47 Windows 10| Firefox Developer Edition 47 OSX 10.10|
+|              | Chrome Canary 52 Windows 10| Chrome Canary 51 OSX 10.10| Firefox Developer Edition 47 Windows 10| Firefox Developer Edition 47 OSX 10.10|
 |--------------|:-----------------:|:--------------------------------------:|:-----------------:|:-----------------------:|
 |[draw_image_space](http://webglsamples.org/WebGL2Samples/#draw_image_space)|:x: `gl_VertexID` not supported|:x: `gl_VertexID` not supported|:x: `gl_VertexID` not supported|:x: `gl_VertexID` not supported|
 |[draw_instanced](http://webglsamples.org/WebGL2Samples/#draw_instanced)|:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
@@ -34,7 +34,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[glsl_flat_smooth_interpolators](http://webglsamples.org/WebGL2Samples/#glsl_flat_smooth_interpolators)|:white_check_mark: |:white_check_mark:| :white_check_mark: |:white_check_mark:|
 |[glsl_non_square_matrix](http://webglsamples.org/WebGL2Samples/#glsl_non_square_matrix)|:white_check_mark: |:white_check_mark:| :white_check_mark: |:white_check_mark:|
 |[query_occlusion](http://webglsamples.org/WebGL2Samples/#query_occlusion)|:white_check_mark:|:white_check_mark:| :white_check_mark:|:white_check_mark:|
-|[sampler_object](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:x:D3D not supported|:white_check_mark:| :x: D3D not supported|:white_check_mark:|
+|[sampler_object](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:| :x: D3D not supported|:white_check_mark:|
 |[sampler_wrap](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:| :x: Error: WebGL: samplerParameteri: invalid sampler|:white_check_mark:|
 |[sampler_filter](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_derivative](http://webglsamples.org/WebGL2Samples/#texture_derivative)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
@@ -43,13 +43,13 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[texture_format](http://webglsamples.org/WebGL2Samples/#texture_format)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_fetch](http://webglsamples.org/WebGL2Samples/#texture_fetch)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_grad](http://webglsamples.org/WebGL2Samples/#texture_grad)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|[texture_3d](http://webglsamples.org/WebGL2Samples/#texture_3d)|:white_check_mark:|:x: not working|:x: with no error message|:x: not working|
+|[texture_3d](http://webglsamples.org/WebGL2Samples/#texture_3d)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_immutable](http://webglsamples.org/WebGL2Samples/#texture_immutable) (currently not working for texture 3D)|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark: Need to update for texStorage3D|:white_check_mark:|
 |[texture_integer](http://webglsamples.org/WebGL2Samples/#texture_integer)|:white_check_mark:|:white_check_mark:|:x: Error: Driver ran out of memory during upload|:white_check_mark:|
 |[texture_lod](http://webglsamples.org/WebGL2Samples/#texture_lod)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_offset](http://webglsamples.org/WebGL2Samples/#texture_offset)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_pixel_store](http://webglsamples.org/WebGL2Samples/#texture_pixel_store)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|[texture_srgb](http://webglsamples.org/WebGL2Samples/#texture_srgb)|:x:D3D not supported|:white_check_mark:|:x:D3D not supported|:white_check_mark:|
+|[texture_srgb](http://webglsamples.org/WebGL2Samples/#texture_srgb)|:white_check_mark:|:white_check_mark:|:x:D3D not supported|:white_check_mark:|
 |[texture_vertex](http://webglsamples.org/WebGL2Samples/#texture_vertex)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[transform_feedback_interleaved](http://webglsamples.org/WebGL2Samples/#transform_feedback_interleaved)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[transform_feedback_separated](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|

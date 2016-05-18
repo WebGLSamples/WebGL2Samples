@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<!-- Ported from the OpenGL Samples Pack: https://github.com/g-truc/ogl-samples/blob/master/tests/gl-320-buffer-uniform.cpp -->
+<html lang="en">
+
+<head>
+
+    <title>WebGL 2 Samples - buffer_uniform</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="info">WebGL 2 Samples - buffer_uniform</div>
+
+    <script id="vs" type="x-shader/x-vertex">
+        #version 300 es
+        #define POSITION_LOCATION 0
+        #define NORMAL_LOCATION 1
+        #define COLOR_LOCATION 3
+
+        precision highp float;
+        precision highp int;
+
+        layout(std140, column_major) uniform;
+
+        struct Transform
+        {
+            mat4 P;
+            mat4 MV;
+            mat4 Mnormal;
+        };
+
+        uniform PerDraw
+        {
+            Transform transform;
+        } u_perDraw;
+
+        layout(location = POSITION_LOCATION) in vec3 position;
+        layout(location = NORMAL_LOCATION) in vec3 normal;
+        layout(location = COLOR_LOCATION) in vec4 color;
+
+        out vec3 v_normal;
+        out vec3 v_view;
+        out vec4 v_color;
+
+        void main()
+        {
+            vec4 pEC = u_perDraw.transform.MV * vec4(position, 1.0);
+
+            v_normal = (u_perDraw.transform.Mnormal * vec4(normal, 0.0)).xyz;
+            v_view = - pEC.xyz;
+            v_color = color;
+
+            gl_Position = u_perDraw.transform.P * pEC;
+        }
+    </script>
+
+    <script id="fs" type="x-shader/x-fragment">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        layout(std140, column_major) uniform;
+
+        struct Material
+        {
+            vec3 ambient;
+            vec3 diffuse;
+            vec3 specular;
+            float shininess;
+        } material;
+
+        struct Light
+        {
+            vec3 position; // Camera space
+        };
+
+        uniform PerScene
+        {
+            Material material;
+        } u_perScene;
+
+        uniform PerPass
+        {
+            Light light;
+        } u_perPass;
+
+
+        in vec3 v_normal;
+        in vec3 v_view;
+        in vec4 v_color;
+
+        out vec4 color;
+
+        void main()
+        {
+            vec3 n = normalize(v_normal);
+            vec3 l = normalize(u_perPass.light.position + v_view);
+            vec3 v = normalize(v_view);
+
+            vec3 diffuse = max(dot(n, l), 0.0) * u_perScene.material.diffuse;
+            vec3 r = reflect(-l, n);
+            vec3 specular = pow(max(dot(r, v), 0.0), u_perScene.material.shininess) * u_perScene.material.specular;
+
+            color = vec4(u_perScene.material.ambient + diffuse + specular, 1.0);
+        }
+    </script>
+
+    <script src="utility.js"></script>
+    <script>
+    (function () {
+        'use strict';
+
+        // --Init Canvas
+        var canvas = document.createElement('canvas');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        document.body.appendChild(canvas);
+
+        // --Init WebGL Context
+        var gl = canvas.getContext('webgl2', { antialias: false });
+
+        var isWebGL2 = !!gl;
+        if(!isWebGL2) {
+            document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
+            return;
+        }
+
+        // -- Init Program
+        var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
+        gl.useProgram(program);
+
+        var uniformPerDrawLocation = gl.getUniformBlockIndex(program, 'PerDraw');
+        var uniformPerSceneLocation = gl.getUniformBlockIndex(program, 'PerPass');
+        var uniformPerPassLocation = gl.getUniformBlockIndex(program, 'PerScene');
+
+        gl.uniformBlockBinding(program, uniformPerDrawLocation, 0);
+        gl.uniformBlockBinding(program, uniformPerPassLocation, 1);
+        gl.uniformBlockBinding(program, uniformPerSceneLocation, 2);
+
+        // -- Init Buffer
+        var elementData = new Uint16Array([
+            0, 1, 2,
+            2, 3, 0
+        ]);
+        var elementBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, elementData, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+        //vec3 position, vec3 normal, vec4 color
+        var vertices = new Float32Array([
+            -1.0, -1.0, 0.0,    0.0, 0.0, 1.0,     1.0, 0.0, 0.0, 1.0,
+             1.0, -1.0, 0.0,    0.0, 0.0, 1.0,     0.0, 1.0, 0.0, 1.0,
+             1.0, 1.0, 0.0,     0.0, 0.0, 1.0,     0.0, 0.0, 1.0, 1.0,
+            -1.0, 1.0, 0.0,     0.0, 0.0, 1.0,     1.0, 1.0, 1.0, 1.0
+        ]);
+        var vertexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        //mat4 P, mat4 MV, mat3 Mnormal
+        var transforms = new Float32Array([
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 0.0, 1.0,
+
+                0.5, 0.0, 0.0, 0.0,
+                0.0, 0.5, 0.0, 0.0,
+                0.0, 0.0, 0.5, 0.0,
+                0.0, 0.0, 0.0, 1.0,
+
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 0.0, 1.0
+        ]);
+
+        var uniformPerDrawBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.UNIFORM_BUFFER, uniformPerDrawBuffer);
+        gl.bufferData(gl.UNIFORM_BUFFER, transforms, gl.DYNAMIC_DRAW);
+        gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+
+        var lightPos = new Float32Array([0.0, 0.0, 100.0 , 0.0]);
+        var uniformPerPassBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.UNIFORM_BUFFER, uniformPerPassBuffer);
+        gl.bufferData(gl.UNIFORM_BUFFER, lightPos, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+
+        //vec3 ambient, diffuse, specular, float shininess
+        var material = new Float32Array([
+            0.1, 0.0, 0.0,  0.0,
+            0.0, 0.5, 0.0,  0.0,
+            0.0, 0.0, 0.5,  0.0,
+            128.0
+        ]);
+        var uniformPerSceneBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.UNIFORM_BUFFER, uniformPerSceneBuffer);
+        gl.bufferData(gl.UNIFORM_BUFFER, material, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+
+        // -- Init Vertex Array
+        var vertexArray = gl.createVertexArray();
+        gl.bindVertexArray(vertexArray);
+
+        var vertexPosLocation = 0;
+        var vertexNorLocation = 1;
+        var vertexColorLocation = 3;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+        gl.enableVertexAttribArray(vertexPosLocation);
+        gl.vertexAttribPointer(vertexPosLocation, 3, gl.FLOAT, false, 40, 0);
+        gl.enableVertexAttribArray(vertexNorLocation);
+        gl.vertexAttribPointer(vertexNorLocation, 3, gl.FLOAT, false, 40, 12);
+        gl.enableVertexAttribArray(vertexColorLocation);
+        gl.vertexAttribPointer(vertexColorLocation, 4, gl.FLOAT, false, 40, 24);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementBuffer);
+
+        gl.bindVertexArray(null);
+
+        // -- Render
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.bindVertexArray(vertexArray);
+        gl.bindBufferBase(gl.UNIFORM_BUFFER, 0, uniformPerDrawBuffer);
+        gl.bindBufferBase(gl.UNIFORM_BUFFER, 1, uniformPerPassBuffer);
+        gl.bindBufferBase(gl.UNIFORM_BUFFER, 2, uniformPerSceneBuffer);
+
+        var error = gl.getError();
+        console.log(error);
+
+        gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+
+        error = gl.getError();
+        console.log(error);
+
+        // -- Delete WebGL resources
+        gl.deleteBuffer(vertexBuffer);
+        gl.deleteBuffer(uniformPerSceneBuffer);
+        gl.deleteBuffer(uniformPerPassBuffer);
+        gl.deleteBuffer(uniformPerDrawBuffer);
+        gl.deleteBuffer(elementBuffer);
+        gl.deleteProgram(program);
+
+        gl.deleteVertexArray(vertexArray);
+    })();
+    </script>
+</body>
+</html>
