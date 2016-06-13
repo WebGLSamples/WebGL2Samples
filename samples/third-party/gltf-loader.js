@@ -278,12 +278,22 @@
             buffer = json.buffers[bufferName];
             uri = GLTF.baseUri + buffer.uri;
 
+
+            // scene.attributes[semantic] = {
+            //     byteOffset: attribute.byteOffset,
+            //     byteStride: attribute.byteStride,
+            //     numOfComponents: NumberOfComponents[attribute.type],
+
+            // };
+
             if (semantic.substring(0, 8) === 'POSITION') {
                 // @todo: ?? bytestride is accessor specific. 
                 scene.positionByteOffset = attribute.byteOffset;
                 //scene.positionByteOffset = bufferView.byteOffset;
                 scene.positionByteStride = attribute.byteStride;
                 scene.positionNumberOfComponents = NumberOfComponents[attribute.type];
+
+                
             } else if (semantic.substring(0, 6) === 'NORMAL') {
                 scene.normalByteOffset = attribute.byteOffset;
                 
