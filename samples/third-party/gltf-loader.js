@@ -122,7 +122,11 @@
     var scaleVec3;
     var TRMatrix;
     
-    var traverseNode = function(json, node, scene, onload, matrix = mat4.create()) {
+    var traverseNode = function(json, node, scene, onload, matrix) {
+
+        if (matrix === undefined) {
+            matrix = mat4.create();
+        }
 
         var curMatrix = mat4.create();
         
@@ -503,7 +507,7 @@
             
             // matrix transform preparation
             translationVec3 = vec3.create();
-            rotationQuat = vec4.create();
+            rotationQuat = vec4.create();   // ? new quat()
             scaleVec3 = vec3.create();
             TRMatrix = mat4.create();
             
