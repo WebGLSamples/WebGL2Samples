@@ -62,6 +62,8 @@ var MinimalGLTFLoader;
     var Primitive = MinimalGLTFLoader.Primitive = function () {
         this.indices = null;
 
+        // !!: assume vertex buffer is interleaved
+        // see discussion https://github.com/KhronosGroup/glTF/issues/21
         this.vertexBuffer = null;
         this.attributes = {};
     };
@@ -236,20 +238,91 @@ var MinimalGLTFLoader;
         });
     };
 
-    glTFLoader.prototype._parseAttributes = function(json, primitive, newPrimitive, curMatrix) {
 
-        for (attributeName in primitive.attributes) {
-            var accessorName = primitive.attributes[attributeName];
-            var accessor = json.accessors[accessorName];
 
-            this._getBufferViewData(json, accessor.bufferView, function(bufferViewData) {
-                newPrimitive.attributes[attributeName] = _getAccessorData(bufferViewData, accessor);
 
-                // TODO: Matrix transformation
+    var tmpVec4 = vec4.create();
+    var inverseTransposeMatrix = mat4.create();
 
-                this._checkComplete();
-            });
-        }
+    glTFLoader.prototype._parseAttributes = function(json, primitive, newPrimitive, matrix) {
+        // !! Assume interleaved vertex attributes
+        // i.e., all attributes share one bufferView
+
+
+        // vertex buffer processing
+        var firstSemantic = Object.keys(primitive.attributes)[0];
+        var firstAccessor = json.accessors[primitive.attributes[firstSemantic]];
+        var vertexBufferViewID = firstAccessor.bufferView;
+        var bufferView = json.bufferViews[vertexBufferViewID];
+
+        this._getBufferViewData(json, vertexBufferViewID, function(data) {
+            newPrimitive.vertexBuffer
+                = _arrayBuffer2TypedArray(
+                    data, 
+                    0, 
+                    bufferView.byteLength / ComponentType2ByteSize[firstAccessor.componentType],
+                    firstAccessor.componentType
+                    );
+            
+            for (attributeName in primitive.attributes) {
+                var accessorName = primitive.attributes[attributeName];
+                var accessor = json.accessors[accessorName];
+                
+                var componentTypeByteSize = ComponentType2ByteSize[accessor.componentType];
+                var stride = accessor.byteStride / componentTypeByteSize;
+                var offset = accessor.byteOffset / componentType;
+                var count  = accessor.count;
+
+                // Matrix transformation
+                if (attributeName === 'POSITION') {
+                    for (var i = 0; i < count; ++i) {
+                        // @todo: add vec2 and other(needed?) support
+                        if(scene.positionNumberOfComponents === 3) {
+                            vec4.set(tmpVec4, data[stride * i + offset]
+                                            , data[stride * i + offset + 1]
+                                            , data[stride * i + offset + 2]
+                                            , 1);
+                            vec4.transformMat4(tmpVec4, tmpVec4, matrix);
+                            vec4.scale(tmpVec4, tmpVec4, 1 / tmpVec4[3]);
+                            data[stride * i + offset] = tmpVec4[0];
+                            data[stride * i + offset + 1] = tmpVec4[1];
+                            data[stride * i + offset + 2] = tmpVec4[2];
+                        }
+                    }
+                } else if (attributeName === 'NORMAL') {
+                    mat4.invert(inverseTransposeMatrix, matrix);
+                    mat4.transpose(inverseTransposeMatrix, inverseTransposeMatrix);                    
+
+                    for (var i = 0; i < count; ++i) {
+                        // @todo: add vec2 and other(needed?) support
+                        vec4.set(tmpVec4, data[stride * i + offset]
+                                        , data[stride * i + offset + 1]
+                                        , data[stride * i + offset + 2]
+                                        , 0);
+                        vec4.transformMat4(tmpVec4, tmpVec4, inverseTransposeMatrix);
+                        vec4.normalize(tmpVec4, tmpVec4);
+                        data[stride * i + offset] = tmpVec4[0];
+                        data[stride * i + offset + 1] = tmpVec4[1];
+                        data[stride * i + offset + 2] = tmpVec4[2];
+                    }
+                }
+
+
+                // for vertexAttribPointer
+                newPrimitive.attributes[attributeName] = {
+                    //GLuint program location,
+                    size: componentTypeByteSize,
+                    type: accessor.componentType,
+                    //GLboolean normalized
+                    stride: stride,
+                    offset: offset
+                };
+
+            }
+
+            this._checkComplete();
+        });
+
     };
 
 
@@ -300,7 +373,7 @@ var MinimalGLTFLoader;
 
     // -------------- Scope limited ---------------
     
-    var ComponentType2AttributeSize = {
+    var ComponentType2ByteSize = {
         5120: 1, // BYTE
         5121: 1, // UNSIGNED_BYTE
         5122: 2, // SHORT
