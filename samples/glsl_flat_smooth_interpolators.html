@@ -146,66 +146,109 @@
         var uniformMvpLocations = [gl.getUniformLocation(programs[VIEWPORTS.LEFT], "mvp"), gl.getUniformLocation(programs[VIEWPORTS.RIGHT], "mvp")];
         var uniformMvNormalLocations = [gl.getUniformLocation(programs[VIEWPORTS.LEFT], "mvNormal"), gl.getUniformLocation(programs[VIEWPORTS.RIGHT], "mvNormal")];
 
-        var vertexBuffer = gl.createBuffer();
-        var vertexElementBuffer = gl.createBuffer();
-        var vertexArray = gl.createVertexArray();
-
         // -- Load gltf then render
         var gltfUrl = '../assets/gltf/di_model_tri.gltf';
-        loadGltfGeometry(gltfUrl, function(scene) {
+        var glTFLoader = new MinimalGLTFLoader.glTFLoader();
 
-            // -- Initialize buffer
-            var vertices = scene.vertices;
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        glTFLoader.loadGLTF(gltfUrl, function(glTF) {
 
-            var indices = scene.indices;
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexElementBuffer);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+            var curScene = glTF.scenes[glTF.defaultScene];
 
             // -- Initialize vertex array
             var POSITION_LOCATION = 0; // set with GLSL layout qualifier
             var NORMAL_LOCATION = 1; // set with GLSL layout qualifier
 
-            gl.bindVertexArray(vertexArray);
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-            gl.vertexAttribPointer(
-                POSITION_LOCATION,
-                scene.positionNumberOfComponents,
-                gl.FLOAT,
-                false,
-                scene.positionByteStride,
-                scene.positionByteOffset
-                );
-            gl.enableVertexAttribArray(POSITION_LOCATION);
+            var vertexArrayMaps = {};
 
-            gl.vertexAttribPointer(
-                NORMAL_LOCATION,
-                scene.normalNumberOfComponents,
-                gl.FLOAT,
-                false,
-                scene.normalByteStride,
-                scene.normalByteOffset
-                );
-            gl.enableVertexAttribArray(NORMAL_LOCATION);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            // var in loop
+            var mesh;
+            var primitive;
+            var vertexBuffer;
+            var indicesBuffer;
+            var vertexArray;
 
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexElementBuffer);
+            var i,len;
 
-            gl.bindVertexArray(null);
+            for (var mid in curScene.meshes) {
+                mesh = curScene.meshes[mid];
+                vertexArrayMaps[mid] = [];
+                //elementBufferMaps[mid] = [];
 
+                for (i = 0, len = mesh.primitives.length; i < len; ++i) {
+                    primitive = mesh.primitives[i];
+                    
+                    // create buffers
+                    vertexBuffer = gl.createBuffer();
+                    indicesBuffer = gl.createBuffer();
+
+                    // No VertexArray binding for ElementBuffer ??
+
+                    // WebGL2: create vertexArray
+                    vertexArray = gl.createVertexArray();
+                    vertexArrayMaps[mid].push(vertexArray);
+
+                    // -- Initialize buffer
+                    var vertices = primitive.vertexBuffer;
+                    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+                    var indices = primitive.indices;
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+                    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+                    // -- VertexAttribPointer
+                    var positionInfo = primitive.attributes['POSITION'];
+
+                    gl.bindVertexArray(vertexArray);
+
+                    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+                    
+
+                    gl.vertexAttribPointer(
+                        POSITION_LOCATION,
+                        positionInfo.size,
+                        positionInfo.type,
+                        false,
+                        positionInfo.stride,
+                        positionInfo.offset
+                        );
+                    gl.enableVertexAttribArray(POSITION_LOCATION);
+
+                    var normalInfo = primitive.attributes['NORMAL'];
+                    gl.vertexAttribPointer(
+                        NORMAL_LOCATION,
+                        normalInfo.size,
+                        normalInfo.type,
+                        false,
+                        normalInfo.stride,
+                        normalInfo.offset
+                        );
+                    gl.enableVertexAttribArray(NORMAL_LOCATION);
+
+                    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+                    //elementBufferMaps[mid].push(indicesBuffer);
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+                    //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+                    gl.bindVertexArray(null);
+
+
+                }
+                
+            }
+            
             // -- Render preparation
             gl.enable(gl.DEPTH_TEST);
             gl.depthFunc(gl.LEQUAL);
 
-            var numIndices = scene.indices.length;
-
             var translate = vec3.create();
             vec3.set(translate, 0, -18, -60);
             var scale = vec3.create();
-            vec3.set(scale, 0.3, 0.3, 0.3);
+            var s = 0.3;
+            vec3.set(scale, s, s, s);
             var modelView = mat4.create();
             mat4.translate(modelView, modelView, translate);
             mat4.scale(modelView, modelView, scale);
@@ -214,11 +257,10 @@
 
             var perspective = mat4.create();
             mat4.perspective(perspective, 0.785, 1, 1, 1000);
-            var mvp = mat4.create();
 
-            var mvNormal = mat4.create();
-
-            gl.bindVertexArray(vertexArray);
+            var localMV = mat4.create();
+            var localMVP = mat4.create();
+            var localMVNormal = mat4.create();
 
             // -- Render loop
             (function render() {
@@ -226,31 +268,39 @@
                 gl.clear(gl.COLOR_BUFFER_BIT);
 
                 mat4.rotateY(modelView, modelView, rotatationSpeedY);
-                mat4.multiply(mvp, perspective, modelView);
 
-                mat4.invert(mvNormal, modelView);
-                mat4.transpose(mvNormal, mvNormal);
+                for (var mid in curScene.meshes) {
+                    mesh = curScene.meshes[mid];
 
-                for (var i = 0; i < VIEWPORTS.MAX; ++i) {
-                    gl.useProgram(programs[i]);
-                    gl.uniformMatrix4fv(uniformMvpLocations[i], false, mvp);
-                    gl.uniformMatrix4fv(uniformMvNormalLocations[i], false, mvNormal);
+                    for (i = 0, len = mesh.primitives.length; i < len; ++i) {
+                        primitive = mesh.primitives[i];
 
-                    gl.viewport(viewport[i].x, viewport[i].y, viewport[i].width, viewport[i].height);
-                    gl.drawElements(gl.TRIANGLES, numIndices, gl.UNSIGNED_SHORT, 0);
+                        mat4.multiply(localMV, modelView, primitive.matrix);
+                        mat4.multiply(localMVP, perspective, localMV);
+
+                        mat4.invert(localMVNormal, localMV);
+                        mat4.transpose(localMVNormal, localMVNormal);
+
+                        gl.bindVertexArray(vertexArrayMaps[mid][i]);
+
+                        for (var i = 0; i < VIEWPORTS.MAX; ++i) {
+                            gl.useProgram(programs[i]);
+                            gl.uniformMatrix4fv(uniformMvpLocations[i], false, localMVP);
+                            gl.uniformMatrix4fv(uniformMvNormalLocations[i], false, localMVNormal);
+
+                            gl.viewport(viewport[i].x, viewport[i].y, viewport[i].width, viewport[i].height);
+                            
+                            gl.drawElements(primitive.mode, primitive.indices.length, primitive.indicesComponentType, 0);
+                        }
+                        
+                        gl.bindVertexArray(null);
+                    }
                 }
 
                 requestAnimationFrame(render);
             })();
         });
 
-        // If you have a long-running page, and need to delete WebGL resources, use:
-
-        // gl.deleteBuffer(vertexBuffer);
-        // gl.deleteBuffer(vertexElementBuffer);
-        // gl.deleteVertexArray(vertexArray);
-        // gl.deleteProgram(programs[VIEWPORTS.LEFT]);
-        // gl.deleteProgram(programs[VIEWPORTS.RIGHT]);
     })();
     </script>
     <div id="highlightedLines"  style="display: none">#L74</div>
