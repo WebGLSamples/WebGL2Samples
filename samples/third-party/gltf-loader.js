@@ -338,7 +338,7 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
                 // for vertexAttribPointer
                 newPrimitive.attributes[attributeName] = {
                     //GLuint program location,
-                    size: componentTypeByteSize,
+                    size: Type2NumOfComponent[accessor.type],
                     type: accessor.componentType,
                     //GLboolean normalized
                     stride: accessor.byteStride,
