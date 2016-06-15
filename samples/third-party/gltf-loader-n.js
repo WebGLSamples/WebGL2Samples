@@ -97,7 +97,7 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
                 bufferTask.push(function(data) {
                     loader._bufferViews[bufferViewID] = data.slice(bufferView.byteOffset, bufferView.byteOffset + bufferView.byteLength);
                     loader._finishedPendingTasks++;
-                    callback(data);
+                    callback(loader._bufferViews[bufferViewID]);
                 });
             }
 
@@ -220,7 +220,7 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
         for (var c = 0; c < childreLen; ++c) {
             var childName = children[c];
             var childNode = json.nodes[childName];
-            this._parseNode(json, childNode, scene, onload, curMatrix);
+            this._parseNode(json, childNode, newScene, curMatrix);
         }
 
     };
@@ -314,8 +314,8 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
                     size: componentTypeByteSize,
                     type: accessor.componentType,
                     //GLboolean normalized
-                    stride: stride,
-                    offset: offset
+                    stride: accessor.byteStride,
+                    offset: accessor.byteOffset
                 };
 
             }
