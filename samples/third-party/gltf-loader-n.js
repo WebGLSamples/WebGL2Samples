@@ -5,9 +5,11 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
 
     // Data classes
     var Scene = MinimalGLTFLoader.Scene = function () {
-        //this.nodes = [];
         this.meshes = [];
+        //this.meshes = {};
     };
+
+    // Node
 
     var Mesh = MinimalGLTFLoader.Mesh = function () {
         this.primitives = [];
