@@ -260,6 +260,7 @@
                         primitive = mesh.primitives[i];
 
                         mat4.multiply(localMV, modelView, primitive.matrix);
+                        //mat4.copy(localMV, modelView);
                         mat4.multiply(localMVP, perspective, localMV);
 
                         mat4.invert(localMVNormal, localMV);
