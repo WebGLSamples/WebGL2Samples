@@ -1,6 +1,27 @@
-var MinimalGLTFLoader;
+var MinimalGLTFLoader = MinimalGLTFLoader || {};
 (function() {
     'use strict';
+
+
+    // Data classes
+    var Scene = MinimalGLTFLoader.Scene = function () {
+        //this.nodes = [];
+        this.meshes = [];
+    };
+
+    var Mesh = MinimalGLTFLoader.Mesh = function () {
+        this.primitives = [];
+    };
+
+    var Primitive = MinimalGLTFLoader.Primitive = function () {
+        this.indices = null;
+
+        // !!: assume vertex buffer is interleaved
+        // see discussion https://github.com/KhronosGroup/glTF/issues/21
+        this.vertexBuffer = null;
+        this.attributes = {};
+    };
+
 
     /**
      * 
@@ -20,6 +41,7 @@ var MinimalGLTFLoader;
 
     var glTFLoader = MinimalGLTFLoader.glTFLoader = function () {
         this._init();
+        this.glTF = null;
     };
 
     glTFLoader.prototype._init = function() {
@@ -38,35 +60,10 @@ var MinimalGLTFLoader;
 
         this.onload = null;
 
-
-        this.glTF = new glTFModel();
-        //this.glTF.bufferData = this._bufferViews;
     };
 
 
-    // Data store classes
-    var Scene = MinimalGLTFLoader.Scene = function () {
-        //this.nodes = [];
-        this.meshes = [];
-    };
 
-    // var Node = MinimalGLTFLoader.Node = function () {
-    //     var meshes = [];
-    //     var children = [];
-    // };
-
-    var Mesh = MinimalGLTFLoader.Mesh = function () {
-        this.primitives = [];
-    };
-
-    var Primitive = MinimalGLTFLoader.Primitive = function () {
-        this.indices = null;
-
-        // !!: assume vertex buffer is interleaved
-        // see discussion https://github.com/KhronosGroup/glTF/issues/21
-        this.vertexBuffer = null;
-        this.attributes = {};
-    };
 
 
 
@@ -93,12 +90,14 @@ var MinimalGLTFLoader;
                 this._pendingTasks++;
                 var bufferTask = this._bufferTasks[bufferView.buffer];
                 if (!bufferTask) {
-                    bufferTask = [];
+                    this._bufferTasks[bufferView.buffer] = [];
+                    bufferTask = this._bufferTasks[bufferView.buffer];
                 }
+                var loader = this;
                 bufferTask.push(function(data) {
-                    this._bufferViews[bufferViewID] = data.slice(bufferView.byteOffset, bufferView.byteOffset + bufferView.byteLength);
-                    this._finishedPendingTasks++;
-                    callback(bufferViewData);
+                    loader._bufferViews[bufferViewID] = data.slice(bufferView.byteOffset, bufferView.byteOffset + bufferView.byteLength);
+                    loader._finishedPendingTasks++;
+                    callback(data);
                 });
             }
 
@@ -114,28 +113,27 @@ var MinimalGLTFLoader;
     // };
 
     glTFLoader.prototype._checkComplete = function () {
-        if (this._bufferRequested === this._bufferLoaded
+        if (this._bufferRequested == this._bufferLoaded
             // && other resources finish loading
             ) {
             this._loadDone = true;
         }
 
-        if (this._loadDone && this._parseDone && this._pendingTasks === this._finishedPendingTasks) {
+        if (this._loadDone && this._parseDone && this._pendingTasks == this._finishedPendingTasks) {
             this.onload(this.glTF);
         }
     };
 
 
-    glTFLoader.prototype._parseGLTF = function(json) {
-
-        init();
+    glTFLoader.prototype._parseGLTF = function (json) {
 
         this.glTF.json = json;
+        this.glTF.defaultScene = json.scene;
 
         // Iterate through every scene
         for (var sceneID in json.scenes) {
             var newScene = new Scene();
-            this.glTF.scenes.push(newScene);
+            this.glTF.scenes[sceneID] = newScene;
 
             var scene = json.scenes[sceneID];
             var nodes = scene.nodes;
@@ -157,11 +155,12 @@ var MinimalGLTFLoader;
 
 
     var translationVec3 = vec3.create();
-    var rotationQuat = new quat();
+    var rotationQuat = quat.create();
     var scaleVec3 = vec3.create();
     var TRMatrix = mat4.create();
     
     glTFLoader.prototype._parseNode = function(json, node, newScene, matrix) {
+        console.log('parse Node' + node.name);
 
         if (matrix === undefined) {
             matrix = mat4.create();
@@ -208,8 +207,8 @@ var MinimalGLTFLoader;
 
                     var primitive = primitives[p];
                     
-                    _parseIndices(json, primitive, newPrimitive);
-                    _parseAttributes(json, primitive, newPrimitive, curMatrix);
+                    this._parseIndices(json, primitive, newPrimitive);
+                    this._parseAttributes(json, primitive, newPrimitive, curMatrix);
                 }
             }
         }
@@ -232,9 +231,10 @@ var MinimalGLTFLoader;
         var accessorName = primitive.indices;
         var accessor = json.accessors[accessorName];
 
+        var loader = this;
         this._getBufferViewData(json, accessor.bufferView, function(bufferViewData) {
             newPrimitive.indices = _getAccessorData(bufferViewData, accessor);
-            this._checkComplete();
+            loader._checkComplete();
         });
     };
 
@@ -255,6 +255,8 @@ var MinimalGLTFLoader;
         var vertexBufferViewID = firstAccessor.bufferView;
         var bufferView = json.bufferViews[vertexBufferViewID];
 
+        var loader = this;
+
         this._getBufferViewData(json, vertexBufferViewID, function(data) {
             newPrimitive.vertexBuffer
                 = _arrayBuffer2TypedArray(
@@ -264,30 +266,28 @@ var MinimalGLTFLoader;
                     firstAccessor.componentType
                     );
             
-            for (attributeName in primitive.attributes) {
+            for (var attributeName in primitive.attributes) {
                 var accessorName = primitive.attributes[attributeName];
                 var accessor = json.accessors[accessorName];
                 
                 var componentTypeByteSize = ComponentType2ByteSize[accessor.componentType];
                 var stride = accessor.byteStride / componentTypeByteSize;
-                var offset = accessor.byteOffset / componentType;
+                var offset = accessor.byteOffset / componentTypeByteSize;
                 var count  = accessor.count;
 
                 // Matrix transformation
                 if (attributeName === 'POSITION') {
                     for (var i = 0; i < count; ++i) {
-                        // @todo: add vec2 and other(needed?) support
-                        if(scene.positionNumberOfComponents === 3) {
-                            vec4.set(tmpVec4, data[stride * i + offset]
-                                            , data[stride * i + offset + 1]
-                                            , data[stride * i + offset + 2]
-                                            , 1);
-                            vec4.transformMat4(tmpVec4, tmpVec4, matrix);
-                            vec4.scale(tmpVec4, tmpVec4, 1 / tmpVec4[3]);
-                            data[stride * i + offset] = tmpVec4[0];
-                            data[stride * i + offset + 1] = tmpVec4[1];
-                            data[stride * i + offset + 2] = tmpVec4[2];
-                        }
+                        // TODO: add vec2 and other(needed?) support 
+                        vec4.set(tmpVec4, data[stride * i + offset]
+                                        , data[stride * i + offset + 1]
+                                        , data[stride * i + offset + 2]
+                                        , 1);
+                        vec4.transformMat4(tmpVec4, tmpVec4, matrix);
+                        vec4.scale(tmpVec4, tmpVec4, 1 / tmpVec4[3]);
+                        data[stride * i + offset] = tmpVec4[0];
+                        data[stride * i + offset + 1] = tmpVec4[1];
+                        data[stride * i + offset + 2] = tmpVec4[2];
                     }
                 } else if (attributeName === 'NORMAL') {
                     mat4.invert(inverseTransposeMatrix, matrix);
@@ -320,12 +320,10 @@ var MinimalGLTFLoader;
 
             }
 
-            this._checkComplete();
+            loader._checkComplete();
         });
 
     };
-
-
 
     /**
      * load a glTF model
@@ -334,45 +332,55 @@ var MinimalGLTFLoader;
      * @param {Function} callback the onload callback function
      */
     glTFLoader.prototype.loadGLTF = function (uri, callback) {
-        this.onload = callback || function() {
+        this._init();
+
+        this.onload = callback || function(glTF) {
             console.log('glTF model loaded.');
+            console.log(glTF);
         };
 
-        this._init();
+        
+        this.glTF = new glTFModel();
 
         this.baseUri = _getBaseUri(uri);
 
-        _loadJSON(url, function(response) {
+        var loader = this;
+
+        _loadJSON(uri, function (response) {
             // Parse JSON string into object
             var json = JSON.parse(response);
 
             // Launch loading resources: buffers, images, etc.
             if (json.buffers) {
-                for (b in json.buffers) {
-                    this._bufferRequested++;
-                    _loadArrayBuffer(json.buffers[b].uri, function(resource) {
-                        this._buffers[name] = resource;
-                        this._bufferLoaded++;
-                        if (this._bufferTasks[name]) {
+                for (var b in json.buffers) {
+
+                    loader._bufferRequested++;
+
+                    _loadArrayBuffer(loader.baseUri + '/' + json.buffers[b].uri, function (resource) {
+                        loader._buffers[b] = resource;
+                        loader._bufferLoaded++;
+                        if (loader._bufferTasks[b]) {
                             var i,len;
-                            for (i = 0, len = this._bufferTasks[name].length; i < len; ++i) {
-                                (this._bufferTasks[name])[i].run(resource);
+                            for (i = 0, len = loader._bufferTasks[b].length; i < len; ++i) {
+                                (loader._bufferTasks[b][i])(resource);
                             }
                         }
-                        this._checkComplete();
+                        loader._checkComplete();
+
                     });
+
                 }
             }
 
             // Meanwhile start glTF scene parsing
-            this._parseGLTF(json);
+            loader._parseGLTF(json);
         });
     };
 
 
 
-    // -------------- Scope limited ---------------
-    
+   
+    // TODO: get from gl context
     var ComponentType2ByteSize = {
         5120: 1, // BYTE
         5121: 1, // UNSIGNED_BYTE
@@ -390,6 +398,17 @@ var MinimalGLTFLoader;
         'MAT3': 9,
         'MAT4': 16
     };
+
+    MinimalGLTFLoader.Attributes = [
+        'POSITION',
+        'NORMAL', 
+        'TEXCOORD', 
+        'COLOR', 
+        'JOINT', 
+        'WEIGHT'
+    ];
+
+    // ------ Scope limited private util functions---------------
 
     function _arrayBuffer2TypedArray(resource, byteOffset, countOfComponentType, componentType) {
         switch(componentType) {
@@ -432,9 +451,9 @@ var MinimalGLTFLoader;
         xobj.overrideMimeType("application/json");
         xobj.open('GET', src, true);
         xobj.onreadystatechange = function () {
-            if (xobj.readyState === 4 && // Request finished, response ready
-                xobj.status === "200") { // Status OK
-                callback(xobj.responseText);
+            if (xobj.readyState == 4 && // Request finished, response ready
+                xobj.status == "200") { // Status OK
+                callback(xobj.responseText, this);
             }
         };
         xobj.send(null);
@@ -445,8 +464,8 @@ var MinimalGLTFLoader;
         xobj.responseType = 'arraybuffer';
         xobj.open('GET', url, true);
         xobj.onreadystatechange = function () {
-            if (xobj.readyState === 4 && // Request finished, response ready
-                xobj.status === "200") { // Status OK
+            if (xobj.readyState == 4 && // Request finished, response ready
+                xobj.status == "200") { // Status OK
                 var arrayBuffer = xobj.response;
                 if (arrayBuffer && callback) {
                     callback(arrayBuffer);
