@@ -133,6 +133,12 @@
 
         var texture;
 
+        gl.useProgram(program);
+        gl.uniform1i(diffuseLocation, 0);
+        gl.uniform1i(displacementMapLocation, 0);
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LESS);
+
         // -- Load model then render
         var glTFLoader = new MinimalGLTFLoader.glTFLoader();
         var curScene;
@@ -221,7 +227,6 @@
             }
 
             // -- Init Texture
-
             var imageUrl = '../assets/img/heightmap.jpg';
             loadImage(imageUrl, function(image) {
                 // -- Init 2D Texture
@@ -238,21 +243,20 @@
                 gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGB8, 256, 256);
                 gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGB, gl.UNSIGNED_BYTE, image);
 
-
-                gl.useProgram(program);
-                gl.uniform1i(diffuseLocation, 0);
-                gl.uniform1i(displacementMapLocation, 0);
+                
 
                 // gl.activeTexture(gl.TEXTURE0);
                 // gl.bindTexture(gl.TEXTURE_2D, texture);
 
                 requestAnimationFrame(render);
             });
+            
         });
 
         // -- Initialize render variables
         var orientation = [0.0, 0.0, 0.0];
 
+        var tempMat4 = mat4.create();
         var modelMatrix = mat4.create();
         
         var eyeVec3 = vec3.create();
@@ -297,7 +301,9 @@
             mat4.rotateX(m, m, deltaX / 100.0);
             mat4.rotateY(m, m, deltaY / 100.0);
 
-            mat4.multiply(mvMatrix, mvMatrix, m);
+            mat4.multiply(tempMat4, mvMatrix, m);
+            mat4.copy(mvMatrix, tempMat4);
+
             lastMouseX = newX;
             lastMouseY = newY;
         };
@@ -305,10 +311,9 @@
         var localMV = mat4.create();
         function render() {
             // -- Render
+
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
-
-            gl.enable(gl.DEPTH_TEST);
 
             orientation[0] = 0.00020; // yaw
             orientation[1] = 0.00010; // pitch
@@ -317,8 +322,6 @@
             mat4.rotateX(mvMatrix, mvMatrix, orientation[0] * Math.PI);
             mat4.rotateY(mvMatrix, mvMatrix, orientation[1] * Math.PI);
             mat4.rotateZ(mvMatrix, mvMatrix, orientation[2] * Math.PI);
-
-            
 
             var i,len;
             for (var mid in curScene.meshes) {
