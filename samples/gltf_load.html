@@ -14,7 +14,7 @@
 <body>
     <div id="info">WebGL 2 Samples - gltf_loading</div>
     <p id="description">
-        This sample demonstrates gltf support in WebGL.
+        This sample demonstrates gltf support in WebGL. <br/> refractored gltf loader
     </p>
 
     <script id="vs-smooth" type="x-shader/x-vertex">
@@ -76,7 +76,7 @@
         }
         
         // -- Mouse Behaviour
-        var s = 1.0;
+        var s = 0.1;
         var mouseDown = false;
         var lastMouseY = 0;
         window.onmousedown = function(event) {
@@ -96,131 +96,182 @@
             
             s += deltaY / 1000;
             
-            console.log(s);
-            
             lastMouseY = newY;
         };
         
         
 
-        // -- Initialize program
-        var program = createProgram(gl, getShaderSource('vs-smooth'), getShaderSource('fs-smooth'));
-        var uniformMvpLocation = gl.getUniformLocation(program, "mvp");
-        var uniformMvNormalLocation = gl.getUniformLocation(program, "mvNormal");
-
-        var vertexBuffer = gl.createBuffer();
-        var vertexElementBuffer = gl.createBuffer();
-        var vertexArray = gl.createVertexArray();
+        
 
         // -- Load obj then render
         //var gltfUrl = '../../assets/gltf/Reciprocating_Saw.gltf';
-        //var gltfUrl = '../../assets/gltf/2_cylinder_engine.gltf';
+        var gltfUrl = '../../assets/gltf/2_cylinder_engine.gltf';
         //var gltfUrl = '../../assets/gltf/duck.gltf';
-        var gltfUrl = '../../assets/gltf/box.gltf';
+        //var gltfUrl = '../../assets/gltf/box.gltf';
         //var gltfUrl = '../../assets/gltf/CesiumMilkTruck.gltf';
         // loadObj(objURL, function(mesh) {
-        loadGltfGeometry(gltfUrl, function(scene) {
+        var glTFLoader = new MinimalGLTFLoader.glTFLoader();
 
-            // -- Initialize buffer
-            var vertices = scene.vertices;
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        glTFLoader.loadGLTF(gltfUrl, function(glTF) {
 
-            var indices = scene.indices;
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexElementBuffer);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+            var curScene = glTF.scenes[glTF.defaultScene];
+            
+            // -- Initialize program
+            // TODO: use glTF built-in shader
+            var program = createProgram(gl, getShaderSource('vs-smooth'), getShaderSource('fs-smooth'));
+            var uniformMvpLocation = gl.getUniformLocation(program, "mvp");
+            var uniformMvNormalLocation = gl.getUniformLocation(program, "mvNormal");
 
             // -- Initialize vertex array
             var POSITION_LOCATION = 0; // set with GLSL layout qualifier
             var NORMAL_LOCATION = 1; // set with GLSL layout qualifier
 
-            gl.bindVertexArray(vertexArray);
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-            gl.vertexAttribPointer(
-                POSITION_LOCATION,
-                scene.positionNumberOfComponents,
-                gl.FLOAT,
-                false,
-                scene.positionByteStride,
-                scene.positionByteOffset //+ 113595 * 4
-                );
-            gl.enableVertexAttribArray(POSITION_LOCATION);
+            var vertexArrayMaps = {};
 
-            gl.vertexAttribPointer(
-                NORMAL_LOCATION,
-                scene.normalNumberOfComponents,
-                gl.FLOAT,
-                false,
-                scene.normalByteStride,
-                scene.normalByteOffset //+ 113595 * 4
-                );
-            gl.enableVertexAttribArray(NORMAL_LOCATION);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            // var in loop
+            var mesh;
+            var primitive;
+            var vertexBuffer;
+            var indicesBuffer;
+            var vertexArray;
 
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexElementBuffer);
+            var i,len;
 
-            gl.bindVertexArray(null);
+            for (var mid in curScene.meshes) {
+                mesh = curScene.meshes[mid];
+                vertexArrayMaps[mid] = [];
 
+                for (i = 0, len = mesh.primitives.length; i < len; ++i) {
+                    primitive = mesh.primitives[i];
+                    
+                    // create buffers
+                    vertexBuffer = gl.createBuffer();
+                    indicesBuffer = gl.createBuffer();
+
+                    // WebGL2: create vertexArray
+                    vertexArray = gl.createVertexArray();
+                    vertexArrayMaps[mid].push(vertexArray);
+
+                    // -- Initialize buffer
+                    var vertices = primitive.vertexBuffer;
+                    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+                    var indices = primitive.indices;
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+                    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+                    // -- VertexAttribPointer
+                    var positionInfo = primitive.attributes['POSITION'];
+
+                    gl.bindVertexArray(vertexArray);
+
+                    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+                    
+
+                    gl.vertexAttribPointer(
+                        POSITION_LOCATION,
+                        positionInfo.size,
+                        positionInfo.type,
+                        false,
+                        positionInfo.stride,
+                        positionInfo.offset
+                        );
+                    gl.enableVertexAttribArray(POSITION_LOCATION);
+
+                    var normalInfo = primitive.attributes['NORMAL'];
+                    gl.vertexAttribPointer(
+                        NORMAL_LOCATION,
+                        normalInfo.size,
+                        normalInfo.type,
+                        false,
+                        normalInfo.stride,
+                        normalInfo.offset
+                        );
+                    gl.enableVertexAttribArray(NORMAL_LOCATION);
+
+                    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+
+                    gl.bindVertexArray(null);
+
+
+                }
+                
+            }
+            
             // -- Render preparation
             gl.enable(gl.DEPTH_TEST);
             gl.depthFunc(gl.LEQUAL);
 
-            var numIndices = scene.indices.length;
-
             var translate = vec3.create();
-            vec3.set(translate, 0, 0, -10);
+            vec3.set(translate, 0, 0, -100);
             var scale = vec3.create();
-            //var s = 1;
             
             var r = 0.0;
             var rotationSpeedY= 0.01;
 
             var perspective = mat4.create();
             mat4.perspective(perspective, 0.785, 1, 1, 1000);
-            var mvp = mat4.create();
 
-            var mvNormal = mat4.create();
+            var modelView = mat4.create();
 
-            gl.bindVertexArray(vertexArray);
+            var localMV = mat4.create();
+            var localMVP = mat4.create();
+            var localMVNormal = mat4.create();
 
             // -- Render loop
             (function render() {
                 gl.clearColor(0.0, 0.0, 0.0, 1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT);
-                
-                //console.log(s);
+
                 vec3.set(scale, s, s, s);
-                //vec3.set(scale, 0.1, 0.1, 0.1);
-                var modelView = mat4.create();
+                mat4.identity(modelView);
                 mat4.translate(modelView, modelView, translate);
                 mat4.scale(modelView, modelView, scale);
 
                 r += rotationSpeedY;
                 mat4.rotateY(modelView, modelView, r);
-                mat4.multiply(mvp, perspective, modelView);
 
-                mat4.invert(mvNormal, modelView);
-                mat4.transpose(mvNormal, mvNormal);
 
                 gl.useProgram(program);
-                gl.uniformMatrix4fv(uniformMvpLocation, false, mvp);
-                gl.uniformMatrix4fv(uniformMvNormalLocation, false, mvNormal);
+                
 
-                gl.drawElements(gl.TRIANGLES, numIndices, gl.UNSIGNED_SHORT, 0);
+                for (var mid in curScene.meshes) {
+                    mesh = curScene.meshes[mid];
+
+                    for (i = 0, len = mesh.primitives.length; i < len; ++i) {
+                        primitive = mesh.primitives[i];
+
+                        mat4.multiply(localMV, modelView, primitive.matrix);
+                        //mat4.copy(localMV, modelView);
+                        mat4.multiply(localMVP, perspective, localMV);
+
+                        mat4.invert(localMVNormal, localMV);
+                        mat4.transpose(localMVNormal, localMVNormal);
+
+                        gl.uniformMatrix4fv(uniformMvpLocation, false, localMVP);
+                        gl.uniformMatrix4fv(uniformMvNormalLocation, false, localMVNormal);
+
+                        gl.bindVertexArray(vertexArrayMaps[mid][i]);
+
+                        // TODO: when no indices, do drawArrays
+                        gl.drawElements(primitive.mode, primitive.indices.length, primitive.indicesComponentType, 0);
+
+                        gl.bindVertexArray(null);
+                    }
+                }
+
+                
 
                 requestAnimationFrame(render);
             })();
-        });
 
-        window.onunload = function() {
-            // -- Delete WebGL resources
-            gl.deleteBuffer(vertexBuffer);
-            gl.deleteBuffer(vertexElementBuffer);
-            gl.deleteVertexArray(vertexArray);
-            gl.deleteProgram(program);
-        };
+
+        });
     })();
     </script>
 

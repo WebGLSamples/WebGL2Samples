@@ -172,7 +172,6 @@
             for (var mid in curScene.meshes) {
                 mesh = curScene.meshes[mid];
                 vertexArrayMaps[mid] = [];
-                //elementBufferMaps[mid] = [];
 
                 for (i = 0, len = mesh.primitives.length; i < len; ++i) {
                     primitive = mesh.primitives[i];
@@ -180,8 +179,6 @@
                     // create buffers
                     vertexBuffer = gl.createBuffer();
                     indicesBuffer = gl.createBuffer();
-
-                    // No VertexArray binding for ElementBuffer ??
 
                     // WebGL2: create vertexArray
                     vertexArray = gl.createVertexArray();
@@ -229,9 +226,7 @@
 
                     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-                    //elementBufferMaps[mid].push(indicesBuffer);
                     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
-                    //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
                     gl.bindVertexArray(null);
 

@@ -215,9 +215,7 @@
 
                     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-                    //elementBufferMaps[mid].push(indicesBuffer);
                     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
-                    //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
                     gl.bindVertexArray(null);
 
@@ -242,11 +240,6 @@
                 // -- Allocate storage for the texture
                 gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGB8, 256, 256);
                 gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGB, gl.UNSIGNED_BYTE, image);
-
-                
-
-                // gl.activeTexture(gl.TEXTURE0);
-                // gl.bindTexture(gl.TEXTURE_2D, texture);
 
                 requestAnimationFrame(render);
             });
@@ -346,13 +339,6 @@
             requestAnimationFrame(render);
         }
 
-        // If you have a long-running page, and need to delete WebGL resources, use:
-
-        // gl.deleteBuffer(vertexBuffer);
-        // gl.deleteBuffer(vertexElementBuffer);
-        // gl.deleteTexture(texture);
-        // gl.deleteProgram(program);
-        // gl.deleteVertexArray(vertexArray);
     })();
     </script>
     <div id="highlightedLines"  style="display: none">#L44</div>
