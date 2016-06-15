@@ -99,17 +99,10 @@
             lastMouseY = newY;
         };
         
-        
 
-        
-
-        // -- Load obj then render
-        //var gltfUrl = '../../assets/gltf/Reciprocating_Saw.gltf';
+        // -- Load glTF then render
         var gltfUrl = '../../assets/gltf/2_cylinder_engine.gltf';
-        //var gltfUrl = '../../assets/gltf/duck.gltf';
-        //var gltfUrl = '../../assets/gltf/box.gltf';
-        //var gltfUrl = '../../assets/gltf/CesiumMilkTruck.gltf';
-        // loadObj(objURL, function(mesh) {
+
         var glTFLoader = new MinimalGLTFLoader.glTFLoader();
 
         glTFLoader.loadGLTF(gltfUrl, function(glTF) {
@@ -164,7 +157,7 @@
                     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
                     // -- VertexAttribPointer
-                    var positionInfo = primitive.attributes['POSITION'];
+                    var positionInfo = primitive.attributes.POSITION;
 
                     gl.bindVertexArray(vertexArray);
 
@@ -181,7 +174,7 @@
                         );
                     gl.enableVertexAttribArray(POSITION_LOCATION);
 
-                    var normalInfo = primitive.attributes['NORMAL'];
+                    var normalInfo = primitive.attributes.NORMAL;
                     gl.vertexAttribPointer(
                         NORMAL_LOCATION,
                         normalInfo.size,

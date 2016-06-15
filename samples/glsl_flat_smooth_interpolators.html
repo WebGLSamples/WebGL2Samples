@@ -196,7 +196,7 @@
                     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
                     // -- VertexAttribPointer
-                    var positionInfo = primitive.attributes['POSITION'];
+                    var positionInfo = primitive.attributes.POSITION;
 
                     gl.bindVertexArray(vertexArray);
 
@@ -213,7 +213,7 @@
                         );
                     gl.enableVertexAttribArray(POSITION_LOCATION);
 
-                    var normalInfo = primitive.attributes['NORMAL'];
+                    var normalInfo = primitive.attributes.NORMAL;
                     gl.vertexAttribPointer(
                         NORMAL_LOCATION,
                         normalInfo.size,
@@ -278,7 +278,7 @@
 
                         gl.bindVertexArray(vertexArrayMaps[mid][i]);
 
-                        for (var i = 0; i < VIEWPORTS.MAX; ++i) {
+                        for (i = 0; i < VIEWPORTS.MAX; ++i) {
                             gl.useProgram(programs[i]);
                             gl.uniformMatrix4fv(uniformMvpLocations[i], false, localMVP);
                             gl.uniformMatrix4fv(uniformMvNormalLocations[i], false, localMVNormal);

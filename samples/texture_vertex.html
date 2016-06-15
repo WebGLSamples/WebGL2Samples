@@ -180,7 +180,7 @@
 
                     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
                     
-                    var positionInfo = primitive.attributes['POSITION'];
+                    var positionInfo = primitive.attributes.POSITION;
                     gl.vertexAttribPointer(
                         POSITION_LOCATION,
                         positionInfo.size,
@@ -191,7 +191,7 @@
                         );
                     gl.enableVertexAttribArray(POSITION_LOCATION);
 
-                    var normalInfo = primitive.attributes['NORMAL'];
+                    var normalInfo = primitive.attributes.NORMAL;
                     gl.vertexAttribPointer(
                         NORMAL_LOCATION,
                         normalInfo.size,
@@ -202,7 +202,7 @@
                         );
                     gl.enableVertexAttribArray(NORMAL_LOCATION);
 
-                    var texcoordInfo = primitive.attributes['TEXCOORD_0'];
+                    var texcoordInfo = primitive.attributes.TEXCOORD_0;
                     gl.vertexAttribPointer(
                         TEXCOORD_LOCATION,
                         texcoordInfo.size,
