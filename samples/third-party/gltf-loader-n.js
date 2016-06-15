@@ -28,6 +28,8 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
         // see discussion https://github.com/KhronosGroup/glTF/issues/21
         this.vertexBuffer = null;
 
+        this.positionMatrix = mat4.create();
+
         // attribute info (stride, offset, etc)
         this.attributes = {};
     };
@@ -101,22 +103,22 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
                 }
                 var loader = this;
                 bufferTask.push(function(newBufferData) {
-                    // // share same bufferView
-                    // // hierarchy needs to be post processed in the renderer
-                    // var curBufferViewData = loader._bufferViews[bufferViewID];
-                    // if (!curBufferViewData) {
-                    //     console.log('create new BufferView Data for ' + bufferViewID);
-                    //     curBufferViewData = loader._bufferViews[bufferViewID] = newBufferData.slice(bufferView.byteOffset, bufferView.byteOffset + bufferView.byteLength);
-                    // }
-                    // loader._finishedPendingTasks++;
-                    // callback(curBufferViewData);
-
-                    // create new bufferView for each mesh access with a different hierarchy
-                    // hierarchy transformation will be prepared in this way
-                    console.log('create new BufferView Data for ' + bufferViewID);
-                    loader._bufferViews[bufferViewID] = newBufferData.slice(bufferView.byteOffset, bufferView.byteOffset + bufferView.byteLength);
+                    // share same bufferView
+                    // hierarchy needs to be post processed in the renderer
+                    var curBufferViewData = loader._bufferViews[bufferViewID];
+                    if (!curBufferViewData) {
+                        console.log('create new BufferView Data for ' + bufferViewID);
+                        curBufferViewData = loader._bufferViews[bufferViewID] = newBufferData.slice(bufferView.byteOffset, bufferView.byteOffset + bufferView.byteLength);
+                    }
                     loader._finishedPendingTasks++;
-                    callback(loader._bufferViews[bufferViewID]);
+                    callback(curBufferViewData);
+
+                    // // create new bufferView for each mesh access with a different hierarchy
+                    // // hierarchy transformation will be prepared in this way
+                    // console.log('create new BufferView Data for ' + bufferViewID);
+                    // loader._bufferViews[bufferViewID] = newBufferData.slice(bufferView.byteOffset, bufferView.byteOffset + bufferView.byteLength);
+                    // loader._finishedPendingTasks++;
+                    // callback(loader._bufferViews[bufferViewID]);
                 });
             }
 
@@ -267,8 +269,8 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
 
 
 
-    var tmpVec4 = vec4.create();
-    var inverseTransposeMatrix = mat4.create();
+    //var tmpVec4 = vec4.create();
+    //var inverseTransposeMatrix = mat4.create();
 
     glTFLoader.prototype._parseAttributes = function(json, primitive, newPrimitive, matrix) {
         // !! Assume interleaved vertex attributes
@@ -297,42 +299,53 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
                 var accessor = json.accessors[accessorName];
                 
                 var componentTypeByteSize = ComponentType2ByteSize[accessor.componentType];
+                
                 var stride = accessor.byteStride / componentTypeByteSize;
                 var offset = accessor.byteOffset / componentTypeByteSize;
                 var count  = accessor.count;
 
-                // Matrix transformation
-                if (attributeName === 'POSITION') {
-                    for (var i = 0; i < count; ++i) {
-                        // TODO: add vec2 and other(needed?) support 
-                        vec4.set(tmpVec4, data[stride * i + offset]
-                                        , data[stride * i + offset + 1]
-                                        , data[stride * i + offset + 2]
-                                        , 1);
-                        vec4.transformMat4(tmpVec4, tmpVec4, matrix);
-                        vec4.scale(tmpVec4, tmpVec4, 1 / tmpVec4[3]);
-                        data[stride * i + offset] = tmpVec4[0];
-                        data[stride * i + offset + 1] = tmpVec4[1];
-                        data[stride * i + offset + 2] = tmpVec4[2];
-                    }
-                } else if (attributeName === 'NORMAL') {
-                    mat4.invert(inverseTransposeMatrix, matrix);
-                    mat4.transpose(inverseTransposeMatrix, inverseTransposeMatrix);                    
+                // // Matrix transformation
+                // if (attributeName === 'POSITION') {
+                //     for (var i = 0; i < count; ++i) {
+                //         // TODO: add vec2 and other(needed?) support 
+                //         vec4.set(tmpVec4, data[stride * i + offset]
+                //                         , data[stride * i + offset + 1]
+                //                         , data[stride * i + offset + 2]
+                //                         , 1);
+                //         vec4.transformMat4(tmpVec4, tmpVec4, matrix);
+                //         vec4.scale(tmpVec4, tmpVec4, 1 / tmpVec4[3]);
+                //         data[stride * i + offset] = tmpVec4[0];
+                //         data[stride * i + offset + 1] = tmpVec4[1];
+                //         data[stride * i + offset + 2] = tmpVec4[2];
+                //     }
+                // } 
+                // else if (attributeName === 'NORMAL') {
+                //     mat4.invert(inverseTransposeMatrix, matrix);
+                //     mat4.transpose(inverseTransposeMatrix, inverseTransposeMatrix);                    
 
-                    for (var i = 0; i < count; ++i) {
-                        // @todo: add vec2 and other(needed?) support
-                        vec4.set(tmpVec4, data[stride * i + offset]
-                                        , data[stride * i + offset + 1]
-                                        , data[stride * i + offset + 2]
-                                        , 0);
-                        vec4.transformMat4(tmpVec4, tmpVec4, inverseTransposeMatrix);
-                        vec4.normalize(tmpVec4, tmpVec4);
-                        data[stride * i + offset] = tmpVec4[0];
-                        data[stride * i + offset + 1] = tmpVec4[1];
-                        data[stride * i + offset + 2] = tmpVec4[2];
-                    }
-                }
+                //     for (var i = 0; i < count; ++i) {
+                //         // @todo: add vec2 and other(needed?) support
+                //         vec4.set(tmpVec4, data[stride * i + offset]
+                //                         , data[stride * i + offset + 1]
+                //                         , data[stride * i + offset + 2]
+                //                         , 0);
+                //         vec4.transformMat4(tmpVec4, tmpVec4, inverseTransposeMatrix);
+                //         vec4.normalize(tmpVec4, tmpVec4);
+                //         data[stride * i + offset] = tmpVec4[0];
+                //         data[stride * i + offset + 1] = tmpVec4[1];
+                //         data[stride * i + offset + 2] = tmpVec4[2];
+                //     }
+                // }
 
+
+                // local transform matrix
+
+                mat4.copy(newPrimitive.positionMatrix, matrix);
+
+                // mat4.invert(newPrimitive.normalMatrix, matrix);
+                // mat4.transpose(newPrimitive.normalMatrix, newPrimitive.normalMatrix);
+                
+                
 
                 // for vertexAttribPointer
                 newPrimitive.attributes[attributeName] = {
