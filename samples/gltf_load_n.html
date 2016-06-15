@@ -267,10 +267,8 @@
 
                         gl.bindVertexArray(vertexArrayMaps[mid][i]);
 
-                        //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementBufferMaps[mid][i]);
-
                         // temp
-                        gl.drawElements(gl.TRIANGLES, primitive.indices.length, gl.UNSIGNED_SHORT, 0);
+                        gl.drawElements(primitive.mode, primitive.indices.length, primitive.indicesComponentType, 0);
 
                         gl.bindVertexArray(null);
                     }

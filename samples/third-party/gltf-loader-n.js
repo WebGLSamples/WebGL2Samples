@@ -5,6 +5,8 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
 
     // Data classes
     var Scene = MinimalGLTFLoader.Scene = function () {
+        // not 1-1 to meshes in json file
+        // each mesh with a different node hierarchy is a new instance
         this.meshes = [];
         //this.meshes = {};
     };
@@ -12,15 +14,21 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
     // Node
 
     var Mesh = MinimalGLTFLoader.Mesh = function () {
+        this.meshID = '';     // mesh id name in glTF json meshes
         this.primitives = [];
     };
 
     var Primitive = MinimalGLTFLoader.Primitive = function () {
+        this.mode = 4; // default: gl.TRIANGLES
+
         this.indices = null;
+        this.indicesComponentType = 5123;   // default: gl.UNSIGNED_SHORT
 
         // !!: assume vertex buffer is interleaved
         // see discussion https://github.com/KhronosGroup/glTF/issues/21
         this.vertexBuffer = null;
+
+        // attribute info (stride, offset, etc)
         this.attributes = {};
     };
 
@@ -31,14 +39,10 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
     var glTFModel = MinimalGLTFLoader.glTFModel = function () {
         this.defaultScene = '';
         this.scenes = {};
-        //this.bufferData = null;
 
         this.json = null;
     };
 
-    // var Scene = glTFModel.prototype.Scene = function () {
-    //     this.meshes = [];
-    // };
 
 
     var glTFLoader = MinimalGLTFLoader.glTFLoader = function () {
@@ -82,13 +86,13 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
             var bufferData = this._buffers[bufferView.buffer];
             if (bufferData) {
                 // buffer already loaded
-                console.log("first load bufferView, buffer already loaded " + bufferViewID);
+                //console.log("dependent buffer ready, create bufferView" + bufferViewID);
                 this._bufferViews[bufferViewID] = bufferData.slice(bufferView.byteOffset, bufferView.byteOffset + bufferView.byteLength);
                 callback(bufferViewData);
             } else {
                 // buffer not yet loaded
                 // add pending task to _bufferTasks
-                console.log("first load bufferView, buffer not loaded " + bufferViewID);
+                //console.log("pending Task: wait for buffer to load bufferView " + bufferViewID);
                 this._pendingTasks++;
                 var bufferTask = this._bufferTasks[bufferView.buffer];
                 if (!bufferTask) {
@@ -96,8 +100,21 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
                     bufferTask = this._bufferTasks[bufferView.buffer];
                 }
                 var loader = this;
-                bufferTask.push(function(data) {
-                    loader._bufferViews[bufferViewID] = data.slice(bufferView.byteOffset, bufferView.byteOffset + bufferView.byteLength);
+                bufferTask.push(function(newBufferData) {
+                    // // share same bufferView
+                    // // hierarchy needs to be post processed in the renderer
+                    // var curBufferViewData = loader._bufferViews[bufferViewID];
+                    // if (!curBufferViewData) {
+                    //     console.log('create new BufferView Data for ' + bufferViewID);
+                    //     curBufferViewData = loader._bufferViews[bufferViewID] = newBufferData.slice(bufferView.byteOffset, bufferView.byteOffset + bufferView.byteLength);
+                    // }
+                    // loader._finishedPendingTasks++;
+                    // callback(curBufferViewData);
+
+                    // create new bufferView for each mesh access with a different hierarchy
+                    // hierarchy transformation will be prepared in this way
+                    console.log('create new BufferView Data for ' + bufferViewID);
+                    loader._bufferViews[bufferViewID] = newBufferData.slice(bufferView.byteOffset, bufferView.byteOffset + bufferView.byteLength);
                     loader._finishedPendingTasks++;
                     callback(loader._bufferViews[bufferViewID]);
                 });
@@ -106,7 +123,7 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
         } else {
             // no need to load buffer from file
             // use cached ones
-            console.log("use cached bufferView " + bufferViewID);
+            //console.log("use cached bufferView " + bufferViewID);
             callback(bufferViewData);
         }
     };
@@ -162,7 +179,6 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
     var TRMatrix = mat4.create();
     
     glTFLoader.prototype._parseNode = function(json, node, newScene, matrix) {
-        console.log('parse Node' + node.name);
 
         if (matrix === undefined) {
             matrix = mat4.create();
@@ -199,6 +215,8 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
                 var meshName = meshes[m];
                 var mesh = json.meshes[meshName];
 
+                newMesh.meshID = meshName;
+
                 // Iterate through primitives
                 var primitives = mesh.primitives;
                 var primitiveLen = primitives.length;
@@ -209,7 +227,10 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
 
                     var primitive = primitives[p];
                     
-                    this._parseIndices(json, primitive, newPrimitive);
+                    if (primitive.indices) {
+                        this._parseIndices(json, primitive, newPrimitive);
+                    }
+                    
                     this._parseAttributes(json, primitive, newPrimitive, curMatrix);
                 }
             }
@@ -232,6 +253,9 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
 
         var accessorName = primitive.indices;
         var accessor = json.accessors[accessorName];
+
+        newPrimitive.mode = primitive.mode || 4;
+        newPrimitive.indicesComponentType = accessor.componentType;
 
         var loader = this;
         this._getBufferViewData(json, accessor.bufferView, function(bufferViewData) {
