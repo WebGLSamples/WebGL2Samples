@@ -28,7 +28,7 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
         // see discussion https://github.com/KhronosGroup/glTF/issues/21
         this.vertexBuffer = null;
 
-        this.positionMatrix = mat4.create();
+        this.matrix = mat4.create();
 
         // attribute info (stride, offset, etc)
         this.attributes = {};
@@ -70,15 +70,6 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
 
     };
 
-
-
-
-
-
-
-    // var Task = MinimalGLTFLoader.Task = function () {
-    //     this.run = null;
-    // };
 
     glTFLoader.prototype._getBufferViewData = function(json, bufferViewID, callback) {
         var bufferViewData = this._bufferViews[bufferViewID];
@@ -340,10 +331,7 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
 
                 // local transform matrix
 
-                mat4.copy(newPrimitive.positionMatrix, matrix);
-
-                // mat4.invert(newPrimitive.normalMatrix, matrix);
-                // mat4.transpose(newPrimitive.normalMatrix, newPrimitive.normalMatrix);
+                mat4.copy(newPrimitive.matrix, matrix);
                 
                 
 

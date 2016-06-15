@@ -259,8 +259,6 @@
 
 
                 gl.useProgram(program);
-                //gl.uniformMatrix4fv(uniformMvpLocation, false, mvp);
-                //gl.uniformMatrix4fv(uniformMvNormalLocation, false, mvNormal);
                 
 
                 for (var mid in curScene.meshes) {
@@ -269,7 +267,7 @@
                     for (i = 0, len = mesh.primitives.length; i < len; ++i) {
                         primitive = mesh.primitives[i];
 
-                        mat4.multiply(localMV, modelView, primitive.positionMatrix);
+                        mat4.multiply(localMV, modelView, primitive.matrix);
                         mat4.multiply(localMVP, perspective, localMV);
                         //mat4.copy(localMVP, mvp);
                         mat4.invert(localMVNormal, localMV);
