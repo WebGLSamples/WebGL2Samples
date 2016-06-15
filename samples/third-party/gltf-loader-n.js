@@ -259,10 +259,10 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
 
         var loader = this;
 
-        this._getBufferViewData(json, vertexBufferViewID, function(data) {
-            newPrimitive.vertexBuffer
+        this._getBufferViewData(json, vertexBufferViewID, function(bufferViewData) {
+            var data = newPrimitive.vertexBuffer
                 = _arrayBuffer2TypedArray(
-                    data, 
+                    bufferViewData, 
                     0, 
                     bufferView.byteLength / ComponentType2ByteSize[firstAccessor.componentType],
                     firstAccessor.componentType
