@@ -277,8 +277,7 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
         var loader = this;
 
         this._getBufferViewData(json, vertexBufferViewID, function(bufferViewData) {
-            var data = newPrimitive.vertexBuffer
-                = _arrayBuffer2TypedArray(
+            var data = newPrimitive.vertexBuffer = _arrayBuffer2TypedArray(
                     bufferViewData, 
                     0, 
                     bufferView.byteLength / ComponentType2ByteSize[firstAccessor.componentType],
@@ -377,24 +376,29 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
             // Parse JSON string into object
             var json = JSON.parse(response);
 
+            var b;
+
+            var loadArrayBufferCallback = function (resource) {
+                
+                loader._buffers[b] = resource;
+                loader._bufferLoaded++;
+                if (loader._bufferTasks[b]) {
+                    var i,len;
+                    for (i = 0, len = loader._bufferTasks[b].length; i < len; ++i) {
+                        (loader._bufferTasks[b][i])(resource);
+                    }
+                }
+                loader._checkComplete();
+
+            };
+
             // Launch loading resources: buffers, images, etc.
             if (json.buffers) {
-                for (var b in json.buffers) {
+                for (b in json.buffers) {
 
                     loader._bufferRequested++;
 
-                    _loadArrayBuffer(loader.baseUri + '/' + json.buffers[b].uri, function (resource) {
-                        loader._buffers[b] = resource;
-                        loader._bufferLoaded++;
-                        if (loader._bufferTasks[b]) {
-                            var i,len;
-                            for (i = 0, len = loader._bufferTasks[b].length; i < len; ++i) {
-                                (loader._bufferTasks[b][i])(resource);
-                            }
-                        }
-                        loader._checkComplete();
-
-                    });
+                    _loadArrayBuffer(loader.baseUri + '/' + json.buffers[b].uri, loadArrayBufferCallback);
 
                 }
             }
@@ -498,7 +502,7 @@ var MinimalGLTFLoader = MinimalGLTFLoader || {};
                     callback(arrayBuffer);
                 }
             }
-        }
+        };
         xobj.send(null);
     }
 
