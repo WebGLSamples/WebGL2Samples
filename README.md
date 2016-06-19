@@ -6,7 +6,7 @@ WebGL 2 Samples Pack
 
 Run the live **[WebGL 2 Samples Pack](http://webglsamples.org/WebGL2Samples/)**.
 
-Short and easy to understand samples demonstrating WebGL 2 features by [Shuai Shao (Shrek)](https://www.linkedin.com/in/shuai-shao-3718818b) and [Trung Le](http://www.trungtuanle.com/). Advised by [Patrick Cozzi](http://www.seas.upenn.edu/~pcozzi/), University of Pennsylvania.
+Short and easy to understand samples demonstrating WebGL 2 features by [Shuai Shao (Shrek)](https://shrekshao.github.io) and [Trung Le](http://www.trungtuanle.com/). Advised by [Patrick Cozzi](http://www.seas.upenn.edu/~pcozzi/), University of Pennsylvania.
 
 Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.com/Groovounet)) [OpenGL Samples Pack](https://github.com/g-truc/ogl-samples).
 
@@ -22,9 +22,9 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 
 ## Samples Compatibility
 
-:warning: glTF loader is still in development and contains bug. Samples using glTF loader now are just for demo.
+:warning: the [minial-gltf-loader](https://github.com/shrekshao/minimal-gltf-loader) used for samples is in development and contributions are welcome. 
 
-|              | Chrome Canary 52 Windows 10| Chrome Canary 51 OSX 10.10| Firefox Developer Edition 47 Windows 10| Firefox Developer Edition 47 OSX 10.10|
+|              | Chrome Canary 53 Windows 10| Chrome Canary 51 OSX 10.10| Firefox Developer Edition 49 Windows 10| Firefox Developer Edition 47 OSX 10.10|
 |--------------|:-----------------:|:--------------------------------------:|:-----------------:|:-----------------------:|
 |[draw_image_space](http://webglsamples.org/WebGL2Samples/#draw_image_space)|:x: `gl_VertexID` not supported|:x: `gl_VertexID` not supported|:x: `gl_VertexID` not supported|:x: `gl_VertexID` not supported|
 |[draw_instanced](http://webglsamples.org/WebGL2Samples/#draw_instanced)|:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
@@ -54,7 +54,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[transform_feedback_interleaved](http://webglsamples.org/WebGL2Samples/#transform_feedback_interleaved)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[transform_feedback_separated](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[transform_feedback_separated_2](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated_2)|:white_check_mark:|:white_check_mark:|:x: exceeded maxium varyings for transform|:x: exceeded maxium varyings for transform feedback|
-|[fbo_rtt_texture_array](http://webglsamples.org/WebGL2Samples/#fbo_rtt_texture_array)|:x: crash|:white_check_mark:|:x: crash|:x: not working|
+|[fbo_rtt_texture_array](http://webglsamples.org/WebGL2Samples/#fbo_rtt_texture_array)|:x: crash|:white_check_mark:|:x: fb status: 8cdd|:x: not working|
 |[fbo_blit](http://webglsamples.org/WebGL2Samples/#fbo_blit)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[fbo_multisample](http://webglsamples.org/WebGL2Samples/#fbo_multisample)|:white_check_mark:|:x: crashed|:white_check_mark:|:x: crashed|
 |[fbo_new_blend_equation](http://webglsamples.org/WebGL2Samples/#fbo_new_blend_equation)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
