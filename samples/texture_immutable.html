@@ -7,9 +7,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
+    <script src="utility.js"></script>
     <script src="third-party/gl-matrix-min.js"></script>
     <script src="third-party/noise3D.js"></script>
-    <script src="utility.js"></script>
 
 </head>
 
@@ -22,7 +22,7 @@
         #version 300 es
         #define POSITION_LOCATION 0
         #define TEXCOORD_LOCATION 4
-        
+
         precision highp float;
         precision highp int;
 
@@ -60,7 +60,7 @@
     <script id="vs-3d" type="x-shader/x-vertex">
         #version 300 es
         #define POSITION_LOCATION 0
-        #define TEXCOORD_LOCATION 1
+        #define TEXCOORD_LOCATION 4
 
         precision highp float;
         precision highp int;
@@ -191,9 +191,7 @@
 
         gl.bindVertexArray(null);
 
-        // -- Init 3D texture
-        // @todo: fix context lost error for 3D storage in Chrome OSX
-        // var texture3D = create3DTexture();
+        var texture3D = create3DTexture();
 
         var imageUrl = '../assets/img/Di-3d.png';
         loadImage(imageUrl, function(image) {
@@ -239,8 +237,7 @@
             gl.uniform1i(diffuseLocation3D, 1);
 
             gl.activeTexture(gl.TEXTURE1);
-            // @todo: fix context lost error for 3D storage in Chrome OSX
-            // gl.bindTexture(gl.TEXTURE_3D, texture3D);
+            gl.bindTexture(gl.TEXTURE_3D, texture3D);
             gl.viewport(viewports[Corners.RIGHT].x, viewports[Corners.RIGHT].y, viewports[Corners.RIGHT].z, viewports[Corners.RIGHT].w);
             gl.drawArrays(gl.TRIANGLES, 0, 6);
 
@@ -248,20 +245,25 @@
             gl.deleteBuffer(vertexPosBuffer);
             gl.deleteBuffer(vertexTexBuffer);
             gl.deleteTexture(texture2D);
-            // @todo: fix context lost error for 3D storage in Chrome OSX
-            // gl.deleteTexture(texture3D);
+            gl.deleteTexture(texture3D);
             gl.deleteProgram(program);
             gl.deleteProgram(program3D);
             gl.deleteVertexArray(vertexArray);
         });
 
         function create3DTexture() {
+
+            // Note By @kenrussel: The sample was changed from R32F to R8 for best portability.
+            // not all devices can render to floating-point textures
+            // (and, further, this functionality is in a WebGL extension: EXT_color_buffer_float),
+            // and renderability is a requirement for generating mipmaps.
+
             var SIZE = 32;
-            var data = new Float32Array(SIZE * SIZE * SIZE);
+            var data = new Uint8Array(SIZE * SIZE * SIZE);
             for (var k = 0; k < SIZE; ++k) {
                 for (var j = 0; j < SIZE; ++j) {
                     for (var i = 0; i < SIZE; ++i) {
-                        data[i + j * SIZE + k * SIZE * SIZE] = snoise([i, j, k]);
+                        data[i + j * SIZE + k * SIZE * SIZE] = snoise([i, j, k]) * 256;
                     }
                 }
             }
@@ -271,13 +273,13 @@
             gl.bindTexture(gl.TEXTURE_3D, texture3D);
             gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_BASE_LEVEL, 0);
             gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAX_LEVEL, Math.log2(SIZE));
-            gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_NEAREST);
-            gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+            gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+            gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
             gl.texStorage3D(
                 gl.TEXTURE_3D,   // target
                 Math.log2(SIZE), // levels
-                gl.R32F,         // internalformat
+                gl.R8,           // internalformat
                 SIZE,            // width
                 SIZE,            // height
                 SIZE             // depth
@@ -293,9 +295,10 @@
                 SIZE,           // height
                 SIZE,           // depth
                 gl.RED,         // format
-                gl.FLOAT,       // type
+                gl.UNSIGNED_BYTE,       // type
                 data
                 );
+
             gl.generateMipmap(gl.TEXTURE_3D);
 
             return texture3D;
