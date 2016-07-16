@@ -20,7 +20,7 @@
         
         void main()
         {
-            gl_Position = vec4(4.f * (gl_VertexID % 2) - 1.f, 4.f * (gl_VertexID / 2) - 1.f, 0.0, 1.0);
+            gl_Position = vec4(2.f * float(uint(gl_VertexID) % 2u) - 1.f, 2.f * float(uint(gl_VertexID) / 2u) - 1.f, 0.0, 1.0);
         }
     </script>
 
@@ -31,11 +31,13 @@
 
         uniform sampler2D diffuse;
 
+        uniform vec2 u_imageSize;
+
         out vec4 color;
 
         void main()
         {
-            color = texture(diffuse, vec2(gl_FragCoord.x, 1.0 - gl_FragCoord.y) / vec2(512, 512));
+            color = texture(diffuse, vec2(gl_FragCoord.x, 1.0 - gl_FragCoord.y) / u_imageSize);
         }
     </script>
 
@@ -59,6 +61,7 @@
         // -- Init program
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
         var diffuseLocation = gl.getUniformLocation(program, 'diffuse');
+        var imageSizeLocation = gl.getUniformLocation(program, 'u_imageSize');
 
         // -- Init VertexArray
         var vertexArray = gl.createVertexArray();
@@ -82,10 +85,11 @@
 
             gl.useProgram(program);
             gl.uniform1i(diffuseLocation, 0);
+            gl.uniform2f(imageSizeLocation, canvas.width / 2, canvas.height / 2);
             
             gl.bindVertexArray(vertexArray);
 
-            gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 1);
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
 
             // Delete WebGL resources
             gl.deleteTexture(texture);
