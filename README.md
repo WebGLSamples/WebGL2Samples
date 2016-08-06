@@ -44,8 +44,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[texture_fetch](http://webglsamples.org/WebGL2Samples/#texture_fetch)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_grad](http://webglsamples.org/WebGL2Samples/#texture_grad)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_3d](http://webglsamples.org/WebGL2Samples/#texture_3d)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|[texture_immutable](http://webglsamples.org/WebGL2Samples/#texture_immutable)|:white_check_mark:|:white_check_mark:|:x: Error: WebGL: texSubImage2D: Chosen format/type incured an expensive reformat: 0x1907/0x14011
-|:white_check_mark:|
+|[texture_immutable](http://webglsamples.org/WebGL2Samples/#texture_immutable)|:white_check_mark:|:white_check_mark:|:x: Error: WebGL: texSubImage2D: Chosen format/type incured an expensive reformat: 0x1907/0x14011|:white_check_mark:|
 |[texture_integer](http://webglsamples.org/WebGL2Samples/#texture_integer)|:white_check_mark:|:white_check_mark:|:x: Error: Driver ran out of memory during upload|:white_check_mark:|
 |[texture_lod](http://webglsamples.org/WebGL2Samples/#texture_lod)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_offset](http://webglsamples.org/WebGL2Samples/#texture_offset)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
