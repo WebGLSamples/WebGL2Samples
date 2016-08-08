@@ -39,7 +39,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[sampler_filter](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_derivative](http://webglsamples.org/WebGL2Samples/#texture_derivative)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_2d_array](http://webglsamples.org/WebGL2Samples/#texture_2d_array)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|[texture_etc2_eac](http://webglsamples.org/WebGL2Samples/#texture_etc2_eac)|:white_check_mark:|:x: not working|:x: compressedTexImage2D: Invalid internalFormat: 0x9278 |:x: not working|
+|[texture_etc2_eac](http://webglsamples.org/WebGL2Samples/#texture_etc2_eac)|:white_check_mark:|:white_check_mark:|:x: compressedTexImage2D: Invalid internalFormat: 0x9278 |:x: not working|
 |[texture_format](http://webglsamples.org/WebGL2Samples/#texture_format)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_fetch](http://webglsamples.org/WebGL2Samples/#texture_fetch)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_grad](http://webglsamples.org/WebGL2Samples/#texture_grad)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
