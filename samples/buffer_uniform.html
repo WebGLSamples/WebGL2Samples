@@ -59,13 +59,6 @@
         
         layout(std140, column_major) uniform;
 
-        // struct Material
-        // {
-        //     vec3 ambient;
-        //     vec3 diffuse;
-        //     vec3 specular;
-        //     float shininess;
-        // } material;
         struct Material
         {
             vec3 ambient;
@@ -201,11 +194,6 @@
         gl.bufferData(gl.UNIFORM_BUFFER, transforms, gl.DYNAMIC_DRAW);
         gl.bindBuffer(gl.UNIFORM_BUFFER, null);
         
-        // Known Issue on Win 10 Chrome Canary 54:
-        // the struct with a signle vec3 won't work for this 
-        // var lightPos = new Float32Array([
-        //     0.0, 0.0, 100.0, 0.0
-        // ]);
         var lightPos = new Float32Array([
             0.0, 0.0, 100.0, 0.0,
         ]);
