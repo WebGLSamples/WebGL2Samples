@@ -99,12 +99,8 @@
             vec3 r = reflect(-l, n);
             vec3 specular = pow(max(dot(r, v), 0.0), u_perScene.material.shininess) * u_perScene.material.specular;
 
-            color = vec4(u_perScene.material.ambient + diffuse + specular, 1.0);
-            //color = vec4(u_perScene.material.ambient, 1.0);
-            //color = vec4(u_perScene.material.ambient + diffuse + abs(specular), 1.0);
-            //color = vec4(specular, 1.0);
-            color = vec4(v, 1.0);
-            //color = v_color;
+            //color = vec4(u_perScene.material.ambient + diffuse + specular, 1.0);
+            color = v_color;
         }
     </script>
 
