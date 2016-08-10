@@ -45,11 +45,10 @@
             vec4 pEC = u_perDraw.transform.MV * vec4(position, 1.0);
 
             v_normal = (u_perDraw.transform.Mnormal * vec4(normal, 0.0)).xyz;
-            v_view = - pEC.xyz;
+            v_view = -pEC.xyz;
             v_color = color;
 
             gl_Position = u_perDraw.transform.P * pEC;
-            //gl_Position = vec4(position, 1.0);
         }
     </script>
 
@@ -66,7 +65,7 @@
             vec3 diffuse;
             vec3 specular;
             float shininess;
-        } material;
+        };
 
         struct Light
         {
@@ -100,8 +99,8 @@
             vec3 r = reflect(-l, n);
             vec3 specular = pow(max(dot(r, v), 0.0), u_perScene.material.shininess) * u_perScene.material.specular;
 
-            color = vec4(u_perScene.material.ambient + diffuse + specular, 1.0);
-            //color = v_color;
+            //color = vec4(u_perScene.material.ambient + diffuse + specular, 1.0);
+            color = v_color;
         }
     </script>
 
@@ -130,8 +129,17 @@
         gl.useProgram(program);
         
         var uniformPerDrawLocation = gl.getUniformBlockIndex(program, 'PerDraw');
-        var uniformPerSceneLocation = gl.getUniformBlockIndex(program, 'PerPass');
-        var uniformPerPassLocation = gl.getUniformBlockIndex(program, 'PerScene');
+        var uniformPerPassLocation = gl.getUniformBlockIndex(program, 'PerPass');
+        var uniformPerSceneLocation = gl.getUniformBlockIndex(program, 'PerScene');
+
+
+        console.log(gl.getActiveUniformBlockParameter(program, uniformPerDrawLocation, gl.UNIFORM_BLOCK_ACTIVE_UNIFORMS));
+        console.log(gl.getActiveUniformBlockParameter(program, uniformPerPassLocation, gl.UNIFORM_BLOCK_ACTIVE_UNIFORMS));
+        console.log(gl.getActiveUniformBlockParameter(program, uniformPerSceneLocation, gl.UNIFORM_BLOCK_ACTIVE_UNIFORMS));
+
+        console.log(gl.getActiveUniformBlockParameter(program, uniformPerDrawLocation, gl.UNIFORM_BLOCK_DATA_SIZE));
+        console.log(gl.getActiveUniformBlockParameter(program, uniformPerPassLocation, gl.UNIFORM_BLOCK_DATA_SIZE));
+        console.log(gl.getActiveUniformBlockParameter(program, uniformPerSceneLocation, gl.UNIFORM_BLOCK_DATA_SIZE));
         
         gl.uniformBlockBinding(program, uniformPerDrawLocation, 0);
         gl.uniformBlockBinding(program, uniformPerPassLocation, 1);
@@ -168,7 +176,7 @@
                 
                 0.5, 0.0, 0.0, 0.0,
                 0.0, 0.5, 0.0, 0.0,
-                0.0, 0.0, 0.5, 0.0,
+                0.0, 0.0, 0.5, -1.0,
                 0.0, 0.0, 0.0, 1.0, 
                 
                 1.0, 0.0, 0.0, 0.0,
@@ -182,15 +190,8 @@
         gl.bufferData(gl.UNIFORM_BUFFER, transforms, gl.DYNAMIC_DRAW);
         gl.bindBuffer(gl.UNIFORM_BUFFER, null);
         
-        // Known Issue on Win 10 Chrome Canary 54:
-        // the struct with a signle vec3 won't work for this 
-        // var lightPos = new Float32Array([
-        //     0.0, 0.0, 100.0, 0.0
-        // ]);
         var lightPos = new Float32Array([
             0.0, 0.0, 100.0, 0.0,
-            0.0, 0.0, 100.0, 0.0,
-            0.0, 0.0, 100.0, 0.0
         ]);
         var uniformPerPassBuffer = gl.createBuffer();
         gl.bindBuffer(gl.UNIFORM_BUFFER, uniformPerPassBuffer);
