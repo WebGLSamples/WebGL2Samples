@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<!-- Ported from the OpenGL Samples Pack: https://github.com/g-truc/ogl-samples/blob/master/tests/gl-330-query-occlusion.cpp -->
 <html lang="en">
 
 <head>
-    <title>WebGL 2 Samples - query_occlusion</title>
+    <title>WebGL 2 Samples - buffer_copy</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - query_occlusion</div>
-    <p>&nbsp;</p>
-    <div id="samplesPassed"></div>
+    <div id="info">WebGL 2 Samples - buffer_copy</div>
+    <p id="description">
+        A simple sample showing how to use copyBufferSubData. 
+    </p>
 
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
@@ -25,7 +25,7 @@
 
         void main()
         {
-            gl_Position = vec4(pos,0.0,1.0);
+            gl_Position = vec4(pos, 0.0, 1.0);
         }
     </script>
 
@@ -38,7 +38,7 @@
 
         void main()
         {
-            color = vec4(1.0,0.5,0.0,1.0);
+            color = vec4(1.0, 0.5, 0.0, 1.0);
         }
     </script>
 
@@ -49,8 +49,8 @@
 
         // -- Init Canvas
         var canvas = document.createElement('canvas');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        canvas.width = Math.min(window.innerWidth, window.innerHeight);
+        canvas.height = canvas.width;
         document.body.appendChild(canvas);
 
         // -- Init WebGL Context
@@ -67,26 +67,35 @@
 
         // -- Init Buffer
         var vertices = new Float32Array([
-            -0.3, -0.5,
-             0.3, -0.5,
-             0.0,  0.5
+            -1.0, -1.0,
+             1.0, -1.0,
+             1.0,  1.0,
+             1.0,  1.0,
+            -1.0,  1.0,
+            -1.0, -1.0
         ]);
-        var vertexPosBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+        var vertexPosBufferSrc = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBufferSrc);
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.COPY_READ_BUFFER, vertexPosBufferSrc);
+        
+        var vertexPosBufferDst = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBufferDst);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices.length), gl.STATIC_DRAW);
+        gl.bindBuffer(gl.COPY_WRITE_BUFFER, vertexPosBufferDst);
+        
+        gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 0, vertices.length * Float32Array.BYTES_PER_ELEMENT);
 
         // -- Init Vertex Array
         var vertexArray = gl.createVertexArray();
         gl.bindVertexArray(vertexArray);
 
-        var vertexPosLocation = 0; // set with GLSL layout qualifier
+        var vertexPosLocation = 0;
         gl.enableVertexAttribArray(vertexPosLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBufferDst);
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
 
         gl.bindVertexArray(null);
-
-        // -- Init Query
-        var query = gl.createQuery();
 
         // -- Render
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -94,29 +103,15 @@
 
         gl.bindVertexArray(vertexArray);
 
-        gl.beginQuery(gl.ANY_SAMPLES_PASSED, query);
-        gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 2);
-        gl.endQuery(gl.ANY_SAMPLES_PASSED);
-
-        (function tick() {
-            if (!gl.getQueryParameter(query, gl.QUERY_RESULT_AVAILABLE)) {
-                // A query's result is never available in the same frame
-                // the query was issued.  Try in the next frame.
-                requestAnimationFrame(tick);
-                return;
-            }
-
-            var samplesPassed = gl.getQueryParameter(query, gl.QUERY_RESULT);
-            document.getElementById('samplesPassed').innerHTML = 'Any samples passed: ' + Number(samplesPassed);
-            gl.deleteQuery(query);
-        })();
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
 
         // -- Delete WebGL resources
-        gl.deleteBuffer(vertexPosBuffer);
+        gl.deleteBuffer(vertexPosBufferSrc);
+        gl.deleteBuffer(vertexPosBufferDst);
         gl.deleteProgram(program);
         gl.deleteVertexArray(vertexArray);
     })();
     </script>
-    <div id="highlightedLines"  style="display: none">#L97-L112</div>
+    <div id="highlightedLines"  style="display: none">#L77-L87</div>
 </body>
 </html>

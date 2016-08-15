@@ -11,21 +11,27 @@
 
 <body>
     <div id="info">WebGL 2 Samples - transform_feedback_interleaved</div>
+    <p id="description">
+        This simple sample shows how to use transform feedback. The first draw has no rasterization, but output the position and color attribute as the input of each vertex in the second draw.<br/>
+        Each attribute of the transform feedback output is stored in one buffer (interleaved).
+    </p>
 
     <script id="vs-transform" type="x-shader/x-vertex">
         #version 300 es
+        #define POSITION_LOCATION 0
+        
         precision highp float;
         precision highp int;
 
         uniform mat4 MVP;
-        layout(location = 0) in vec4 position;
+        layout(location = POSITION_LOCATION) in vec4 position;
 
-        out vec4 color;
+        out vec4 v_color;
 
         void main()
         {
             gl_Position = MVP * position;
-            color = vec4(clamp(vec2(position), 0.0, 1.0), 0.0, 1.0);
+            v_color = vec4(clamp(vec2(position), 0.0, 1.0), 0.0, 1.0);
         }
     </script>
 
@@ -45,11 +51,14 @@
 
     <script id="vs-feedback" type="x-shader/x-vertex">
         #version 300 es
+        #define POSITION_LOCATION 0
+        #define COLOR_POSITION 3
+        
         precision highp float;
         precision highp int;
 
-        layout(location = 0) in vec4 position;
-        layout(location = 1) in vec4 color;
+        layout(location = POSITION_LOCATION) in vec4 position;
+        layout(location = COLOR_POSITION) in vec4 color;
 
         out vec4 v_color;
 
@@ -89,8 +98,7 @@
         // -- Init WebGL Context
         var gl = canvas.getContext('webgl2', { antialias: false });
         var isWebGL2 = !!gl;
-        if(!isWebGL2)
-        {
+        if(!isWebGL2) {
             document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
             return;
         }
@@ -116,8 +124,8 @@
             gl.attachShader(programTransform, fshaderTransform);
             gl.deleteShader(fshaderTransform);
 
-            var strings = ['gl_Position', 'color'];
-            gl.transformFeedbackVaryings(programTransform, strings, gl.INTERLEAVED_ATTRIBS);
+            var varyings = ['gl_Position', 'v_color'];
+            gl.transformFeedbackVaryings(programTransform, varyings, gl.INTERLEAVED_ATTRIBS);
             gl.linkProgram(programTransform);
 
             // check
@@ -179,7 +187,7 @@
         gl.bindVertexArray(vertexArrays[PROGRAM_FEEDBACK]);
 
         var vertexPosLocationFeedback = 0;
-        var vertexColorLocationFeedback = 1;
+        var vertexColorLocationFeedback = 3;
         gl.bindBuffer(gl.ARRAY_BUFFER, buffers[PROGRAM_FEEDBACK]);
         gl.vertexAttribPointer(vertexPosLocationFeedback, 4, gl.FLOAT, false, SIZE_V4C4, 0);
         gl.vertexAttribPointer(vertexColorLocationFeedback, 4, gl.FLOAT, false, SIZE_V4C4, SIZE_V4C4 / 2);
@@ -237,5 +245,6 @@
         gl.deleteVertexArray(vertexArrays[PROGRAM_FEEDBACK]);
     })();
     </script>
+    <div id="highlightedLines"  style="display: none">#L105-L231</div>
 </body>
 </html>

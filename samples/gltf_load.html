@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>WebGL 2 Samples - glsl_flat_smooth_interpolators</title>
+    <title>WebGL 2 Samples - gltf_loading</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
@@ -12,9 +12,9 @@
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - glsl_flat_smooth_interpolators</div>
+    <div id="info">WebGL 2 Samples - gltf_loading</div>
     <p id="description">
-        LEFT: flat interpolator / RIGHT: smooth interpolator
+        This sample demonstrates gltf support in WebGL. <br/> refractored gltf loader
     </p>
 
     <script id="vs-smooth" type="x-shader/x-vertex">
@@ -54,56 +54,18 @@
         void main()
         {
             color = vec4(v_normal, 1.0);
+            //color = vec4(1.0, 1.0, 1.0, 1.0);
         }
     </script>
 
-    <script id="vs-flat" type="x-shader/x-vertex">
-        #version 300 es
-        #define POSITION_LOCATION 0
-        #define NORMAL_LOCATION 1
-
-        precision highp float;
-        precision highp int;
-
-        uniform mat4 mvp;
-        uniform mat4 mvNormal;
-
-        layout(location = POSITION_LOCATION) in vec3 position;
-        layout(location = NORMAL_LOCATION) in vec3 normal;
-
-        flat out vec3 v_normal;
-
-        void main()
-        {
-            v_normal = normalize((mvNormal * vec4(normal, 0)).xyz);
-            gl_Position = mvp * vec4(position, 1.0) ;
-        }
-    </script>
-
-    <script id="fs-flat" type="x-shader/x-fragment">
-        #version 300 es
-        #define FRAG_COLOR_LOCATION 0
-
-        precision highp float;
-        precision highp int;
-
-        flat in vec3 v_normal;
-
-        layout(location = FRAG_COLOR_LOCATION) out vec4 color;
-
-        void main()
-        {
-            color = vec4(v_normal, 1.0);
-        }
-    </script>
 
     <script>
     (function()  {
         'use strict';
 
         var canvas = document.createElement('canvas');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        canvas.width = Math.min(window.innerWidth, window.innerHeight);
+        canvas.height = canvas.width;
         document.body.appendChild(canvas);
 
         var gl = canvas.getContext( 'webgl2', { antialias: false } );
@@ -112,47 +74,46 @@
             document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
             return;
         }
-
-        // -- Divide viewport
-        var canvasSize = {
-            x: canvas.width,
-            y: canvas.height
+        
+        // -- Mouse Behaviour
+        var s = 0.1;
+        var mouseDown = false;
+        var lastMouseY = 0;
+        window.onmousedown = function(event) {
+            mouseDown = true;
+            lastMouseY = event.clientY;
         };
-
-        var VIEWPORTS = {
-            LEFT: 0,
-            RIGHT: 1,
-            MAX: 2
+        window.onmouseup = function(event) {
+            mouseDown = false;  
         };
-
-        var viewport = new Array(VIEWPORTS.MAX);
-
-        viewport[VIEWPORTS.LEFT] = {
-            x: 0,
-            y: canvasSize.y - canvasSize.x / 2 - 50,
-            width: canvasSize.x / 2,
-            height: canvasSize.x / 2
+        window.onmousemove = function(event) {
+            if(!mouseDown) {
+                return;
+            }
+            var newY = event.clientY;
+            
+            var deltaY = newY - lastMouseY;
+            
+            s += deltaY / 1000;
+            
+            lastMouseY = newY;
         };
+        
 
-        viewport[VIEWPORTS.RIGHT] = {
-            x: canvasSize.x / 2,
-            y: canvasSize.y - canvasSize.x / 2 - 50,
-            width: canvasSize.x / 2,
-            height: canvasSize.x / 2
-        };
+        // -- Load glTF then render
+        var gltfUrl = '../../assets/gltf/2_cylinder_engine.gltf';
 
-        // -- Initialize program
-        var programs = [createProgram(gl, getShaderSource('vs-flat'), getShaderSource('fs-flat')), createProgram(gl, getShaderSource('vs-smooth'), getShaderSource('fs-smooth'))];
-        var uniformMvpLocations = [gl.getUniformLocation(programs[VIEWPORTS.LEFT], "mvp"), gl.getUniformLocation(programs[VIEWPORTS.RIGHT], "mvp")];
-        var uniformMvNormalLocations = [gl.getUniformLocation(programs[VIEWPORTS.LEFT], "mvNormal"), gl.getUniformLocation(programs[VIEWPORTS.RIGHT], "mvNormal")];
-
-        // -- Load gltf then render
-        var gltfUrl = '../assets/gltf/di_model_tri.gltf';
         var glTFLoader = new MinimalGLTFLoader.glTFLoader();
 
         glTFLoader.loadGLTF(gltfUrl, function(glTF) {
 
             var curScene = glTF.scenes[glTF.defaultScene];
+            
+            // -- Initialize program
+            // TODO: use glTF built-in shader
+            var program = createProgram(gl, getShaderSource('vs-smooth'), getShaderSource('fs-smooth'));
+            var uniformMvpLocation = gl.getUniformLocation(program, "mvp");
+            var uniformMvNormalLocation = gl.getUniformLocation(program, "mvNormal");
 
             // -- Initialize vertex array
             var POSITION_LOCATION = 0; // set with GLSL layout qualifier
@@ -240,18 +201,16 @@
             gl.depthFunc(gl.LEQUAL);
 
             var translate = vec3.create();
-            vec3.set(translate, 0, -18, -60);
+            vec3.set(translate, 0, 0, -100);
             var scale = vec3.create();
-            var s = 0.3;
-            vec3.set(scale, s, s, s);
-            var modelView = mat4.create();
-            mat4.translate(modelView, modelView, translate);
-            mat4.scale(modelView, modelView, scale);
-
-            var rotatationSpeedY= 0.01;
+            
+            var r = 0.0;
+            var rotationSpeedY= 0.01;
 
             var perspective = mat4.create();
             mat4.perspective(perspective, 0.785, 1, 1, 1000);
+
+            var modelView = mat4.create();
 
             var localMV = mat4.create();
             var localMVP = mat4.create();
@@ -262,7 +221,17 @@
                 gl.clearColor(0.0, 0.0, 0.0, 1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT);
 
-                mat4.rotateY(modelView, modelView, rotatationSpeedY);
+                vec3.set(scale, s, s, s);
+                mat4.identity(modelView);
+                mat4.translate(modelView, modelView, translate);
+                mat4.scale(modelView, modelView, scale);
+
+                r += rotationSpeedY;
+                mat4.rotateY(modelView, modelView, r);
+
+
+                gl.useProgram(program);
+                
 
                 for (var mid in curScene.meshes) {
                     mesh = curScene.meshes[mid];
@@ -271,34 +240,34 @@
                         primitive = mesh.primitives[i];
 
                         mat4.multiply(localMV, modelView, primitive.matrix);
+                        //mat4.copy(localMV, modelView);
                         mat4.multiply(localMVP, perspective, localMV);
 
                         mat4.invert(localMVNormal, localMV);
                         mat4.transpose(localMVNormal, localMVNormal);
 
+                        gl.uniformMatrix4fv(uniformMvpLocation, false, localMVP);
+                        gl.uniformMatrix4fv(uniformMvNormalLocation, false, localMVNormal);
+
                         gl.bindVertexArray(vertexArrayMaps[mid][i]);
 
-                        for (i = 0; i < VIEWPORTS.MAX; ++i) {
-                            gl.useProgram(programs[i]);
-                            gl.uniformMatrix4fv(uniformMvpLocations[i], false, localMVP);
-                            gl.uniformMatrix4fv(uniformMvNormalLocations[i], false, localMVNormal);
+                        // TODO: when no indices, do drawArrays
+                        gl.drawElements(primitive.mode, primitive.indices.length, primitive.indicesComponentType, 0);
 
-                            gl.viewport(viewport[i].x, viewport[i].y, viewport[i].width, viewport[i].height);
-                            
-                            gl.drawElements(primitive.mode, primitive.indices.length, primitive.indicesComponentType, 0);
-                        }
-                        
                         gl.bindVertexArray(null);
                     }
                 }
 
+                
+
                 requestAnimationFrame(render);
             })();
-        });
 
+
+        });
     })();
     </script>
-    <div id="highlightedLines"  style="display: none">#L74</div>
+
 </body>
 
 </html>

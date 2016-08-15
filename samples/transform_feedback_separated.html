@@ -11,6 +11,10 @@
 
 <body>
     <div id="info">WebGL 2 Samples - transform_feedback_separated</div>
+    <p id="description">
+        This simple sample shows how to use transform feedback. The first draw has no rasterization, but output the position and color attribute as the input of each vertex in the second draw.<br/>
+        Each attribute of the transform feedback output is stored in separate buffers (separated).
+    </p>
 
     <script id="vs-transform" type="x-shader/x-vertex">
         #version 300 es
@@ -95,8 +99,7 @@
         // -- Init WebGL Context
         var gl = canvas.getContext('webgl2', { antialias: false });
         var isWebGL2 = !!gl;
-        if(!isWebGL2)
-        {
+        if(!isWebGL2) {
             document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
             return;
         }
@@ -210,7 +213,7 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindVertexArray(null);
 
-        // -- Init TransformFeedback 
+        // -- Init TransformFeedback
         var transformFeedback = gl.createTransformFeedback();
 
         // -- Render
@@ -221,7 +224,7 @@
         // First draw, capture the attributes
         // Disable rasterization, vertices processing only
         gl.enable(gl.RASTERIZER_DISCARD);
-        
+
         gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
 
         gl.useProgram(programs[PROGRAM_TRANSFORM]);
@@ -262,5 +265,7 @@
         gl.deleteVertexArray(vertexArrays[PROGRAM_FEEDBACK]);
     })();
     </script>
+    <div id="highlightedLines"  style="display: none">#L108-L255</div>
+
 </body>
 </html>

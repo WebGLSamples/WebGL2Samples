@@ -178,20 +178,6 @@
         </style>
     </head>
     <body>
-        <script type="text/javascript">
-
-          var _gaq = _gaq || [];
-          _gaq.push(['_setAccount', 'UA-86951-15']);
-          _gaq.push(['_trackPageview']);
-
-          (function() {
-            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-          })();
-
-        </script>
-
         <div id="panel" class="collapsed">
             <h1>WebGL 2.0 Samples</h1>
             <div id="githubLink">(<a href="https://github.com/WebGLSamples/WebGL2Samples">GitHub repo</a>)</div>
@@ -225,11 +211,21 @@
                 "sampler_wrap"
             ],
             "GLSL": [
+                "glsl_centroid",
                 "glsl_discard",
-                "glsl_flat_smooth_interpolators"
+                "glsl_flat_smooth_interpolators",
+                "glsl_non_square_matrix"
+            ],
+            "glTF-Test": [
+                "gltf_load"
             ],
             "Query": [
                 "query_occlusion"
+            ],
+            "Buffer":[
+                "draw_instanced_ubo",
+                "buffer_copy",
+                "buffer_uniform",
             ],
             "Texture": [
                 "texture_2d_array",
@@ -238,16 +234,22 @@
                 "texture_etc2_eac",
                 "texture_fetch",
                 "texture_format",
+                "texture_grad",
                 "texture_immutable",
                 "texture_integer",
                 "texture_lod",
                 "texture_offset",
+                "texture_pixel_store",
                 "texture_srgb",
-                "texture_pixel_store"
+                "texture_vertex"
             ],
             "Transform Feedback": [
                 "transform_feedback_interleaved",
-                "transform_feedback_separated"
+                "transform_feedback_separated",
+                "transform_feedback_separated_2"
+            ],
+            "Geometry": [
+                "geo_vertex_format"
             ]
         };
 
@@ -285,7 +287,10 @@
             var array = location.href.split( '/' );
             array.pop();
 
-            window.open( 'view-source:' +array.join( '/' ) + '/samples/' + selected + '.html' );
+            var sampleDoc = viewer.contentDocument || viewer.contentWindow.document;
+            var highlightedLines = sampleDoc.getElementById('highlightedLines') || '';
+            var lines = !!highlightedLines ? highlightedLines.innerHTML : '';
+            window.open( 'https://github.com/WebGLSamples/WebGL2Samples/blob/master/samples/' + selected + '.html' + lines );
 
         }, false );
         button.style.display = 'none';

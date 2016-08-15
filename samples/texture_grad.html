@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>WebGL 2 Samples - texture_derivative</title>
+    <title>WebGL 2 Samples - texture_grad</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
@@ -11,11 +11,11 @@
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - texture_derivative</div>
+    <div id="info">WebGL 2 Samples - texture_grad</div>
     <p id="description">
-        This sample demonstrates using dFdx and dFdy (glsl built-in derivative functions in fragment shader) to compute normals.
+        This sample uses textureGrad for a texture lookup with explicit gradients for textures on each face of the cube. 
     </p>
-
+    
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
@@ -32,12 +32,12 @@
         layout(location = TEXCOORD_LOCATION) in vec2 texcoord;
 
         out vec2 v_uv;
-        out vec3 v_position;
+        out vec3 vPosition;
 
         void main()
         {
             v_uv = texcoord;
-            v_position = vec3(mvMatrix * vec4(position, 1.0));
+            vPosition = vec3(mvMatrix * vec4(position, 1.0));
             gl_Position = pMatrix * mvMatrix * vec4(position, 1.0);
         }
     </script>
@@ -51,17 +51,20 @@
         uniform sampler2D diffuse;
 
         in vec2 v_uv;
-        in vec3 v_position;
+        in vec3 vPosition;
 
         out vec4 color;
 
         void main()
         {
-            color = texture(diffuse, v_uv);
+            vec2 size = vec2(textureSize(diffuse, 0));
+            vec2 dx = dFdx(v_uv * size);
+            vec2 dy = dFdy(v_uv * size);
+            color = textureGrad(diffuse, v_uv, dx, dy);
 
             // Compute flat normal using gradient
-            vec3 fdx = vec3(dFdx(v_position.x), dFdx(v_position.y), dFdx(v_position.z));
-            vec3 fdy = vec3(dFdy(v_position.x), dFdy(v_position.y), dFdy(v_position.z));
+            vec3 fdx = vec3(dFdx(vPosition.x), dFdx(vPosition.y), dFdx(vPosition.z));
+            vec3 fdy = vec3(dFdy(vPosition.x), dFdy(vPosition.y), dFdy(vPosition.z));
 
             vec3 N = normalize(cross(fdx, fdy));
             color = mix(color, vec4(N, 1.0), 0.5);
@@ -233,6 +236,7 @@
             // -- Allocate storage for the texture
             gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGB8, 512, 512);
             gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGB, gl.UNSIGNED_BYTE, image);
+            gl.generateMipmap(gl.TEXTURE_2D);
 
             requestAnimationFrame(render);
 
@@ -274,16 +278,16 @@
             var deltaY = newY - lastMouseY;
 
             var m = mat4.create();
-
+ 
             mat4.rotateX(m, m, deltaX / 100.0);
             mat4.rotateY(m, m, deltaY / 100.0);
-
+            
             var scale = vec3.create();
             vec3.set(scale, (1 + deltaX / 1000.0), (1 + deltaX / 1000.0), (1 + deltaX / 1000.0));
             mat4.scale(m, m, scale);
 
             mat4.multiply(mvMatrix, mvMatrix, m);
-
+            
             lastMouseX = newX;
             lastMouseY = newY;
         };
@@ -320,18 +324,17 @@
         }
 
         // If you have a long-running page, and need to delete WebGL resources, use:
-        //
+        // 
         // gl.deleteBuffer(vertexPosBuffer);
         // gl.deleteBuffer(vertexTexBuffer);
         // gl.deleteBuffer(indexBuffer);
         // gl.deleteTexture(texture);
         // gl.deleteProgram(program);
         // gl.deleteVertexArray(vertexArray);
-
+        
     })();
     </script>
-    <div id="highlightedLines"  style="display: none">#L63-L66</div>
-
+    <div id="highlightedLines"  style="display: none">#L63</div>
 </body>
 
 </html>

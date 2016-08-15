@@ -48,22 +48,22 @@
         };
         return img;
     };
-    
+
     window.loadImages = function(urls, onload) {
         var imgs = [];
         var imgsToLoad = urls.length;
-        
+
         function onImgLoad() {
             if (--imgsToLoad <= 0) {
                 onload(imgs);
             }
         }
-        
+
         for (var i = 0; i < imgsToLoad; ++i) {
             imgs.push(loadImage(urls[i], onImgLoad));
         }
     };
-    
+
     window.loadObj = function(url, onload) {
         var xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);

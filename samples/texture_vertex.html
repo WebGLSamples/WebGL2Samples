@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <title>WebGL 2 Samples - texture_vertex</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="third-party/gl-matrix-min.js"></script>
+    <script src="third-party/gltf-loader.js"></script>
+    <script src="utility.js"></script>
+</head>
+
+<body>
+    <div id="info">WebGL 2 Samples - texture_vertex</div>
+    <p id="description">This sample demonstrates the use of texture look up operations in a vertex shader for displacement mapping. </p>
+
+    <!-- WebGL 2 shaders -->
+    <script id="vs" type="x-shader/x-vertex">
+        #version 300 es
+        #define POSITION_LOCATION 0
+        #define NORMAL_LOCATION 1
+        #define TEXCOORD_LOCATION 4
+        
+        precision highp float;
+        precision highp int;
+
+        uniform mat4 mvMatrix;
+        uniform mat4 pMatrix;
+        uniform sampler2D displacementMap;
+
+        layout(location = POSITION_LOCATION) in vec3 position;
+        layout(location = NORMAL_LOCATION) in vec3 normal;
+        layout(location = TEXCOORD_LOCATION) in vec2 texcoord;
+
+        out vec2 v_st;
+        out vec3 v_position;
+
+        void main()
+        {
+            v_st = texcoord;
+            float height = texture(displacementMap, texcoord).b;
+            vec4 displacedPosition = vec4(position, 1.0) + vec4(normal * height, 0.0);
+            v_position = vec3(mvMatrix * displacedPosition);
+            gl_Position = pMatrix * mvMatrix * displacedPosition;
+        }
+    </script>
+
+    <script id="fs" type="x-shader/x-fragment">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+        precision highp sampler2D;
+
+        uniform sampler2D diffuse;
+
+        in vec2 v_st;
+        in vec3 v_position;
+
+        out vec4 color;
+
+        float textureLevel(in sampler2D sampler, in vec2 v_st)
+        {
+            vec2 size = vec2(textureSize(sampler, 0));
+
+            float levelCount = max(log2(size.x), log2(size.y));
+
+            vec2 dx = dFdx(v_st * size);
+            vec2 dy = dFdy(v_st * size);
+            float d = max(dot(dx, dx), dot(dy, dy));
+
+            d = clamp(d, 1.0, pow(2.0, (levelCount - 1.0) * 2.0));
+
+            return 0.5 * log2(d);
+        }
+
+        void main()
+        {
+            vec2 sampleCoord = fract(v_st.xy);
+            float level = textureLevel(diffuse, v_st);
+
+            // Compute LOD using gradient
+            color = textureLod(diffuse, v_st, level);
+
+            // Compute flat normal using gradient
+            vec3 fdx = dFdx(v_position);
+            vec3 fdy = dFdy(v_position);
+
+            vec3 N = normalize(cross(fdx, fdy));
+            color = mix(color, vec4(N, 1.0), 0.5);
+        }
+
+    </script>
+
+    <script src="utility.js"></script>
+    <script>
+    (function () {
+        'use strict';
+
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.min(window.innerWidth, window.innerHeight);
+        canvas.height = canvas.width;
+        document.body.appendChild(canvas);
+
+        var gl = canvas.getContext( 'webgl2', { antialias: false } );
+        var isWebGL2 = !!gl;
+        if(!isWebGL2) {
+            document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
+            return;
+        }
+
+        // -- Init program
+        var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
+        var mvMatrixLocation = gl.getUniformLocation(program, 'mvMatrix');
+        var pMatrixLocation = gl.getUniformLocation(program, 'pMatrix');
+        var diffuseLocation = gl.getUniformLocation(program, 'diffuse');
+        var displacementMapLocation = gl.getUniformLocation(program, 'displacementMap');
+
+        // -- Initialize vertex array
+        var POSITION_LOCATION = 0; // set with GLSL layout qualifier
+        var TEXCOORD_LOCATION = 4; // set with GLSL layout qualifier
+        var NORMAL_LOCATION = 1; // set with GLSL layout qualifier
+
+        var vertexArrayMaps = {};
+
+        // var in loop
+        var mesh;
+        var primitive;
+        var vertexBuffer;
+        var indicesBuffer;
+        var vertexArray;
+
+        var texture;
+
+        gl.useProgram(program);
+        gl.uniform1i(diffuseLocation, 0);
+        gl.uniform1i(displacementMapLocation, 0);
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LESS);
+
+        // -- Load model then render
+        var glTFLoader = new MinimalGLTFLoader.glTFLoader();
+        var curScene;
+        var gltfUrl = '../assets/gltf/plane.gltf';
+        glTFLoader.loadGLTF(gltfUrl, function(glTF) {
+            curScene = glTF.scenes[glTF.defaultScene];
+
+            var i,len;
+
+            for (var mid in curScene.meshes) {
+                mesh = curScene.meshes[mid];
+                vertexArrayMaps[mid] = [];
+
+                for (i = 0, len = mesh.primitives.length; i < len; ++i) {
+                    primitive = mesh.primitives[i];
+                    
+                    // create buffers
+                    vertexBuffer = gl.createBuffer();
+                    indicesBuffer = gl.createBuffer();
+
+                    // WebGL2: create vertexArray
+                    vertexArray = gl.createVertexArray();
+                    vertexArrayMaps[mid].push(vertexArray);
+
+                    // -- Initialize buffer
+                    var vertices = primitive.vertexBuffer;
+                    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+                    var indices = primitive.indices;
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+                    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+                    // -- VertexAttribPointer
+
+                    gl.bindVertexArray(vertexArray);
+
+                    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+                    
+                    var positionInfo = primitive.attributes.POSITION;
+                    gl.vertexAttribPointer(
+                        POSITION_LOCATION,
+                        positionInfo.size,
+                        positionInfo.type,
+                        false,
+                        positionInfo.stride,
+                        positionInfo.offset
+                        );
+                    gl.enableVertexAttribArray(POSITION_LOCATION);
+
+                    var normalInfo = primitive.attributes.NORMAL;
+                    gl.vertexAttribPointer(
+                        NORMAL_LOCATION,
+                        normalInfo.size,
+                        normalInfo.type,
+                        false,
+                        normalInfo.stride,
+                        normalInfo.offset
+                        );
+                    gl.enableVertexAttribArray(NORMAL_LOCATION);
+
+                    var texcoordInfo = primitive.attributes.TEXCOORD_0;
+                    gl.vertexAttribPointer(
+                        TEXCOORD_LOCATION,
+                        texcoordInfo.size,
+                        texcoordInfo.type,
+                        false,
+                        texcoordInfo.stride,
+                        texcoordInfo.offset
+                        );
+                    gl.enableVertexAttribArray(TEXCOORD_LOCATION);
+
+                    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+
+                    gl.bindVertexArray(null);
+
+
+                }
+                
+            }
+
+            // -- Init Texture
+            var imageUrl = '../assets/img/heightmap.jpg';
+            loadImage(imageUrl, function(image) {
+                // -- Init 2D Texture
+                texture = gl.createTexture();
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+                // -- Allocate storage for the texture
+                gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGB8, 256, 256);
+                gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGB, gl.UNSIGNED_BYTE, image);
+
+                requestAnimationFrame(render);
+            });
+            
+        });
+
+        // -- Initialize render variables
+        var orientation = [0.0, 0.0, 0.0];
+
+        var tempMat4 = mat4.create();
+        var modelMatrix = mat4.create();
+        
+        var eyeVec3 = vec3.create();
+        vec3.set(eyeVec3, 4, 3, 1);
+        var centerVec3 = vec3.create();
+        vec3.set(centerVec3, 0, 0.5, 0);
+        var upVec3 = vec3.create();
+        vec3.set(upVec3, 0, 1, 0);
+
+        var viewMatrix = mat4.create();
+        mat4.lookAt(viewMatrix, eyeVec3, centerVec3, upVec3);
+
+        var mvMatrix = mat4.create();
+        mat4.multiply(mvMatrix, viewMatrix, modelMatrix);
+        var perspectiveMatrix = mat4.create();
+        mat4.perspective(perspectiveMatrix, 0.785, 1, 1, 1000);
+
+        // -- Mouse Behaviour
+
+        var mouseDown = false;
+        var lastMouseX = 0;
+        var lastMouseY = 0;
+
+        canvas.onmousedown = function(event) {
+            mouseDown = true;
+            lastMouseX = event.clientX;
+            lastMouseY = event.clientY;
+        };
+
+        canvas.onmouseup = function(event) {
+            mouseDown = false;
+        };
+
+        canvas.onmousemove = function(event) {
+            var newX = event.clientX;
+            var newY = event.clientY;
+
+            var deltaX = newX - lastMouseX;
+            var deltaY = newY - lastMouseY;
+
+            var m = mat4.create();
+            mat4.rotateX(m, m, deltaX / 100.0);
+            mat4.rotateY(m, m, deltaY / 100.0);
+
+            mat4.multiply(tempMat4, mvMatrix, m);
+            mat4.copy(mvMatrix, tempMat4);
+
+            lastMouseX = newX;
+            lastMouseY = newY;
+        };
+
+        var localMV = mat4.create();
+        function render() {
+            // -- Render
+
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            orientation[0] = 0.00020; // yaw
+            orientation[1] = 0.00010; // pitch
+            orientation[2] = 0.00005; // roll
+
+            mat4.rotateX(mvMatrix, mvMatrix, orientation[0] * Math.PI);
+            mat4.rotateY(mvMatrix, mvMatrix, orientation[1] * Math.PI);
+            mat4.rotateZ(mvMatrix, mvMatrix, orientation[2] * Math.PI);
+
+            var i,len;
+            for (var mid in curScene.meshes) {
+                mesh = curScene.meshes[mid];
+
+                for (i = 0, len = mesh.primitives.length; i < len; ++i) {
+                    primitive = mesh.primitives[i];
+
+                    mat4.multiply(localMV, mvMatrix, primitive.matrix);
+
+                    gl.uniformMatrix4fv(mvMatrixLocation, false, localMV);
+                    gl.uniformMatrix4fv(pMatrixLocation, false, perspectiveMatrix);
+
+                    gl.bindVertexArray(vertexArrayMaps[mid][i]);
+
+                    gl.drawElements(primitive.mode, primitive.indices.length, primitive.indicesComponentType, 0);
+
+                    gl.bindVertexArray(null);
+                }
+            }
+
+            requestAnimationFrame(render);
+        }
+
+    })();
+    </script>
+    <div id="highlightedLines"  style="display: none">#L44</div>
+
+</body>
+
+</html>

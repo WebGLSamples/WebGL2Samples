@@ -22,6 +22,11 @@ body {
     padding: 5px;
 }
 
+.float {
+    float: left;
+    top: 10px;
+}
+
 a {
     color: #0080ff;
 }

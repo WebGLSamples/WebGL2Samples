@@ -12,6 +12,9 @@
 
 <body>
     <div id="info">WebGL 2 Samples - sampler_wrap</div>
+    <p id="description">
+        This sample demonstrates texture wrapping (view source for details).
+    </p>
 
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
@@ -27,11 +30,11 @@
         layout(location = POSITION_LOCATION) in vec2 position;
         layout(location = TEXCOORD_LOCATION) in vec2 textureCoordinates;
 
-        out vec2 st;
+        out vec2 v_st;
 
         void main()
         {
-            st = textureCoordinates;
+            v_st = textureCoordinates;
             gl_Position = mvp * vec4(position, 0.0, 1.0);
         }
     </script>
@@ -45,13 +48,13 @@
 
         uniform sampler2D diffuse;
 
-        in vec2 st;
+        in vec2 v_st;
 
         layout(location = FRAG_COLOR_LOCATION) out vec4 color;
 
         void main()
         {
-            color = texture(diffuse, st);
+            color = texture(diffuse, v_st);
         }
     </script>
 
@@ -66,8 +69,7 @@
 
         var gl = canvas.getContext( 'webgl2', { antialias: false } );
         var isWebGL2 = !!gl;
-        if(!isWebGL2)
-        {
+        if(!isWebGL2) {
             document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
             return;
         }
@@ -107,14 +109,14 @@
             x: windowSize.x / 2,
             y: windowSize.y / 2,
             z: windowSize.x / 2,
-            w: windowSize.y / 2
+            w: windowSize.y / 2 - 60
         };
 
         viewport[Corners.TOP_LEFT] = {
             x: 0,
             y: windowSize.y / 2,
             z: windowSize.x / 2,
-            w: windowSize.y / 2
+            w: windowSize.y / 2 - 60
         };
 
         // -- Initialize program
@@ -253,6 +255,7 @@
         }
     })();
     </script>
+    <div id="highlightedLines"  style="display: none">#L178-L194</div>
 
 </body>
 

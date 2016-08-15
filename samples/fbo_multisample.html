@@ -10,16 +10,21 @@
 
 <body>
     <div id="info">WebGL 2 Samples - fbo_multisample</div>
+    <p id="description">
+        Render to a texture with multi-sampling enabled.
+    </p>
 
     <!-- WebGL 2 shaders -->
     <script id="vs-render" type="x-shader/x-vertex">
         #version 300 es
+        #define POSITION_LOCATION 0
+        
         precision highp float;
         precision highp int;
 
         uniform mat4 MVP;
 
-        layout(location = 0) in vec2 position;
+        layout(location = POSITION_LOCATION) in vec2 position;
 
         void main()
         {
@@ -39,7 +44,7 @@
             color = vec4(1.0, 0.5, 0.0, 1.0);
         }
     </script>
-    
+
     <script id="vs-splash" type="x-shader/x-vertex">
         #version 300 es
         precision highp float;
@@ -100,15 +105,15 @@
             SPLASH: 1,
             MAX: 2
         };
-        
+
         var programs = [
             createProgram(gl, getShaderSource('vs-render'), getShaderSource('fs-render')),
-            createProgram(gl, getShaderSource('vs-splash'), getShaderSource('fs-splash')) 
+            createProgram(gl, getShaderSource('vs-splash'), getShaderSource('fs-splash'))
         ];
         var mvpLocationTexture = gl.getUniformLocation(programs[PROGRAM.TEXTURE], 'MVP');
         var mvpLocation = gl.getUniformLocation(programs[PROGRAM.SPLASH], 'MVP');
         var diffuseLocation = gl.getUniformLocation(programs[PROGRAM.SPLASH], 'diffuse');
-        
+
         // -- Init primitive data
         var vertexCount = 18;
         var data = new Float32Array(vertexCount * 2);
@@ -120,13 +125,13 @@
             data[2 * i] = radius * Math.sin(angle);
             data[2 * i + 1] = radius * Math.cos(angle);
         }
-        
+
         // -- Init buffers
         var vertexDataBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexDataBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        
+
         var positions = new Float32Array([
             -1.0, -1.0,
              1.0, -1.0,
@@ -156,7 +161,7 @@
         // -- Init Texture
         // used for draw framebuffer storage
         var FRAMEBUFFER_SIZE = {
-            x: canvas.width, 
+            x: canvas.width,
             y: canvas.height
         };
         var texture = gl.createTexture();
@@ -168,7 +173,7 @@
 
         // -- Init Frame Buffers
         var FRAMEBUFFER = {
-            RENDERBUFFER: 0, 
+            RENDERBUFFER: 0,
             COLORBUFFER: 1
         };
         var framebuffers = [
@@ -178,11 +183,11 @@
         var colorRenderbuffer = gl.createRenderbuffer();
         gl.bindRenderbuffer(gl.RENDERBUFFER, colorRenderbuffer);
         gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y);
-        
+
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers[FRAMEBUFFER.RENDERBUFFER]);
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRenderbuffer);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        
+
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers[FRAMEBUFFER.COLORBUFFER]);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -192,16 +197,16 @@
             gl.createVertexArray(),
             gl.createVertexArray()
         ];
-        
+
         var vertexPosLocation = 0; // set with GLSL layout qualifier
-        
+
         gl.bindVertexArray(vertexArrays[PROGRAM.TEXTURE]);
         gl.enableVertexAttribArray(vertexPosLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexDataBuffer);
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindVertexArray(null);
-        
+
         gl.bindVertexArray(vertexArrays[PROGRAM.SPLASH]);
 
         gl.enableVertexAttribArray(vertexPosLocation);
@@ -216,29 +221,29 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         gl.bindVertexArray(null);
-        
+
         // -- Render
-        
+
         // Pass 1
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers[FRAMEBUFFER.RENDERBUFFER]);
         gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 1.0]);
         gl.useProgram(programs[PROGRAM.TEXTURE]);
         gl.bindVertexArray(vertexArrays[PROGRAM.TEXTURE]);
-        
+
         var IDENTITY = mat4.create();
         gl.uniformMatrix4fv(mvpLocationTexture, false, IDENTITY);
         gl.drawArrays(gl.LINE_LOOP, 0, vertexCount);
-        
+
         // Blit framebuffers, no Multisample texture 2d in WebGL 2
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, framebuffers[FRAMEBUFFER.RENDERBUFFER]);
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebuffers[FRAMEBUFFER.COLORBUFFER]);
         gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 1.0]);
         gl.blitFramebuffer(
-            0, 0, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y, 
-            0, 0, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y, 
+            0, 0, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y,
+            0, 0, FRAMEBUFFER_SIZE.x, FRAMEBUFFER_SIZE.y,
             gl.COLOR_BUFFER_BIT, gl.NEAREST
         );
-        
+
         // Pass 2
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.useProgram(programs[PROGRAM.SPLASH]);
@@ -246,18 +251,18 @@
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.bindVertexArray(vertexArrays[PROGRAM.SPLASH]);
-        
+
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
-        
+
         var scaleVector3 = vec3.create();
         vec3.set(scaleVector3, 8.0, 8.0, 8.0);
         var mvp = mat4.create();
         mat4.scale(mvp, IDENTITY, scaleVector3);
-        
+
         gl.uniformMatrix4fv(mvpLocation, false, mvp);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
-        
+
         // -- Delete WebGL resources
         gl.deleteBuffer(vertexPosBuffer);
         gl.deleteBuffer(vertexTexBuffer);
@@ -269,10 +274,10 @@
         gl.deleteVertexArray(vertexArrays[PROGRAM.SPLASH]);
         gl.deleteProgram(programs[PROGRAM.TEXTURE]);
         gl.deleteProgram(programs[PROGRAM.SPLASH]);
-        
+
     })();
     </script>
-
+    <div id="highlightedLines"  style="display: none">#L183-L245</div>
 </body>
 
 </html>

@@ -11,17 +11,23 @@
 
 <body>
     <div id="info">WebGL 2 Samples - texture_2d_array</div>
-
+    <p id="description">
+        A texture animation using texture 2d array. The texture is also non-power-of-2. 
+    </p>
+    
     <!-- WebGL 2 shaders -->
     <script id="vs" type="x-shader/x-vertex">
         #version 300 es
+        #define POSITION_LOCATION 0
+        #define TEXCOORD_LOCATION 4
+        
         precision highp float;
         precision highp int;
 
         uniform mat4 MVP;
 
-        layout(location = 0) in vec2 position;
-        layout(location = 1) in vec2 texcoord;
+        layout(location = POSITION_LOCATION) in vec2 position;
+        layout(location = TEXCOORD_LOCATION) in vec2 texcoord;
 
         out vec2 v_st;
 
@@ -111,7 +117,7 @@
         gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        var vertexTexLocation = 1; // set with GLSL layout qualifier
+        var vertexTexLocation = 4; // set with GLSL layout qualifier
         gl.enableVertexAttribArray(vertexTexLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexBuffer);
         gl.vertexAttribPointer(vertexTexLocation, 2, gl.FLOAT, false, 0, 0);
@@ -182,17 +188,17 @@
             })();
         });
         
-        window.onunload = function() {
-            // -- Delete WebGL resources
-            gl.deleteBuffer(vertexPosBuffer);
-            gl.deleteBuffer(vertexTexBuffer);
-            gl.deleteTexture(texture);
-            gl.deleteProgram(program);
-            gl.deleteVertexArray(vertexArray);
-        };
+        // If you have a long-running page, and need to delete WebGL resources, use:
+        //
+        // gl.deleteBuffer(vertexPosBuffer);
+        // gl.deleteBuffer(vertexTexBuffer);
+        // gl.deleteTexture(texture);
+        // gl.deleteProgram(program);
+        // gl.deleteVertexArray(vertexArray);
     })();
     </script>
-
+    
+    <div id="highlightedLines"  style="display: none">#L145-L160</div>
 </body>
 
 </html>
