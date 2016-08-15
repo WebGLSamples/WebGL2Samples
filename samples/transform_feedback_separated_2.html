@@ -209,19 +209,19 @@
             }
 
             gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][Particle.POSITION]);
-            gl.bufferData(gl.ARRAY_BUFFER, particlePositions, gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, particlePositions, gl.STREAM_COPY);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][Particle.VELOCITY]);
-            gl.bufferData(gl.ARRAY_BUFFER, particleVelocities, gl.DYNAMIC_COPY);
+            gl.bufferData(gl.ARRAY_BUFFER, particleVelocities, gl.STREAM_COPY);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][Particle.SPAWN_TIME]);
-            gl.bufferData(gl.ARRAY_BUFFER, particleSpawntime, gl.DYNAMIC_COPY);
+            gl.bufferData(gl.ARRAY_BUFFER, particleSpawntime, gl.STREAM_COPY);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][Particle.LIFE_TIME]);
-            gl.bufferData(gl.ARRAY_BUFFER, particleLifetime, gl.DYNAMIC_COPY);
+            gl.bufferData(gl.ARRAY_BUFFER, particleLifetime, gl.STREAM_COPY);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][Particle.ID]);
-            gl.bufferData(gl.ARRAY_BUFFER, particleIDs, gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, particleIDs, gl.STATIC_READ);
         }
 
         // -- Init Vertex Array
