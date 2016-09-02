@@ -60,8 +60,11 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[fbo_multisample](http://webglsamples.org/WebGL2Samples/#fbo_multisample)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[fbo_new_blend_equation](http://webglsamples.org/WebGL2Samples/#fbo_new_blend_equation)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[buffer_copy](http://webglsamples.org/WebGL2Samples/#buffer_copy)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|[buffer_uniform](http://webglsamples.org/WebGL2Samples/#buffer_uniform)|:x: Intel driver issue|TODO|TODO|TODO|
+|[buffer_uniform](http://webglsamples.org/WebGL2Samples/#buffer_uniform)|:x: Intel driver issue. *  |TODO|TODO|TODO|
 |[geo_texture_format](http://webglsamples.org/WebGL2Samples/#geo_texture_format)|:white_check_mark:|:white_check_mark:|:x:Error: WebGL: drawElementsInstanced: integer overflow occured while checking vertex attrib 3|:x:Error: WebGL: drawElementsInstanced: integer overflow occured while checking vertex attrib 2|
+
+* Uniform Buffer Intel Driver: When copying from a staging buffer to a uniform buffer, the first upload would be incorrect. Work around this by trying to upload directly to a uniform buffer on the first BufferSubData call. (https://bugs.chromium.org/p/chromium/issues/detail?id=593024#c20)
+
 
 ## Running the Samples Locally
 
