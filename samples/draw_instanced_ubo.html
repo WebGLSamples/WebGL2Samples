@@ -106,7 +106,7 @@
             0.0, 0.0, 1.0, 0.0,
             0.5, 0.0, 0.0, 1.0
         ]);
-        gl.bufferData(gl.UNIFORM_BUFFER, transforms,gl.DYNAMIC_DRAW);
+        gl.bufferData(gl.UNIFORM_BUFFER, transforms, gl.DYNAMIC_DRAW);
         gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 
         var uniformMaterialBuffer = gl.createBuffer();
@@ -115,7 +115,7 @@
             1.0, 0.5, 0.0, 1.0,
             0.0, 0.5, 1.0, 1.0
         ]);
-        gl.bufferData(gl.UNIFORM_BUFFER, new Float32Array(materials), gl.STATIC_DRAW);
+        gl.bufferData(gl.UNIFORM_BUFFER, materials, gl.STATIC_DRAW);
         gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 
         // -- Render
