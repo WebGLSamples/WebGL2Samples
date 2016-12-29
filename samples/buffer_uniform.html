@@ -96,11 +96,10 @@
             vec3 v = normalize(v_view);
 
             vec3 diffuse = max(dot(n, l), 0.0) * u_perScene.material.diffuse;
-            vec3 r = reflect(-l, n);
+            vec3 r = - reflect(l, n);
             vec3 specular = pow(max(dot(r, v), 0.0), u_perScene.material.shininess) * u_perScene.material.specular;
 
-            //color = vec4(u_perScene.material.ambient + diffuse + specular, 1.0);
-            color = v_color;
+            color = vec4(u_perScene.material.ambient + diffuse + specular, 1.0);
         }
     </script>
 
@@ -131,15 +130,6 @@
         var uniformPerDrawLocation = gl.getUniformBlockIndex(program, 'PerDraw');
         var uniformPerPassLocation = gl.getUniformBlockIndex(program, 'PerPass');
         var uniformPerSceneLocation = gl.getUniformBlockIndex(program, 'PerScene');
-
-
-        console.log(gl.getActiveUniformBlockParameter(program, uniformPerDrawLocation, gl.UNIFORM_BLOCK_ACTIVE_UNIFORMS));
-        console.log(gl.getActiveUniformBlockParameter(program, uniformPerPassLocation, gl.UNIFORM_BLOCK_ACTIVE_UNIFORMS));
-        console.log(gl.getActiveUniformBlockParameter(program, uniformPerSceneLocation, gl.UNIFORM_BLOCK_ACTIVE_UNIFORMS));
-
-        console.log(gl.getActiveUniformBlockParameter(program, uniformPerDrawLocation, gl.UNIFORM_BLOCK_DATA_SIZE));
-        console.log(gl.getActiveUniformBlockParameter(program, uniformPerPassLocation, gl.UNIFORM_BLOCK_DATA_SIZE));
-        console.log(gl.getActiveUniformBlockParameter(program, uniformPerSceneLocation, gl.UNIFORM_BLOCK_DATA_SIZE));
         
         gl.uniformBlockBinding(program, uniformPerDrawLocation, 0);
         gl.uniformBlockBinding(program, uniformPerPassLocation, 1);
@@ -157,10 +147,10 @@
         
         //vec3 position, vec3 normal, vec4 color
         var vertices = new Float32Array([
-            -1.0, -1.0, 0.0,    0.0, 0.0, 1.0,     1.0, 0.0, 0.0, 1.0, 
-             1.0, -1.0, 0.0,    0.0, 0.0, 1.0,     0.0, 1.0, 0.0, 1.0, 
-             1.0, 1.0, 0.0,     0.0, 0.0, 1.0,     0.0, 0.0, 1.0, 1.0, 
-            -1.0, 1.0, 0.0,     0.0, 0.0, 1.0,     1.0, 1.0, 1.0, 1.0
+            -1.0, -1.0, -0.5,    0.0, 0.0, 1.0,     1.0, 0.0, 0.0, 1.0, 
+             1.0, -1.0, -0.5,    0.0, 0.0, 1.0,     0.0, 1.0, 0.0, 1.0, 
+             1.0, 1.0, -0.5,     0.0, 0.0, 1.0,     0.0, 0.0, 1.0, 1.0, 
+            -1.0, 1.0, -0.5,     0.0, 0.0, 1.0,     1.0, 1.0, 1.0, 1.0
         ]);
         var vertexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
@@ -176,7 +166,7 @@
                 
                 0.5, 0.0, 0.0, 0.0,
                 0.0, 0.5, 0.0, 0.0,
-                0.0, 0.0, 0.5, -1.0,
+                0.0, 0.0, 0.5, 0.0,
                 0.0, 0.0, 0.0, 1.0, 
                 
                 1.0, 0.0, 0.0, 0.0,
@@ -188,26 +178,31 @@
         var uniformPerDrawBuffer = gl.createBuffer();
         gl.bindBuffer(gl.UNIFORM_BUFFER, uniformPerDrawBuffer);
         gl.bufferData(gl.UNIFORM_BUFFER, transforms, gl.DYNAMIC_DRAW);
+
+        gl.bufferSubData(gl.UNIFORM_BUFFER, 0, transforms);
         gl.bindBuffer(gl.UNIFORM_BUFFER, null);
         
         var lightPos = new Float32Array([
-            0.0, 0.0, 100.0, 0.0,
+            0.0, 0.0, 0.0, 0.0,
         ]);
         var uniformPerPassBuffer = gl.createBuffer();
         gl.bindBuffer(gl.UNIFORM_BUFFER, uniformPerPassBuffer);
-        gl.bufferData(gl.UNIFORM_BUFFER, lightPos, gl.STATIC_DRAW);
+        gl.bufferData(gl.UNIFORM_BUFFER, lightPos, gl.DYNAMIC_DRAW);
+
+        gl.bufferSubData(gl.UNIFORM_BUFFER, 0, lightPos);
         gl.bindBuffer(gl.UNIFORM_BUFFER, null);
         
         //vec3 ambient, diffuse, specular, float shininess
         var material = new Float32Array([
             0.1, 0.0, 0.0,  0.0,
-            0.0, 0.5, 0.0,  0.0,
-            0.0, 0.0, 0.5,  0.0,
-            128.0, 0.0, 0.0, 0.0
+            0.5, 0.0, 0.0,  0.0,
+            1.0, 1.0, 1.0,  4.0,
         ]);
         var uniformPerSceneBuffer = gl.createBuffer();
         gl.bindBuffer(gl.UNIFORM_BUFFER, uniformPerSceneBuffer);
         gl.bufferData(gl.UNIFORM_BUFFER, material, gl.STATIC_DRAW);
+
+        gl.bufferSubData(gl.UNIFORM_BUFFER, 0, material);
         gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 
         // -- Init Vertex Array
@@ -231,25 +226,47 @@
         
         gl.bindVertexArray(null);
 
-        // -- Render
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
+
         gl.bindVertexArray(vertexArray);
         gl.bindBufferBase(gl.UNIFORM_BUFFER, 0, uniformPerDrawBuffer);
         gl.bindBufferBase(gl.UNIFORM_BUFFER, 1, uniformPerPassBuffer);
         gl.bindBufferBase(gl.UNIFORM_BUFFER, 2, uniformPerSceneBuffer);
-        
-        gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 
-        // -- Delete WebGL resources
-        gl.deleteBuffer(vertexBuffer);
-        gl.deleteBuffer(uniformPerSceneBuffer);
-        gl.deleteBuffer(uniformPerPassBuffer);
-        gl.deleteBuffer(uniformPerDrawBuffer);
-        gl.deleteBuffer(elementBuffer);
-        gl.deleteProgram(program);
+        var uTime = 0;
+        function render() {
+
+            uTime += 0.01;
+
+            // -- update uniform buffer
+            transforms[16] = 0.1 * Math.cos(uTime) + 0.4;
+            gl.bindBuffer(gl.UNIFORM_BUFFER, uniformPerDrawBuffer);
+            gl.bufferSubData(gl.UNIFORM_BUFFER, 0, transforms);
+
+            lightPos[0] = Math.cos( 3 * uTime );
+            lightPos[1] = Math.sin( 6 * uTime );
+            gl.bindBuffer(gl.UNIFORM_BUFFER, uniformPerPassBuffer);
+            gl.bufferSubData(gl.UNIFORM_BUFFER, 0, lightPos);
+            gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            
+            gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+
+            requestAnimationFrame(render);
+        }
+
+        render();
+
+        // // -- Delete WebGL resources
+        // gl.deleteBuffer(vertexBuffer);
+        // gl.deleteBuffer(uniformPerSceneBuffer);
+        // gl.deleteBuffer(uniformPerPassBuffer);
+        // gl.deleteBuffer(uniformPerDrawBuffer);
+        // gl.deleteBuffer(elementBuffer);
+        // gl.deleteProgram(program);
         
-        gl.deleteVertexArray(vertexArray);
+        // gl.deleteVertexArray(vertexArray);
     })();
     </script>
 </body>
