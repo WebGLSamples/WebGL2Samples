@@ -24,46 +24,46 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 
 :warning: the [minial-gltf-loader](https://github.com/shrekshao/minimal-gltf-loader) used for samples is in development and contributions are welcome.
 
-|              | Chrome Canary 54 Windows 10| Chrome Canary 54 OSX 10| Firefox Developer Edition 49 Windows 10| Firefox Developer Edition 49 OSX 10|
+:grey_exclamation: Compatibility table updated on 2016/12/29
+
+|              | Chrome Canary 57 Windows 10| Chrome Canary 54 OSX 10| Firefox Nightly 53 Windows 10| Firefox Developer Edition 49 OSX 10|
 |--------------|:-----------------:|:--------------------------------------:|:-----------------:|:-----------------------:|
-|[draw_image_space](http://webglsamples.org/WebGL2Samples/#draw_image_space)|:white_check_mark:|:white_check_mark:|:x: `gl_VertexID` not supported|:x: `gl_VertexID` not supported|
+|[draw_image_space](http://webglsamples.org/WebGL2Samples/#draw_image_space)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x: `gl_VertexID` not supported|
 |[draw_instanced](http://webglsamples.org/WebGL2Samples/#draw_instanced)|:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
-|[draw_primitive_restart](http://webglsamples.org/WebGL2Samples/#draw_primitive_restart)|:white_check_mark:|:white_check_mark:|TODO|:x:not working|
+|[draw_primitive_restart](http://webglsamples.org/WebGL2Samples/#draw_primitive_restart)|:white_check_mark:|:white_check_mark:|:x:drawElements: bound vertex attribute buffers do not have sufficient size for given indices from the bound element array|:x:not working|
 |[draw_range_arrays](http://webglsamples.org/WebGL2Samples/#draw_range_arrays)|:white_check_mark: | :white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[glsl_centroid](http://webglsamples.org/WebGL2Samples/#glsl_centroid)|:white_check_mark: |:white_check_mark: | :white_check_mark:|:white_check_mark:|
 |[glsl_discard](http://webglsamples.org/WebGL2Samples/#glsl_discard)|:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
 |[glsl_flat_smooth_interpolators](http://webglsamples.org/WebGL2Samples/#glsl_flat_smooth_interpolators)|:white_check_mark: |:white_check_mark:| :white_check_mark: |:white_check_mark:|
 |[glsl_non_square_matrix](http://webglsamples.org/WebGL2Samples/#glsl_non_square_matrix)|:white_check_mark: |:white_check_mark:| :white_check_mark: |:white_check_mark:|
 |[query_occlusion](http://webglsamples.org/WebGL2Samples/#query_occlusion)|:white_check_mark:|:white_check_mark:| :white_check_mark:|:white_check_mark:|
-|[sampler_object](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:| :x: D3D not supported|:white_check_mark:|
-|[sampler_wrap](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:| :x: Error: WebGL: samplerParameteri: invalid sampler|:white_check_mark:|
+|[sampler_object](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:| :white_check_mark:|:white_check_mark:|
+|[sampler_wrap](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:| :white_check_mark:|:white_check_mark:|
 |[sampler_filter](http://webglsamples.org/WebGL2Samples/#sampler_filter)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_derivative](http://webglsamples.org/WebGL2Samples/#texture_derivative)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_2d_array](http://webglsamples.org/WebGL2Samples/#texture_2d_array)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|[texture_etc2_eac](http://webglsamples.org/WebGL2Samples/#texture_etc2_eac)|:white_check_mark:|:white_check_mark:|:x: compressedTexImage2D: Invalid internalFormat: 0x9278 |:x: not working|
+|[texture_etc2_eac](http://webglsamples.org/WebGL2Samples/#texture_etc2_eac)||:x: compressedTexImage2D: invalid format|:x: compressedTexImage2D: Invalid internalFormat: 0x9278 |:x: not working|
 |[texture_format](http://webglsamples.org/WebGL2Samples/#texture_format)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_fetch](http://webglsamples.org/WebGL2Samples/#texture_fetch)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_grad](http://webglsamples.org/WebGL2Samples/#texture_grad)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_3d](http://webglsamples.org/WebGL2Samples/#texture_3d)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|[texture_immutable](http://webglsamples.org/WebGL2Samples/#texture_immutable)|:white_check_mark:|:white_check_mark:|:x: Error: WebGL: texSubImage2D: Chosen format/type incured an expensive reformat: 0x1907/0x14011|:white_check_mark:|
+|[texture_immutable](http://webglsamples.org/WebGL2Samples/#texture_immutable)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_integer](http://webglsamples.org/WebGL2Samples/#texture_integer)|:white_check_mark:|:white_check_mark:|:x: Error: Driver ran out of memory during upload|:white_check_mark:|
 |[texture_lod](http://webglsamples.org/WebGL2Samples/#texture_lod)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_offset](http://webglsamples.org/WebGL2Samples/#texture_offset)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_pixel_store](http://webglsamples.org/WebGL2Samples/#texture_pixel_store)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|[texture_srgb](http://webglsamples.org/WebGL2Samples/#texture_srgb)|:white_check_mark:|:white_check_mark:|:x:D3D not supported|:white_check_mark:|
+|[texture_srgb](http://webglsamples.org/WebGL2Samples/#texture_srgb)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[texture_vertex](http://webglsamples.org/WebGL2Samples/#texture_vertex)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[transform_feedback_interleaved](http://webglsamples.org/WebGL2Samples/#transform_feedback_interleaved)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[transform_feedback_separated](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[transform_feedback_separated_2](http://webglsamples.org/WebGL2Samples/#transform_feedback_separated_2)|:white_check_mark:|:white_check_mark:|:x: exceeded maxium varyings for transform feedback|:x: exceeded maxium varyings for transform feedback|
-|[fbo_rtt_texture_array](http://webglsamples.org/WebGL2Samples/#fbo_rtt_texture_array)|:white_check_mark:|:white_check_mark:|:x: fb status: 8cdd|:white_check_mark:|
+|[fbo_rtt_texture_array](http://webglsamples.org/WebGL2Samples/#fbo_rtt_texture_array)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[fbo_blit](http://webglsamples.org/WebGL2Samples/#fbo_blit)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[fbo_multisample](http://webglsamples.org/WebGL2Samples/#fbo_multisample)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[fbo_new_blend_equation](http://webglsamples.org/WebGL2Samples/#fbo_new_blend_equation)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[buffer_copy](http://webglsamples.org/WebGL2Samples/#buffer_copy)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|[buffer_uniform](http://webglsamples.org/WebGL2Samples/#buffer_uniform)|:x: Intel driver issue. *  |TODO|TODO|TODO|
-|[geo_texture_format](http://webglsamples.org/WebGL2Samples/#geo_texture_format)|:white_check_mark:|:white_check_mark:|:x:Error: WebGL: drawElementsInstanced: integer overflow occured while checking vertex attrib 3|:x:Error: WebGL: drawElementsInstanced: integer overflow occured while checking vertex attrib 2|
-
-* Uniform Buffer Intel Driver: When copying from a staging buffer to a uniform buffer, the first upload would be incorrect. Work around this by trying to upload directly to a uniform buffer on the first BufferSubData call. (https://bugs.chromium.org/p/chromium/issues/detail?id=593024#c20)
+|[buffer_uniform](http://webglsamples.org/WebGL2Samples/#buffer_uniform)|:white_check_mark:|TODO|:white_check_mark:|TODO|
+|[geo_texture_format](http://webglsamples.org/WebGL2Samples/#geo_texture_format)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x:Error: WebGL: drawElementsInstanced: integer overflow occured while checking vertex attrib 2|
 
 
 ## Running the Samples Locally
