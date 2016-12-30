@@ -22,7 +22,7 @@
         #define POSITION_LOCATION 0
         #define NORMAL_LOCATION 1
         #define TEXCOORD_LOCATION 4
-        
+
         precision highp float;
         precision highp int;
 
@@ -154,7 +154,7 @@
 
                 for (i = 0, len = mesh.primitives.length; i < len; ++i) {
                     primitive = mesh.primitives[i];
-                    
+
                     // create buffers
                     vertexBuffer = gl.createBuffer();
                     indicesBuffer = gl.createBuffer();
@@ -179,7 +179,7 @@
                     gl.bindVertexArray(vertexArray);
 
                     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-                    
+
                     var positionInfo = primitive.attributes.POSITION;
                     gl.vertexAttribPointer(
                         POSITION_LOCATION,
@@ -221,7 +221,7 @@
 
 
                 }
-                
+
             }
 
             // -- Init Texture
@@ -243,7 +243,7 @@
 
                 requestAnimationFrame(render);
             });
-            
+
         });
 
         // -- Initialize render variables
@@ -251,7 +251,7 @@
 
         var tempMat4 = mat4.create();
         var modelMatrix = mat4.create();
-        
+
         var eyeVec3 = vec3.create();
         vec3.set(eyeVec3, 4, 3, 1);
         var centerVec3 = vec3.create();
@@ -306,7 +306,7 @@
             // -- Render
 
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
             orientation[0] = 0.00020; // yaw
             orientation[1] = 0.00010; // pitch
