@@ -62,7 +62,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 |[fbo_multisample](http://webglsamples.org/WebGL2Samples/#fbo_multisample)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[fbo_new_blend_equation](http://webglsamples.org/WebGL2Samples/#fbo_new_blend_equation)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[buffer_copy](http://webglsamples.org/WebGL2Samples/#buffer_copy)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
-|[buffer_uniform](http://webglsamples.org/WebGL2Samples/#buffer_uniform)|:white_check_mark:|TODO|:white_check_mark:|TODO|
+|[buffer_uniform](http://webglsamples.org/WebGL2Samples/#buffer_uniform)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[geo_texture_format](http://webglsamples.org/WebGL2Samples/#geo_texture_format)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 
 
