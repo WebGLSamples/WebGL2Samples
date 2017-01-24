@@ -26,7 +26,7 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 
 :grey_exclamation: Compatibility table updated on 2016/12/29
 
-|              | Chrome Canary 57 Windows 10| Chrome Canary 54 OSX 10| Firefox Nightly 53 Windows 10| Firefox Developer Edition 49 OSX 10|
+|              | Chrome Canary 57 Windows 10| Chrome Canary 58 OSX 10| Firefox Nightly 53 Windows 10| Firefox Developer Edition 52 OSX 10|
 |--------------|:-----------------:|:--------------------------------------:|:-----------------:|:-----------------------:|
 |[draw_image_space](http://webglsamples.org/WebGL2Samples/#draw_image_space)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:x: `gl_VertexID` not supported|
 |[draw_instanced](http://webglsamples.org/WebGL2Samples/#draw_instanced)|:white_check_mark: |:white_check_mark:| :white_check_mark:|:white_check_mark:|
