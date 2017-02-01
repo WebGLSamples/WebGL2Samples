@@ -206,8 +206,6 @@
             gl.bindTexture(gl.TEXTURE_2D, textures[Corners.TOP_LEFT]);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_LOD, 0.0);
-            gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAX_LOD, 0.0);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
             gl.generateMipmap(gl.TEXTURE_2D);
             
@@ -262,7 +260,9 @@
             
             gl.bindVertexArray(vertexArray);
 
-            var lodBiasArray = [0.0, 0.0, 3.5, 4.0];
+            var lodBiasArray = [0.0, 0.0, 0.0, 0.0];
+            lodBiasArray[Corners.BOTTOM_LEFT] = 3.5;
+            lodBiasArray[Corners.BOTTOM_RIGHT] = 4.0;
             for (var i = 0; i < Corners.MAX; ++i) {
                 gl.viewport(viewport[i].x, viewport[i].y, viewport[i].z, viewport[i].w);
                 gl.uniform1f(uniformLodBiasLocation, lodBiasArray[i]);
