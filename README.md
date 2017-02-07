@@ -22,9 +22,11 @@ Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.co
 
 ## Samples Compatibility
 
-:warning: the [minial-gltf-loader](https://github.com/shrekshao/minimal-gltf-loader) used for samples is in development and contributions are welcome.
+:grey_exclamation: WebGL 2 is released on Chrome 56 and FireFox 51 now.
 
 :grey_exclamation: Compatibility table updated on 2017/02/02
+
+:warning: the [minial-gltf-loader](https://github.com/shrekshao/minimal-gltf-loader) used for samples is in development and contributions are welcome.
 
 |              | Chrome Canary 58 Windows 10| Chrome Canary 58 OSX 10| Firefox Nightly 53 Windows 10| Firefox Developer Edition 52 OSX 10|
 |--------------|:-----------------:|:--------------------------------------:|:-----------------:|:-----------------------:|
