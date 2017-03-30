@@ -98,7 +98,7 @@
         gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
         gl.enableVertexAttribArray(vertexColorLocation);
         gl.vertexAttribPointer(vertexColorLocation, 3, gl.FLOAT, false, 0, 0);
-        gl.vertexAttribDivisor(1, 1); // attribute used once per instance
+        gl.vertexAttribDivisor(vertexColorLocation, 1); // attribute used once per instance
 
         gl.bindVertexArray(null);
 
