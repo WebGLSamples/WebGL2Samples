@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>WebGL 2 Samples - fbo_rtt_depth_texture</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="utility.js"></script>
+</head>
+
+<body>
+    <div id="info">WebGL 2 Samples - fbo_rtt_depth_texture</div>
+    <p id="description">
+        This sample demonstrates rendering to a depth texture in a frame buffer.
+    </p>
+
+    <script id="vs-draw" type="x-shader/x-vertex">
+        #version 300 es
+        #define POSITION_LOCATION 0
+        #define TEXCOORD_LOCATION 4
+
+        precision highp float;
+        precision highp int;
+
+        layout(location = POSITION_LOCATION) in vec2 position;
+        layout(location = TEXCOORD_LOCATION) in vec2 textureCoordinates;
+
+        out vec2 v_st;
+
+        void main()
+        {
+            v_st = textureCoordinates;
+            gl_Position = vec4(position, 0.0, 1.0);
+        }
+    </script>
+
+    <script id="fs-draw" type="x-shader/x-fragment">
+        #version 300 es
+
+        precision highp float;
+        precision highp int;
+
+        uniform sampler2D depthMap;
+
+        in vec2 v_st;
+
+        out vec4 color;
+
+        void main()
+        {
+            vec3 depth = vec3(texture(depthMap, v_st).r);
+            color = vec4(1.0 - depth, 1.0);
+        }
+    </script>
+
+    <script id="vs-depth" type="x-shader/x-vertex">
+        #version 300 es
+        #define POSITION_LOCATION 0
+
+        precision highp float;
+        precision highp int;
+
+        layout(location = POSITION_LOCATION) in vec4 position;
+
+        void main()
+        {
+            gl_Position = position;
+        }
+    </script>
+
+    <script id="fs-depth" type="x-shader/x-fragment">
+        #version 300 es
+
+        precision highp float;
+        precision highp int;
+
+        void main() {
+            // No color out. Just depth.
+        }
+    </script>
+
+    <script>
+    (function()  {
+        'use strict';
+
+        var canvas = document.createElement('canvas');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        document.body.appendChild(canvas);
+
+        var gl = canvas.getContext( 'webgl2', { antialias: false } );
+        var isWebGL2 = !!gl;
+        if(!isWebGL2) {
+            document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
+            return;
+        }
+
+        var windowSize = {
+            x: gl.drawingBufferWidth,
+            y: gl.drawingBufferHeight
+        };
+
+        // -- Initialize program
+
+        // Depth shaders
+        var depthProgram = createProgram(gl, getShaderSource('vs-depth'), getShaderSource('fs-depth'));
+
+        // Draw shaders
+        var drawProgram = createProgram(gl, getShaderSource('vs-draw'), getShaderSource('fs-draw'));
+
+        var drawUniformDiffuseLocation = gl.getUniformLocation(drawProgram, 'depthMap');
+
+        // -- Initialize buffer
+
+        var triPositions = new Float32Array([
+            -0.5, -0.5, -1.0,
+            0.5, -0.5, -1.0,
+            0.0, 0.5, 1.0    
+        ]);
+        var triVertexPosBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, triVertexPosBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, triPositions, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var quadPositions = new Float32Array([
+            -1.0, -1.0,
+             1.0, -1.0,
+             1.0,  1.0,
+             1.0,  1.0,
+            -1.0,  1.0,
+            -1.0, -1.0
+        ]);
+        var quadVertexPosBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexPosBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, quadPositions, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var quadTexcoords = new Float32Array([
+            0.0, 0.0,
+            1.0, 0.0,
+            1.0, 1.0,
+            1.0, 1.0,
+            0.0, 1.0,
+            0.0, 0.0
+        ]);
+        var quadVertexTexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexTexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, quadTexcoords, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        // -- Initialize vertex array
+
+        var triVertexArray = gl.createVertexArray();
+        gl.bindVertexArray(triVertexArray);
+
+        var depthVertexPosLocation = 0; // set with GLSL layout qualifier
+        gl.bindBuffer(gl.ARRAY_BUFFER, triVertexPosBuffer);
+        gl.vertexAttribPointer(depthVertexPosLocation, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(depthVertexPosLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        gl.bindVertexArray(null);
+
+        var quadVertexArray = gl.createVertexArray();
+        gl.bindVertexArray(quadVertexArray);
+
+        var drawVertexPosLocation = 0; // set with GLSL layout qualifier
+        gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexPosBuffer);
+        gl.vertexAttribPointer(drawVertexPosLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(drawVertexPosLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        var drawVertexTexLocation = 4; // set with GLSL layout qualifier
+        gl.bindBuffer(gl.ARRAY_BUFFER, quadVertexTexBuffer);
+        gl.vertexAttribPointer(drawVertexTexLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(drawVertexTexLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        gl.bindVertexArray(null);
+
+        // -- Initialize depth texture
+
+        gl.activeTexture(gl.TEXTURE0);
+        var depthTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        // the proper texture format combination can be found here
+        // https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
+        gl.texImage2D(gl.TEXTURE_2D,
+            0,
+            gl.DEPTH_COMPONENT16,
+            windowSize.x,
+            windowSize.y,
+            0,
+            gl.DEPTH_COMPONENT,
+            gl.UNSIGNED_SHORT,
+            null);
+
+        // -- Initialize frame buffer
+
+        var frameBuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, frameBuffer);
+        gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
+
+        var status = gl.checkFramebufferStatus(gl.DRAW_FRAMEBUFFER);
+        if (status != gl.FRAMEBUFFER_COMPLETE) {
+            console.log('fb status: ' + status.toString(16));
+            return;
+        }
+
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+
+        // -- Render
+
+        // Pass 1: Depth
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, frameBuffer);
+        gl.enable(gl.DEPTH_TEST); // Need to write depth
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        // Bind program
+        gl.useProgram(depthProgram);
+
+        gl.bindVertexArray(triVertexArray);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+        // Pass 2: Draw
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        // Bind program
+        gl.useProgram(drawProgram);
+        gl.uniform1i(drawUniformDiffuseLocation, 0);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+        gl.bindVertexArray(quadVertexArray);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        // Clean up
+        gl.deleteBuffer(triVertexPosBuffer);
+        gl.deleteBuffer(quadVertexPosBuffer);
+        gl.deleteBuffer(quadVertexTexBuffer);
+        gl.deleteVertexArray(triVertexArray);
+        gl.deleteVertexArray(quadVertexArray);
+        gl.deleteFramebuffer(frameBuffer);
+        gl.deleteTexture(depthTexture);
+        gl.deleteProgram(depthProgram);
+        gl.deleteProgram(drawProgram);
+
+    })();
+    </script>
+    <div id="highlightedLines"  style="display: none">#L184-L206</div>
+
+</body>
+
+</html>
