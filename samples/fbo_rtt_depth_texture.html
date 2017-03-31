@@ -189,6 +189,8 @@
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
+        // the proper texture format combination can be found here
+        // https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
         gl.texImage2D(gl.TEXTURE_2D,
             0,
             gl.DEPTH_COMPONENT16,
