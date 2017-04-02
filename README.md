@@ -10,6 +10,8 @@ Short and easy to understand samples demonstrating WebGL 2 features by [Shuai Sh
 
 Inspired by and ported from Christophe Riccio's ([@Groovounet](https://github.com/Groovounet)) [OpenGL Samples Pack](https://github.com/g-truc/ogl-samples).
 
+Tarek Sherif writes a really helpful [WebGL 2 Examples](https://github.com/tsherif/webgl2examples) repo which demonstrates how these features can be used to implement commonly-used algorithms.
+
 ## Screenshots
 
 | [Texture LOD](http://webglsamples.org/WebGL2Samples/#texture_lod) | [Flat/smooth interpolation](http://webglsamples.org/WebGL2Samples/#glsl_flat_smooth_interpolators) |
