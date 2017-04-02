@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>WebGL 2 Samples - fbo_rtt_depth_texture</title>
+    <title>WebGL 2 Samples - fbo_rtt_draw_buffers</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
@@ -10,9 +10,9 @@
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - fbo_rtt_depth_texture</div>
+    <div id="info">WebGL 2 Samples - fbo_rtt_draw_buffers</div>
     <p id="description">
-        This sample demonstrates rendering to a depth texture in a frame buffer.
+        This sample demonstrates rendering to multiple textures in a frame buffer.
     </p>
 
     <script id="vs-draw" type="x-shader/x-vertex">
@@ -41,7 +41,8 @@
         precision highp float;
         precision highp int;
 
-        uniform sampler2D depthMap;
+        uniform sampler2D color1Map;
+        uniform sampler2D color2Map;
 
         in vec2 v_st;
 
@@ -49,12 +50,13 @@
 
         void main()
         {
-            vec3 depth = vec3(texture(depthMap, v_st).r);
-            color = vec4(1.0 - depth, 1.0);
+            vec4 color1 = texture(color1Map, v_st);
+            vec4 color2 = texture(color2Map, v_st);
+            color = mix(color1, color2, v_st.x);
         }
     </script>
 
-    <script id="vs-depth" type="x-shader/x-vertex">
+    <script id="vs-draw-buffer" type="x-shader/x-vertex">
         #version 300 es
         #define POSITION_LOCATION 0
 
@@ -69,14 +71,18 @@
         }
     </script>
 
-    <script id="fs-depth" type="x-shader/x-fragment">
+    <script id="fs-draw-buffer" type="x-shader/x-fragment">
         #version 300 es
 
         precision highp float;
         precision highp int;
 
+        layout(location = 0) out vec4 color1;
+        layout(location = 1) out vec4 color2;
+
         void main() {
-            // No color out. Just depth.
+            color1 = vec4(1.0, 0.0, 0.0, 1.0);
+            color2 = vec4(0.0, 0.0, 1.0, 1.0);
         }
     </script>
 
@@ -103,13 +109,14 @@
 
         // -- Initialize program
 
-        // Depth shaders
-        var depthProgram = createProgram(gl, getShaderSource('vs-depth'), getShaderSource('fs-depth'));
+        // Draw buffer shaders
+        var drawBufferProgram = createProgram(gl, getShaderSource('vs-draw-buffer'), getShaderSource('fs-draw-buffer'));
 
         // Draw shaders
         var drawProgram = createProgram(gl, getShaderSource('vs-draw'), getShaderSource('fs-draw'));
 
-        var drawUniformDepthLocation = gl.getUniformLocation(drawProgram, 'depthMap');
+        var drawUniformColor1Location = gl.getUniformLocation(drawProgram, 'color1Map');
+        var drawUniformColor2Location = gl.getUniformLocation(drawProgram, 'color2Map');
 
         // -- Initialize buffer
 
@@ -154,10 +161,10 @@
         var triVertexArray = gl.createVertexArray();
         gl.bindVertexArray(triVertexArray);
 
-        var depthVertexPosLocation = 0; // set with GLSL layout qualifier
+        var drawBufferVertexPosLocation = 0; // set with GLSL layout qualifier
         gl.bindBuffer(gl.ARRAY_BUFFER, triVertexPosBuffer);
-        gl.vertexAttribPointer(depthVertexPosLocation, 3, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(depthVertexPosLocation);
+        gl.vertexAttribPointer(drawBufferVertexPosLocation, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(drawBufferVertexPosLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         gl.bindVertexArray(null);
@@ -179,33 +186,55 @@
 
         gl.bindVertexArray(null);
 
-        // -- Initialize depth texture
+        // -- Initialize texture targets
 
         gl.activeTexture(gl.TEXTURE0);
-        var depthTexture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+        var color1Texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, color1Texture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-        // the proper texture format combination can be found here
-        // https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
         gl.texImage2D(gl.TEXTURE_2D,
             0,
-            gl.DEPTH_COMPONENT16,
+            gl.RGBA,
             windowSize.x,
             windowSize.y,
             0,
-            gl.DEPTH_COMPONENT,
-            gl.UNSIGNED_SHORT,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            null);
+
+        gl.activeTexture(gl.TEXTURE1);
+        var color2Texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, color2Texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        gl.texImage2D(gl.TEXTURE_2D,
+            0,
+            gl.RGBA,
+            windowSize.x,
+            windowSize.y,
+            0,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
             null);
 
         // -- Initialize frame buffer
 
         var frameBuffer = gl.createFramebuffer();
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, frameBuffer);
-        gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
+        gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, color1Texture, 0);
+        gl.framebufferTexture2D(gl.DRAW_FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, color2Texture, 0);
+
+        gl.drawBuffers([
+            gl.COLOR_ATTACHMENT0,
+            gl.COLOR_ATTACHMENT1
+        ]);
 
         var status = gl.checkFramebufferStatus(gl.DRAW_FRAMEBUFFER);
         if (status != gl.FRAMEBUFFER_COMPLETE) {
@@ -217,28 +246,29 @@
 
         // -- Render
 
-        // Pass 1: Depth
+        // Pass 1: Draw to multiple textures
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, frameBuffer);
-        gl.enable(gl.DEPTH_TEST); // Need to write depth
-        gl.clear(gl.DEPTH_BUFFER_BIT);
 
         // Bind program
-        gl.useProgram(depthProgram);
+        gl.useProgram(drawBufferProgram);
 
         gl.bindVertexArray(triVertexArray);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
 
-        // Pass 2: Draw
+        // Pass 2: Draw to screen
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         // Bind program
         gl.useProgram(drawProgram);
-        gl.uniform1i(drawUniformDepthLocation, 0);
+        gl.uniform1i(drawUniformColor1Location, 0);
+        gl.uniform1i(drawUniformColor2Location, 1);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+        gl.bindTexture(gl.TEXTURE_2D, color1Texture);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, color2Texture);
         gl.bindVertexArray(quadVertexArray);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
 
@@ -249,13 +279,14 @@
         gl.deleteVertexArray(triVertexArray);
         gl.deleteVertexArray(quadVertexArray);
         gl.deleteFramebuffer(frameBuffer);
-        gl.deleteTexture(depthTexture);
-        gl.deleteProgram(depthProgram);
+        gl.deleteTexture(color1Texture);
+        gl.deleteTexture(color2Texture);
+        gl.deleteProgram(drawBufferProgram);
         gl.deleteProgram(drawProgram);
 
     })();
     </script>
-    <div id="highlightedLines"  style="display: none">#L184-L206</div>
+    <div id="highlightedLines"  style="display: none">#L191-L237</div>
 
 </body>
 
