@@ -151,7 +151,7 @@
             particleIDs[p] = p;
         }
 
-        // -- Init Vertex Array
+        // -- Init Vertex Arrays and Buffers
         var particleVAOs = [gl.createVertexArray(), gl.createVertexArray()];
 
         var particleVBOs = new Array(particleVAOs.length);
@@ -199,7 +199,7 @@
 
         function initProgram() {
 
-            // Setup program for transform feedback shaders
+            // Setup program for transform feedback
             function createShader(gl, source, type) {
                 var shader = gl.createShader(type);
                 gl.shaderSource(shader, source);
@@ -237,8 +237,6 @@
             gl.deleteShader(vshader);
             gl.deleteShader(fshader);
 
-            // Setup program for draw shader
-            
             return program;
         }
 
@@ -275,7 +273,7 @@
             gl.uniform4f(drawColorLocation, 0.0, 1.0, 1.0, 1.0);
             gl.uniform2f(drawAccelerationLocation, 0.0, ACCELERATION);
 
-            // Emit particles using transform feedback
+            // Draw particles using transform feedback
             gl.beginTransformFeedback(gl.POINTS);
             gl.enable(gl.BLEND);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
