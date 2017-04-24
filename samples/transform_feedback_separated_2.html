@@ -139,14 +139,12 @@
         var particleLifetime = new Float32Array(NUM_PARTICLES);
         var particleIDs = new Float32Array(NUM_PARTICLES);
 
-        var Particle = {
-            POSITION: 0,
-            VELOCITY: 1,
-            SPAWN_TIME: 2,
-            LIFE_TIME: 3,
-            ID: 4,
-            MAX: 5
-        };
+        var POSITION_LOCATION = 0;
+        var VELOCITY_LOCATION = 1;
+        var SPAWNTIME_LOCATION = 2;
+        var LIFETIME_LOCATION = 3;
+        var ID_LOCATION = 4;
+        var NUM_LOCATIONS;
 
         for (var p = 0; p < NUM_PARTICLES; ++p) {
             particlePositions[p * 2] = 0.0;
@@ -158,40 +156,47 @@
             particleIDs[p] = p;
         }
 
-        // -- Init Buffer
-
-        var particleVBOs = new Array(2);
-
-        for (var i = 0; i < 2; ++i) {
-            particleVBOs[i] = new Array(Particle.MAX);
-            for (var j = 0; j < Particle.MAX; ++j) {
-                particleVBOs[i][j] = gl.createBuffer();
-            }
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][Particle.POSITION]);
-            gl.bufferData(gl.ARRAY_BUFFER, particlePositions, gl.STREAM_COPY);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][Particle.VELOCITY]);
-            gl.bufferData(gl.ARRAY_BUFFER, particleVelocities, gl.STREAM_COPY);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][Particle.SPAWN_TIME]);
-            gl.bufferData(gl.ARRAY_BUFFER, particleSpawntime, gl.STREAM_COPY);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][Particle.LIFE_TIME]);
-            gl.bufferData(gl.ARRAY_BUFFER, particleLifetime, gl.STREAM_COPY);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][Particle.ID]);
-            gl.bufferData(gl.ARRAY_BUFFER, particleIDs, gl.STATIC_READ);
-        }
-
         // -- Init Vertex Array
         var particleVAOs = [gl.createVertexArray(), gl.createVertexArray()];
 
-        var POSITION_LOCATION = 0;
-        var VELOCITY_LOCATION = 1;
-        var SPAWNTIME_LOCATION = 2;
-        var LIFETIME_LOCATION = 3;
-        var ID_LOCATION = 4;
+        var particleVBOs = new Array(particleVAOs.length);
+
+        for (var i = 0; i < particleVAOs.length; ++i) {
+            particleVBOs[i] = new Array(NUM_LOCATIONS);
+
+            gl.bindVertexArray(particleVAOs[i]);
+
+            particleVBOs[i][POSITION_LOCATION] = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][POSITION_LOCATION]);
+            gl.bufferData(gl.ARRAY_BUFFER, particlePositions, gl.STREAM_COPY);
+            gl.vertexAttribPointer(POSITION_LOCATION, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(POSITION_LOCATION);
+
+            particleVBOs[i][VELOCITY_LOCATION] = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][VELOCITY_LOCATION]);
+            gl.bufferData(gl.ARRAY_BUFFER, particleVelocities, gl.STREAM_COPY);
+            gl.vertexAttribPointer(VELOCITY_LOCATION, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(VELOCITY_LOCATION);
+
+
+            particleVBOs[i][SPAWNTIME_LOCATION] = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][SPAWNTIME_LOCATION]);
+            gl.bufferData(gl.ARRAY_BUFFER, particleSpawntime, gl.STREAM_COPY);
+            gl.vertexAttribPointer(SPAWNTIME_LOCATION, 1, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(SPAWNTIME_LOCATION);
+
+            particleVBOs[i][LIFETIME_LOCATION] = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][LIFETIME_LOCATION]);
+            gl.bufferData(gl.ARRAY_BUFFER, particleLifetime, gl.STREAM_COPY);
+            gl.vertexAttribPointer(LIFETIME_LOCATION, 1, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(LIFETIME_LOCATION);
+
+            particleVBOs[i][ID_LOCATION] = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][ID_LOCATION]);
+            gl.bufferData(gl.ARRAY_BUFFER, particleIDs, gl.STATIC_READ);
+            gl.vertexAttribPointer(ID_LOCATION, 1, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(ID_LOCATION);
+        }
 
         // -- Init TransformFeedback
         var transformFeedback = gl.createTransformFeedback();
@@ -237,35 +242,6 @@
             return programEmit;
         }
 
-        function setupVertexAttributes(vaoId, vboArray) {
-            gl.bindVertexArray(vaoId);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, vboArray[Particle.POSITION]);
-            gl.vertexAttribPointer(POSITION_LOCATION, 2, gl.FLOAT, false, 0, 0);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, vboArray[Particle.VELOCITY]);
-            gl.vertexAttribPointer(VELOCITY_LOCATION, 2, gl.FLOAT, false, 0, 0);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, vboArray[Particle.SPAWN_TIME]);
-            gl.vertexAttribPointer(SPAWNTIME_LOCATION, 1, gl.FLOAT, false, 0, 0);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, vboArray[Particle.LIFE_TIME]);
-            gl.vertexAttribPointer(LIFETIME_LOCATION, 1, gl.FLOAT, false, 0, 0);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, vboArray[Particle.ID]);
-            gl.vertexAttribPointer(ID_LOCATION, 1, gl.FLOAT, false, 0, 0);
-
-            gl.enableVertexAttribArray(POSITION_LOCATION);
-            gl.enableVertexAttribArray(VELOCITY_LOCATION);
-            gl.enableVertexAttribArray(SPAWNTIME_LOCATION);
-            gl.enableVertexAttribArray(LIFETIME_LOCATION);
-            gl.enableVertexAttribArray(ID_LOCATION);
-        }
-
-        function emitParticles() {
-            
-        }
-
         function render() {
             // Spawn particles
             emitParticles();
@@ -279,8 +255,6 @@
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
 
-            setupVertexAttributes(particleVAOs[currentSourceIdx], particleVBOs[currentSourceIdx]);
-
             var programEmit = program;
 
             // Toggle source and destination VBO
@@ -292,14 +266,13 @@
             gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
 
             gl.useProgram(programEmit);
-
-            setupVertexAttributes(sourceVAO, sourceVBO);
+            gl.bindVertexArray(sourceVAO);
 
             // Set transform feedback buffer
-            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, destinationVBO[Particle.POSITION]);
-            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, destinationVBO[Particle.VELOCITY]);
-            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 2, destinationVBO[Particle.SPAWN_TIME]);
-            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 3, destinationVBO[Particle.LIFE_TIME]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, destinationVBO[POSITION_LOCATION]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, destinationVBO[VELOCITY_LOCATION]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 2, destinationVBO[SPAWNTIME_LOCATION]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 3, destinationVBO[LIFETIME_LOCATION]);
 
             // Set uniforms
             gl.uniform1f(drawTimeLocation, time);
