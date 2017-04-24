@@ -18,7 +18,7 @@
     <p id="description">Using transform feedback in a simple particle system</p>
 
     <!-- WebGL 2 shaders -->
-    <script id="vs-emit" type="x-shader/x-vertex">
+    <script id="vs-draw" type="x-shader/x-vertex">
         #version 300 es
         #define POSITION_LOCATION 0
         #define VELOCITY_LOCATION 1
@@ -62,43 +62,7 @@
                 v_spawntime = a_spawntime;
                 v_lifetime = a_lifetime;
             }
-        }
-    </script>
 
-    <!-- Unsused -->
-    <script id="fs-emit" type="x-shader/x-fragment">
-        #version 300 es
-        precision highp float;
-        precision highp int;
-
-        out vec4 color;
-
-        void main()
-        {
-            color = vec4(1.0);
-        }
-    </script>
-
-    <script id="vs-draw" type="x-shader/x-vertex">
-        #version 300 es
-        #define POSITION_LOCATION 0
-        #define VELOCITY_LOCATION 1
-        #define SPAWNTIME_LOCATION 2
-        #define LIFETIME_LOCATION 3
-
-        precision highp float;
-        precision highp int;
-
-        uniform float u_time;
-        uniform vec2 u_acceleration;
-
-        layout(location = POSITION_LOCATION) in vec2 a_position;
-        layout(location = VELOCITY_LOCATION) in vec2 a_velocity;
-        layout(location = SPAWNTIME_LOCATION) in float a_spawntime;
-        layout(location = LIFETIME_LOCATION) in float a_lifetime;
-
-        void main()
-        {
             float deltaTime = u_time - a_spawntime;
             if (deltaTime < a_lifetime) {
                 gl_Position = vec4(a_position, 0.0, 1.0);
@@ -160,16 +124,12 @@
         var PROGRAM_EMIT = 0;
         var PROGRAM_DRAW = 1;
 
-        var programs = initPrograms();
-
-        // Get uniform locations for the transform feedback program
-        var emitTimeLocation = gl.getUniformLocation(programs[PROGRAM_EMIT], 'u_time');
-        var emitAccelerationLocation = gl.getUniformLocation(programs[PROGRAM_EMIT], 'u_acceleration');
+        var program = initPrograms();
 
         // Get uniform locations for the draw program
-        var drawTimeLocation = gl.getUniformLocation(programs[PROGRAM_DRAW], 'u_time');
-        var drawAccelerationLocation = gl.getUniformLocation(programs[PROGRAM_DRAW], 'u_acceleration');
-        var drawColorLocation = gl.getUniformLocation(programs[PROGRAM_DRAW], 'u_color');
+        var drawTimeLocation = gl.getUniformLocation(program, 'u_time');
+        var drawAccelerationLocation = gl.getUniformLocation(program, 'u_acceleration');
+        var drawColorLocation = gl.getUniformLocation(program, 'u_color');
 
         // -- Initialize particle data
 
@@ -248,8 +208,8 @@
                 return shader;
             }
 
-            var vshaderTransform = createShader(gl, getShaderSource('vs-emit'), gl.VERTEX_SHADER);
-            var fshaderTransform = createShader(gl, getShaderSource('fs-emit'), gl.FRAGMENT_SHADER);
+            var vshaderTransform = createShader(gl, getShaderSource('vs-draw'), gl.VERTEX_SHADER);
+            var fshaderTransform = createShader(gl, getShaderSource('fs-draw'), gl.FRAGMENT_SHADER);
 
             var programEmit = gl.createProgram();
             gl.attachShader(programEmit, vshaderTransform);
@@ -273,10 +233,8 @@
             }
 
             // Setup program for draw shader
-            var programDraw = createProgram(gl, getShaderSource('vs-draw'), getShaderSource('fs-draw'));
-
-            var programs = [programEmit, programDraw];
-            return programs;
+            
+            return programEmit;
         }
 
         function setupVertexAttributes(vaoId, vboArray) {
@@ -305,9 +263,25 @@
         }
 
         function emitParticles() {
+            
+        }
+
+        function render() {
+            // Spawn particles
+            emitParticles();
+
             var time = Date.now() - appStartTime;
 
-            var programEmit = programs[PROGRAM_EMIT];
+            // Set the viewport
+            gl.viewport(0, 0, canvas.width, canvas.height - 10);
+
+            // Clear color buffer
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            setupVertexAttributes(particleVAOs[currentSourceIdx], particleVBOs[currentSourceIdx]);
+
+            var programEmit = program;
 
             // Toggle source and destination VBO
             var sourceVBO = particleVBOs[currentSourceIdx];
@@ -327,20 +301,19 @@
             gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 2, destinationVBO[Particle.SPAWN_TIME]);
             gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 3, destinationVBO[Particle.LIFE_TIME]);
 
-            // Turn off rasterization - we are not drawing
-            gl.enable(gl.RASTERIZER_DISCARD);
-
             // Set uniforms
-            gl.uniform1f(emitTimeLocation, time);
-            gl.uniform2f(emitAccelerationLocation, 0.0, ACCELERATION);
+            gl.uniform1f(drawTimeLocation, time);
+            gl.uniform4f(drawColorLocation, 0.0, 1.0, 1.0, 1.0);
+            gl.uniform2f(drawAccelerationLocation, 0.0, ACCELERATION);
 
             // Emit particles using transform feedback
             gl.beginTransformFeedback(gl.POINTS);
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
             gl.drawArrays(gl.POINTS, 0, NUM_PARTICLES);
             gl.endTransformFeedback();
 
             // Restore state
-            gl.disable(gl.RASTERIZER_DISCARD);
             gl.useProgram(null);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
             gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
@@ -351,35 +324,6 @@
 
             // Ping pong the buffers
             currentSourceIdx = (currentSourceIdx + 1) % 2;
-        }
-
-        function render() {
-            // Spawn particles
-            emitParticles();
-
-            var time = Date.now() - appStartTime;
-
-            // Set the viewport
-            gl.viewport(0, 0, canvas.width, canvas.height - 10);
-
-            // Clear color buffer
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-
-            setupVertexAttributes(particleVAOs[currentSourceIdx], particleVBOs[currentSourceIdx]);
-
-            gl.useProgram(programs[PROGRAM_DRAW]);
-
-            // Set uniforms
-            gl.uniform1f(drawTimeLocation, time);
-            gl.uniform4f(drawColorLocation, 0.0, 1.0, 1.0, 1.0);
-            gl.uniform2f(drawAccelerationLocation, 0.0, ACCELERATION);
-
-            // Enable blending
-            gl.enable(gl.BLEND);
-            gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-
-            gl.drawArrays(gl.POINTS, 0, NUM_PARTICLES);
 
             requestAnimationFrame(render);
         }
