@@ -119,12 +119,7 @@
         var appStartTime = Date.now();
         var currentSourceIdx = 0;
 
-        // -- Init Program
-
-        var PROGRAM_EMIT = 0;
-        var PROGRAM_DRAW = 1;
-
-        var program = initPrograms();
+        var program = initProgram();
 
         // Get uniform locations for the draw program
         var drawTimeLocation = gl.getUniformLocation(program, 'u_time');
@@ -178,7 +173,6 @@
             gl.vertexAttribPointer(VELOCITY_LOCATION, 2, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(VELOCITY_LOCATION);
 
-
             particleVBOs[i][SPAWNTIME_LOCATION] = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, particleVBOs[i][SPAWNTIME_LOCATION]);
             gl.bufferData(gl.ARRAY_BUFFER, particleSpawntime, gl.STREAM_COPY);
@@ -201,9 +195,9 @@
         // -- Init TransformFeedback
         var transformFeedback = gl.createTransformFeedback();
 
-        render();
+        requestAnimationFrame(render);
 
-        function initPrograms() {
+        function initProgram() {
 
             // Setup program for transform feedback shaders
             function createShader(gl, source, type) {
@@ -213,38 +207,42 @@
                 return shader;
             }
 
-            var vshaderTransform = createShader(gl, getShaderSource('vs-draw'), gl.VERTEX_SHADER);
-            var fshaderTransform = createShader(gl, getShaderSource('fs-draw'), gl.FRAGMENT_SHADER);
+            var vshader = createShader(gl, getShaderSource('vs-draw'), gl.VERTEX_SHADER);
+            var fshader = createShader(gl, getShaderSource('fs-draw'), gl.FRAGMENT_SHADER);
 
-            var programEmit = gl.createProgram();
-            gl.attachShader(programEmit, vshaderTransform);
-            gl.deleteShader(vshaderTransform);
-            gl.attachShader(programEmit, fshaderTransform);
-            gl.deleteShader(fshaderTransform);
+            var program = gl.createProgram();
+            gl.attachShader(program, vshader);
+            gl.attachShader(program, fshader);
 
             var varyings = ['v_position', 'v_velocity', 'v_spawntime', 'v_lifetime'];
-            gl.transformFeedbackVaryings(programEmit, varyings, gl.SEPARATE_ATTRIBS);
-            gl.linkProgram(programEmit);
+            gl.transformFeedbackVaryings(program, varyings, gl.SEPARATE_ATTRIBS);
+            gl.linkProgram(program);
 
             // check
-            var log = gl.getProgramInfoLog(programEmit);
+            var log = gl.getProgramInfoLog(program);
             if (log) {
                 console.log(log);
             }
 
-            log = gl.getShaderInfoLog(vshaderTransform);
+            log = gl.getShaderInfoLog(vshader);
             if (log) {
                 console.log(log);
             }
+
+            log = gl.getShaderInfoLog(fshader);
+            if (log) {
+                console.log(log);
+            }
+
+            gl.deleteShader(vshader);
+            gl.deleteShader(fshader);
 
             // Setup program for draw shader
             
-            return programEmit;
+            return program;
         }
 
         function render() {
-            // Spawn particles
-            emitParticles();
 
             var time = Date.now() - appStartTime;
 
@@ -255,17 +253,15 @@
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
 
-            var programEmit = program;
-
             // Toggle source and destination VBO
-            var sourceVBO = particleVBOs[currentSourceIdx];
             var sourceVAO = particleVAOs[currentSourceIdx];
+            var sourceVBO = particleVBOs[currentSourceIdx];
 
             var destinationVBO = particleVBOs[(currentSourceIdx + 1) % 2];
 
             gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
 
-            gl.useProgram(programEmit);
+            gl.useProgram(program);
             gl.bindVertexArray(sourceVAO);
 
             // Set transform feedback buffer
@@ -288,6 +284,7 @@
 
             // Restore state
             gl.useProgram(null);
+            gl.bindVertexArray(null);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
             gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
             gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, null);
@@ -304,15 +301,13 @@
         // If you have a long-running page, and need to delete WebGL resources, use:
         //
         // gl.deleteTransformFeedback(transformFeedback);
-        // gl.deleteProgram(programs[PROGRAM_EMIT]);
-        // gl.deleteProgram(programs[PROGRAM_DRAW]);
-        // for (var i = 0; i < 2; ++i) {
-        //     for (var j = 0; j < Particle.MAX; ++j) {
+        // gl.deleteProgram(program);
+        // for (var i = 0; i < particleVAOs.length; ++i) {
+        //     gl.deleteVertexArray(i); 
+        //     for (var j = 0; j < NUM_LOCATIONS; ++j) {
         //         gl.deleteBuffer(particleVBOs[i][j]);
         //     }
         // }
-        // gl.deleteVertexArray(particleVAOs[PROGRAM_EMIT]);
-        // gl.deleteVertexArray(particleVAOs[PROGRAM_DRAW]);
     })();
     </script>
     <div id="highlightedLines"  style="display: none">#L318-L350</div>
