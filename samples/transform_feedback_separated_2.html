@@ -139,7 +139,7 @@
         var SPAWNTIME_LOCATION = 2;
         var LIFETIME_LOCATION = 3;
         var ID_LOCATION = 4;
-        var NUM_LOCATIONS;
+        var NUM_LOCATIONS = 5;
 
         for (var p = 0; p < NUM_PARTICLES; ++p) {
             particlePositions[p * 2] = 0.0;
@@ -192,11 +192,6 @@
             gl.enableVertexAttribArray(ID_LOCATION);
         }
 
-        // -- Init TransformFeedback
-        var transformFeedback = gl.createTransformFeedback();
-
-        requestAnimationFrame(render);
-
         function initProgram() {
 
             // Setup program for transform feedback
@@ -240,6 +235,17 @@
             return program;
         }
 
+        gl.useProgram(program);
+        gl.uniform4f(drawColorLocation, 0.0, 1.0, 1.0, 1.0);
+        gl.uniform2f(drawAccelerationLocation, 0.0, ACCELERATION);
+        
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+
+        // -- Init TransformFeedback
+        var transformFeedback = gl.createTransformFeedback();
+        gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
+
         function render() {
 
             var time = Date.now() - appStartTime;
@@ -253,13 +259,8 @@
 
             // Toggle source and destination VBO
             var sourceVAO = particleVAOs[currentSourceIdx];
-            var sourceVBO = particleVBOs[currentSourceIdx];
-
             var destinationVBO = particleVBOs[(currentSourceIdx + 1) % 2];
 
-            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
-
-            gl.useProgram(program);
             gl.bindVertexArray(sourceVAO);
 
             // Set transform feedback buffer
@@ -270,31 +271,19 @@
 
             // Set uniforms
             gl.uniform1f(drawTimeLocation, time);
-            gl.uniform4f(drawColorLocation, 0.0, 1.0, 1.0, 1.0);
-            gl.uniform2f(drawAccelerationLocation, 0.0, ACCELERATION);
 
             // Draw particles using transform feedback
             gl.beginTransformFeedback(gl.POINTS);
-            gl.enable(gl.BLEND);
-            gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
             gl.drawArrays(gl.POINTS, 0, NUM_PARTICLES);
             gl.endTransformFeedback();
-
-            // Restore state
-            gl.useProgram(null);
-            gl.bindVertexArray(null);
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
-            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
-            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, null);
-            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 2, null);
-            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 3, null);
-            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
 
             // Ping pong the buffers
             currentSourceIdx = (currentSourceIdx + 1) % 2;
 
             requestAnimationFrame(render);
         }
+
+        requestAnimationFrame(render);
 
         // If you have a long-running page, and need to delete WebGL resources, use:
         //
@@ -308,7 +297,7 @@
         // }
     })();
     </script>
-    <div id="highlightedLines"  style="display: none">#L260-L291</div>
+    <div id="highlightedLines"  style="display: none">#L246-L278</div>
 
 </body>
 
