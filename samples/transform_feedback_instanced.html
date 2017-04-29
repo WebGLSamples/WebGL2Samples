@@ -136,7 +136,7 @@
         ]);
 
         var instanceOffsets = new Float32Array(NUM_INSTANCES * 2);
-        var instanceColors = new Float32Array(NUM_INSTANCES * 3)
+        var instanceColors = new Float32Array(NUM_INSTANCES * 3);
 
         for (var i = 0; i < NUM_INSTANCES; ++i) {
             var oi = i * 2;
@@ -160,25 +160,25 @@
 
         var vertexBuffers = new Array(vertexArrays.length);
 
-        for (var i = 0; i < vertexArrays.length; ++i) {
-            gl.bindVertexArray(vertexArrays[i]);
-            vertexBuffers[i] = new Array(NUM_LOCATIONS);
+        for (var va = 0; va < vertexArrays.length; ++va) {
+            gl.bindVertexArray(vertexArrays[va]);
+            vertexBuffers[va] = new Array(NUM_LOCATIONS);
            
-            vertexBuffers[i][POSITION_LOCATION] = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[i][POSITION_LOCATION]);
+            vertexBuffers[va][POSITION_LOCATION] = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[va][POSITION_LOCATION]);
             gl.bufferData(gl.ARRAY_BUFFER, tranglePositions, gl.STREAM_COPY);            
             gl.vertexAttribPointer(POSITION_LOCATION, 2, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(POSITION_LOCATION);
 
-            vertexBuffers[i][OFFSET_LOCATION] = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[i][OFFSET_LOCATION]);
+            vertexBuffers[va][OFFSET_LOCATION] = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[va][OFFSET_LOCATION]);
             gl.bufferData(gl.ARRAY_BUFFER, instanceOffsets, gl.STATIC_DRAW);
             gl.vertexAttribPointer(OFFSET_LOCATION, 2, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(OFFSET_LOCATION);
             gl.vertexAttribDivisor(OFFSET_LOCATION, 1); // attribute used once per instance
 
-            vertexBuffers[i][COLOR_LOCATION] = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[i][COLOR_LOCATION]);
+            vertexBuffers[va][COLOR_LOCATION] = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[va][COLOR_LOCATION]);
             gl.bufferData(gl.ARRAY_BUFFER, instanceColors, gl.STATIC_DRAW);
             gl.vertexAttribPointer(COLOR_LOCATION, 3, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(COLOR_LOCATION);
