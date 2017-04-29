@@ -78,6 +78,8 @@
 
     <script id="fs-draw" type="x-shader/x-fragment">
         #version 300 es
+        #define ALPHA 0.9
+
         precision highp float;
         precision highp int;
 
@@ -87,7 +89,7 @@
 
         void main()
         {
-            color = vec4(v_color, 1.0);
+            color = vec4(v_color * ALPHA, ALPHA);
         }
     </script>
 
