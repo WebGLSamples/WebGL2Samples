@@ -116,12 +116,6 @@
             event.preventDefault();
         }, false);
 
-        // -- Declare variables for the particle system
-        var NUM_INSTANCES =3000;
-
-        var appStartTime = Date.now();
-        var currentSourceIdx = 0;
-
         // -- Init Program
 
         var PROGRAM_TRANSFORM = 0;
@@ -129,7 +123,11 @@
 
         var programs = initPrograms();
 
+
         // -- Initialize data
+        var NUM_INSTANCES = 3000;
+        
+        var currentSourceIdx = 0;
 
         var tranglePositions = new Float32Array([
             -0.013, -0.013, 
@@ -236,8 +234,6 @@
         }
 
         function transform() {
-            var time = Date.now() - appStartTime;
-
             var programTransform = programs[PROGRAM_TRANSFORM];
 
             // Toggle source and destination VBO
