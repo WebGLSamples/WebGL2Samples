@@ -19,27 +19,19 @@
     <!-- WebGL 2 shaders -->
     <script id="vs-emit" type="x-shader/x-vertex">
         #version 300 es
-        #define POSITION_LOCATION 0
-        #define SIN2 0.06975647
-        #define COS2 0.99756405
+        #define OFFSET_LOCATION 0
 
         precision highp float;
         precision highp int;
 
+        layout(location = OFFSET_LOCATION) in vec2 a_offset;
 
-        layout(location = POSITION_LOCATION) in vec2 a_position;
-
-        out vec2 v_position;
+        out vec2 v_offset;
 
         void main()
         {
-            mat2 rotation = mat2(
-                COS2, SIN2,
-                -SIN2, COS2
-            );
-            
-            v_position = rotation * a_position;
-            gl_Position = vec4(v_position, 0.0, 1.0);
+            v_offset = a_offset + vec2(0.001, 0.0);
+            gl_Position = vec4(v_offset, 0.0, 1.0);
         }
     </script>
 
@@ -56,8 +48,8 @@
 
     <script id="vs-draw" type="x-shader/x-vertex">
         #version 300 es
-        #define POSITION_LOCATION 0
-        #define OFFSET_LOCATION 1
+        #define POSITION_LOCATION 1
+        #define OFFSET_LOCATION 0
         #define COLOR_LOCATION 2
 
         precision highp float;
@@ -125,7 +117,7 @@
 
 
         // -- Initialize data
-        var NUM_INSTANCES = 3000;
+        var NUM_INSTANCES = 4;
 
         var currentSourceIdx = 0;
 
@@ -151,8 +143,8 @@
         }
 
         // -- Init Vertex Array
-        var POSITION_LOCATION = 0;
-        var OFFSET_LOCATION = 1;
+        var POSITION_LOCATION = 1;
+        var OFFSET_LOCATION = 0;
         var COLOR_LOCATION = 2;
         var NUM_LOCATIONS = 3;
 
@@ -164,18 +156,19 @@
             gl.bindVertexArray(vertexArrays[va]);
             vertexBuffers[va] = new Array(NUM_LOCATIONS);
            
-            vertexBuffers[va][POSITION_LOCATION] = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[va][POSITION_LOCATION]);
-            gl.bufferData(gl.ARRAY_BUFFER, tranglePositions, gl.STREAM_COPY);            
-            gl.vertexAttribPointer(POSITION_LOCATION, 2, gl.FLOAT, false, 0, 0);
-            gl.enableVertexAttribArray(POSITION_LOCATION);
 
             vertexBuffers[va][OFFSET_LOCATION] = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[va][OFFSET_LOCATION]);
-            gl.bufferData(gl.ARRAY_BUFFER, instanceOffsets, gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, instanceOffsets, gl.STREAM_COPY);
             gl.vertexAttribPointer(OFFSET_LOCATION, 2, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(OFFSET_LOCATION);
             gl.vertexAttribDivisor(OFFSET_LOCATION, 1); // attribute used once per instance
+
+            vertexBuffers[va][POSITION_LOCATION] = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[va][POSITION_LOCATION]);
+            gl.bufferData(gl.ARRAY_BUFFER, tranglePositions, gl.STATIC_DRAW);
+            gl.vertexAttribPointer(POSITION_LOCATION, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(POSITION_LOCATION);
 
             vertexBuffers[va][COLOR_LOCATION] = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[va][COLOR_LOCATION]);
@@ -211,7 +204,7 @@
             gl.attachShader(programTransform, fshaderTransform);
             gl.deleteShader(fshaderTransform);
 
-            var varyings = ['v_position'];
+            var varyings = ['v_offset'];
             gl.transformFeedbackVaryings(programTransform, varyings, gl.SEPARATE_ATTRIBS);
             gl.linkProgram(programTransform);
 
@@ -248,15 +241,17 @@
 
             gl.bindVertexArray(sourceVAO);
 
+            gl.vertexAttribDivisor(OFFSET_LOCATION, 0);
+
             // Set transform feedback buffer
-            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, destinationVBO[POSITION_LOCATION]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, destinationVBO[OFFSET_LOCATION]);
 
             // Turn off rasterization - we are not drawing
             gl.enable(gl.RASTERIZER_DISCARD);
 
             // Rotate triangles using transform feedback
-            gl.beginTransformFeedback(gl.TRIANGLES);
-            gl.drawArrays(gl.TRIANGLES, 0, 3);
+            gl.beginTransformFeedback(gl.POINTS);
+            gl.drawArrays(gl.POINTS, 0, NUM_INSTANCES);
             gl.endTransformFeedback();
 
             // Restore state
@@ -282,6 +277,8 @@
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             gl.bindVertexArray(vertexArrays[currentSourceIdx]);
+
+            gl.vertexAttribDivisor(OFFSET_LOCATION, 1);
 
             gl.useProgram(programs[PROGRAM_DRAW]);
 
