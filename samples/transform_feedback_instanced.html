@@ -167,7 +167,7 @@
 
         var currentSourceIdx = 0;
 
-        var tranglePositions = new Float32Array([
+        var trianglePositions = new Float32Array([
             0.015, 0.0, 
             -0.010, 0.010, 
             -0.010, -0.010,
@@ -225,7 +225,7 @@
 
             vertexBuffers[va][POSITION_LOCATION] = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[va][POSITION_LOCATION]);
-            gl.bufferData(gl.ARRAY_BUFFER, tranglePositions, gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, trianglePositions, gl.STATIC_DRAW);
             gl.vertexAttribPointer(POSITION_LOCATION, 2, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(POSITION_LOCATION);
 
