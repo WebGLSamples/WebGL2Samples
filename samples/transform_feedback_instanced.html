@@ -24,6 +24,16 @@
 
         #define M_2PI 6.28318530718
 
+        // We simulate the wandering of agents using transform feedback in this vertex shader
+        // The simulation goes like this: 
+        // Assume there's a circle in front of the agent whose radius is WANDER_CIRCLE_R
+        // the origin of which has a offset to the agent's pivot point, which is WANDER_CIRCLE_OFFSET
+        // Each frame we pick a random point on this circle
+        // And the agent moves MOVE_DELTA toward this target point
+        // We also record the rotation facing this target point, so it will be the base rotation
+        // for our next frame, which means the WANDER_CIRCLE_OFFSET vector will be on this direction
+        // Thus we fake a smooth wandering behavior
+
         #define MAP_HALF_LENGTH 1.01
         #define WANDER_CIRCLE_R 0.01
         #define WANDER_CIRCLE_OFFSET 0.04
@@ -47,7 +57,7 @@
 
         void main()
         {
-            float theta = M_2PI * rand(vec2(u_time, a_rotation));
+            float theta = M_2PI * rand(vec2(u_time, a_rotation + a_offset.x + a_offset.y));
             
             float cos_r = cos(a_rotation);
             float sin_r = sin(a_rotation);
@@ -214,14 +224,12 @@
             gl.bufferData(gl.ARRAY_BUFFER, instanceOffsets, gl.STREAM_COPY);
             gl.vertexAttribPointer(OFFSET_LOCATION, 2, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(OFFSET_LOCATION);
-            gl.vertexAttribDivisor(OFFSET_LOCATION, 1); // attribute used once per instance
 
             vertexBuffers[va][ROTATION_LOCATION] = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[va][ROTATION_LOCATION]);
             gl.bufferData(gl.ARRAY_BUFFER, instanceOffsets, gl.STREAM_COPY);
             gl.vertexAttribPointer(ROTATION_LOCATION, 1, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(ROTATION_LOCATION);
-            gl.vertexAttribDivisor(ROTATION_LOCATION, 1); // attribute used once per instance
 
             vertexBuffers[va][POSITION_LOCATION] = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[va][POSITION_LOCATION]);
@@ -300,7 +308,7 @@
 
             gl.bindVertexArray(sourceVAO);
 
-            // need to set to 0 when doing transform feedback
+            // Attributes per-vertex when doing transform feedback needs setting to 0 when doing transform feedback
             gl.vertexAttribDivisor(OFFSET_LOCATION, 0);
             gl.vertexAttribDivisor(ROTATION_LOCATION, 0);
 
@@ -340,7 +348,7 @@
 
             gl.bindVertexArray(vertexArrays[currentSourceIdx]);
 
-            // set back to 1 when draw instances
+            // Attributes per-instance when drawing sets back to 1 when drawing instances
             gl.vertexAttribDivisor(OFFSET_LOCATION, 1);
             gl.vertexAttribDivisor(ROTATION_LOCATION, 1);
 
