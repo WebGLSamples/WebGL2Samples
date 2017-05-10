@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <title>WebGL 2 Samples - transform_feedback_instanced</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="utility.js"></script>
+    <script src="third-party/gl-matrix-min.js"></script>
+    <script src="third-party/noise3D.js"></script>
+</head>
+
+<body>
+    <div id="info">WebGL 2 Samples - transform_feedback_instanced</div>
+    <p id="description">Demonstrates how to combine transform feedback and instanced drawing. Agents are wandering randomly.</p>
+
+    <!-- WebGL 2 shaders -->
+    <script id="vs-emit" type="x-shader/x-vertex">
+        #version 300 es
+        #define OFFSET_LOCATION 0
+        #define ROTATION_LOCATION 1
+
+        #define M_2PI 6.28318530718
+
+        // We simulate the wandering of agents using transform feedback in this vertex shader
+        // The simulation goes like this: 
+        // Assume there's a circle in front of the agent whose radius is WANDER_CIRCLE_R
+        // the origin of which has a offset to the agent's pivot point, which is WANDER_CIRCLE_OFFSET
+        // Each frame we pick a random point on this circle
+        // And the agent moves MOVE_DELTA toward this target point
+        // We also record the rotation facing this target point, so it will be the base rotation
+        // for our next frame, which means the WANDER_CIRCLE_OFFSET vector will be on this direction
+        // Thus we fake a smooth wandering behavior
+
+        #define MAP_HALF_LENGTH 1.01
+        #define WANDER_CIRCLE_R 0.01
+        #define WANDER_CIRCLE_OFFSET 0.04
+        #define MOVE_DELTA 0.001
+
+        precision highp float;
+        precision highp int;
+
+        uniform float u_time;
+
+        layout(location = OFFSET_LOCATION) in vec2 a_offset;
+        layout(location = ROTATION_LOCATION) in float a_rotation;
+
+        out vec2 v_offset;
+        out float v_rotation;
+
+        float rand(vec2 co)
+        {
+            return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+        }
+
+        void main()
+        {
+            float theta = M_2PI * rand(vec2(u_time, a_rotation + a_offset.x + a_offset.y));
+            
+            float cos_r = cos(a_rotation);
+            float sin_r = sin(a_rotation);
+            mat2 rot = mat2(
+                cos_r, sin_r,
+                -sin_r, cos_r
+            );
+            
+            vec2 p = WANDER_CIRCLE_R * vec2(cos(theta), sin(theta)) + vec2(WANDER_CIRCLE_OFFSET, 0.0);
+            vec2 move = normalize(rot * p);
+            v_rotation = atan(move.y, move.x);
+
+            v_offset = a_offset + MOVE_DELTA * move;
+
+            // wrapping at edges
+            v_offset = vec2 ( 
+                v_offset.x > MAP_HALF_LENGTH ? - MAP_HALF_LENGTH : ( v_offset.x < - MAP_HALF_LENGTH ? MAP_HALF_LENGTH : v_offset.x ) , 
+                v_offset.y > MAP_HALF_LENGTH ? - MAP_HALF_LENGTH : ( v_offset.y < - MAP_HALF_LENGTH ? MAP_HALF_LENGTH : v_offset.y )
+                );
+
+            gl_Position = vec4(v_offset, 0.0, 1.0);
+        }
+    </script>
+
+    <!-- Unsused -->
+    <script id="fs-emit" type="x-shader/x-fragment">
+        #version 300 es
+        precision highp float;
+        precision highp int;
+
+        void main()
+        {
+        }
+    </script>
+
+    <script id="vs-draw" type="x-shader/x-vertex">
+        #version 300 es
+        #define OFFSET_LOCATION 0
+        #define ROTATION_LOCATION 1
+        #define POSITION_LOCATION 2
+        #define COLOR_LOCATION 3
+
+        precision highp float;
+        precision highp int;
+
+        layout(location = POSITION_LOCATION) in vec2 a_position;
+        layout(location = ROTATION_LOCATION) in float a_rotation;
+        layout(location = OFFSET_LOCATION) in vec2 a_offset;
+        layout(location = COLOR_LOCATION) in vec3 a_color;
+
+        out vec3 v_color;
+
+        void main()
+        {
+            v_color = a_color;
+
+            float cos_r = cos(a_rotation);
+            float sin_r = sin(a_rotation);
+            mat2 rot = mat2(
+                cos_r, sin_r,
+                -sin_r, cos_r
+            );
+            gl_Position = vec4(rot * a_position + a_offset, 0.0, 1.0);
+        }
+    </script>
+
+    <script id="fs-draw" type="x-shader/x-fragment">
+        #version 300 es
+        #define ALPHA 0.9
+
+        precision highp float;
+        precision highp int;
+
+        in vec3 v_color;
+
+        out vec4 color;
+
+        void main()
+        {
+            color = vec4(v_color * ALPHA, ALPHA);
+        }
+    </script>
+
+    <script>
+    (function () {
+        'use strict';
+
+        // -- Init Canvas
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.min(window.innerWidth, window.innerHeight);
+        canvas.height = canvas.width;
+        document.body.appendChild(canvas);
+
+        // -- Init WebGL Context
+        var gl = canvas.getContext('webgl2', { antialias: false });
+        var isWebGL2 = !!gl;
+        if(!isWebGL2)
+        {
+            document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
+            return;
+        }
+
+        canvas.addEventListener("webglcontextlost", function(event) {
+            event.preventDefault();
+        }, false);
+
+        // -- Init Program
+
+        var PROGRAM_TRANSFORM = 0;
+        var PROGRAM_DRAW = 1;
+
+        var programs = initPrograms();
+
+
+        // -- Initialize data
+        var NUM_INSTANCES = 1000;
+
+        var currentSourceIdx = 0;
+
+        var trianglePositions = new Float32Array([
+            0.015, 0.0, 
+            -0.010, 0.010, 
+            -0.010, -0.010,
+        ]);
+
+        var instanceOffsets = new Float32Array(NUM_INSTANCES * 2);
+        var instanceRotations = new Float32Array(NUM_INSTANCES * 1);
+        var instanceColors = new Float32Array(NUM_INSTANCES * 3);
+
+        for (var i = 0; i < NUM_INSTANCES; ++i) {
+            var oi = i * 2;
+            var ri = i;
+            var ci = i * 3;
+
+            instanceOffsets[oi] = Math.random() * 2.0 - 1.0;
+            instanceOffsets[oi + 1] = Math.random() * 2.0 - 1.0;
+
+            instanceRotations[i] = Math.random() * 2 * Math.PI;
+
+            instanceColors[ci] = Math.random();
+            instanceColors[ci + 1] = Math.random();
+            instanceColors[ci + 2] = Math.random();
+        }
+
+        // -- Init Vertex Array
+        var OFFSET_LOCATION = 0;
+        var ROTATION_LOCATION = 1;
+        var POSITION_LOCATION = 2;      // this is vertex position of the instanced geometry
+        var COLOR_LOCATION = 3;
+        var NUM_LOCATIONS = 4;
+
+        var drawTimeLocation = gl.getUniformLocation(programs[PROGRAM_DRAW], 'u_time');
+
+        var vertexArrays = [gl.createVertexArray(), gl.createVertexArray()];
+
+        var vertexBuffers = new Array(vertexArrays.length);
+
+        for (var va = 0; va < vertexArrays.length; ++va) {
+            gl.bindVertexArray(vertexArrays[va]);
+            vertexBuffers[va] = new Array(NUM_LOCATIONS);
+
+            vertexBuffers[va][OFFSET_LOCATION] = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[va][OFFSET_LOCATION]);
+            gl.bufferData(gl.ARRAY_BUFFER, instanceOffsets, gl.STREAM_COPY);
+            gl.vertexAttribPointer(OFFSET_LOCATION, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(OFFSET_LOCATION);
+
+            vertexBuffers[va][ROTATION_LOCATION] = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[va][ROTATION_LOCATION]);
+            gl.bufferData(gl.ARRAY_BUFFER, instanceOffsets, gl.STREAM_COPY);
+            gl.vertexAttribPointer(ROTATION_LOCATION, 1, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(ROTATION_LOCATION);
+
+            vertexBuffers[va][POSITION_LOCATION] = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[va][POSITION_LOCATION]);
+            gl.bufferData(gl.ARRAY_BUFFER, trianglePositions, gl.STATIC_DRAW);
+            gl.vertexAttribPointer(POSITION_LOCATION, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(POSITION_LOCATION);
+
+            vertexBuffers[va][COLOR_LOCATION] = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[va][COLOR_LOCATION]);
+            gl.bufferData(gl.ARRAY_BUFFER, instanceColors, gl.STATIC_DRAW);
+            gl.vertexAttribPointer(COLOR_LOCATION, 3, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(COLOR_LOCATION);
+            gl.vertexAttribDivisor(COLOR_LOCATION, 1); // attribute used once per instance
+
+            gl.bindVertexArray(null);
+        }
+
+        // -- Init TransformFeedback
+        var transformFeedback = gl.createTransformFeedback();
+
+        render();
+
+        function initPrograms() {
+
+            // Setup program for transform feedback shaders
+            function createShader(gl, source, type) {
+                var shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                return shader;
+            }
+
+            var vshaderTransform = createShader(gl, getShaderSource('vs-emit'), gl.VERTEX_SHADER);
+            var fshaderTransform = createShader(gl, getShaderSource('fs-emit'), gl.FRAGMENT_SHADER);
+
+            var programTransform = gl.createProgram();
+            gl.attachShader(programTransform, vshaderTransform);
+            gl.deleteShader(vshaderTransform);
+            gl.attachShader(programTransform, fshaderTransform);
+            gl.deleteShader(fshaderTransform);
+
+            var varyings = ['v_offset', 'v_rotation'];
+            gl.transformFeedbackVaryings(programTransform, varyings, gl.SEPARATE_ATTRIBS);
+            gl.linkProgram(programTransform);
+
+            // check
+            var log = gl.getProgramInfoLog(programTransform);
+            if (log) {
+                console.log(log);
+            }
+
+            log = gl.getShaderInfoLog(vshaderTransform);
+            if (log) {
+                console.log(log);
+            }
+
+            // Setup program for draw shader
+            var programDraw = createProgram(gl, getShaderSource('vs-draw'), getShaderSource('fs-draw'));
+
+            var programs = [programTransform, programDraw];
+            return programs;
+        }
+
+        function transform() {
+            var programTransform = programs[PROGRAM_TRANSFORM];
+
+            // Toggle source and destination VBO
+            var sourceVBO = vertexBuffers[currentSourceIdx];
+            var sourceVAO = vertexArrays[currentSourceIdx];
+
+            var destinationVBO = vertexBuffers[(currentSourceIdx + 1) % 2];
+
+            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
+
+            gl.useProgram(programTransform);
+
+            gl.bindVertexArray(sourceVAO);
+
+            // Attributes per-vertex when doing transform feedback needs setting to 0 when doing transform feedback
+            gl.vertexAttribDivisor(OFFSET_LOCATION, 0);
+            gl.vertexAttribDivisor(ROTATION_LOCATION, 0);
+
+            // Set transform feedback buffer
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, OFFSET_LOCATION, destinationVBO[OFFSET_LOCATION]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, ROTATION_LOCATION, destinationVBO[ROTATION_LOCATION]);
+
+            // Turn off rasterization - we are not drawing
+            gl.enable(gl.RASTERIZER_DISCARD);
+
+            // Update position and rotation using transform feedback
+            gl.beginTransformFeedback(gl.POINTS);
+            gl.drawArrays(gl.POINTS, 0, NUM_INSTANCES);
+            gl.endTransformFeedback();
+
+            // Restore state
+            gl.disable(gl.RASTERIZER_DISCARD);
+            gl.useProgram(null);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
+            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
+
+            // Ping pong the buffers
+            currentSourceIdx = (currentSourceIdx + 1) % 2;
+        }
+
+        function render() {
+            // Rotate triangles
+            transform();
+
+            // Set the viewport
+            gl.viewport(0, 0, canvas.width, canvas.height - 10);
+
+            // Clear color buffer
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            gl.bindVertexArray(vertexArrays[currentSourceIdx]);
+
+            // Attributes per-instance when drawing sets back to 1 when drawing instances
+            gl.vertexAttribDivisor(OFFSET_LOCATION, 1);
+            gl.vertexAttribDivisor(ROTATION_LOCATION, 1);
+
+            gl.useProgram(programs[PROGRAM_DRAW]);
+
+            // Enable blending
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+
+            // Set uniforms
+            var time = Date.now();
+            gl.uniform1f(drawTimeLocation, time);
+
+            gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, NUM_INSTANCES);
+
+            requestAnimationFrame(render);
+        }
+
+        // If you have a long-running page, and need to delete WebGL resources, use:
+        //
+        // gl.deleteTransformFeedback(transformFeedback);
+        // gl.deleteProgram(programs[PROGRAM_TRANSFORM]);
+        // gl.deleteProgram(programs[PROGRAM_DRAW]);
+        // for (var i = 0; i < 2; ++i) {
+        //     for (var j = 0; j < Particle.MAX; ++j) {
+        //         gl.deleteBuffer(vertexBuffers[i][j]);
+        //     }
+        // }
+        // gl.deleteVertexArray(vertexArrays[PROGRAM_TRANSFORM]);
+        // gl.deleteVertexArray(vertexArrays[PROGRAM_DRAW]);
+    })();
+    </script>
+    <div id="highlightedLines"  style="display: none">#L243-L360</div>
+
+</body>
+
+</html>
