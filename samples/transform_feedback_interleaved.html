@@ -172,6 +172,14 @@
         gl.bufferData(gl.ARRAY_BUFFER, SIZE_V4C4 * VERTEX_COUNT, gl.STATIC_COPY);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
+        // -- Init TransformFeedback: Track output buffer
+        var transformFeedback = gl.createTransformFeedback();
+        
+        gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
+        gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buffers[PROGRAM_FEEDBACK]);
+        gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
+        gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
+
         // -- Init Vertex Array
         var vertexArrays = [gl.createVertexArray(), gl.createVertexArray()];
         gl.bindVertexArray(vertexArrays[PROGRAM_TRANSFORM]);
@@ -191,14 +199,11 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, buffers[PROGRAM_FEEDBACK]);
         gl.vertexAttribPointer(vertexPosLocationFeedback, 4, gl.FLOAT, false, SIZE_V4C4, 0);
         gl.vertexAttribPointer(vertexColorLocationFeedback, 4, gl.FLOAT, false, SIZE_V4C4, SIZE_V4C4 / 2);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.enableVertexAttribArray(vertexPosLocationFeedback);
         gl.enableVertexAttribArray(vertexColorLocationFeedback);
 
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindVertexArray(null);
-        
-        // -- Init TransformFeedback 
-        var transformFeedback = gl.createTransformFeedback();
 
         // -- Render
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -208,8 +213,6 @@
         // Disable rasterization, vertices processing only
         gl.enable(gl.RASTERIZER_DISCARD);
         
-        gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
-
         gl.useProgram(programs[PROGRAM_TRANSFORM]);
         var matrix = new Float32Array([
             0.5, 0.0, 0.0, 0.0,
@@ -219,15 +222,15 @@
         ]);
         gl.uniformMatrix4fv(mvpLocation, false, matrix);
 
-        gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buffers[PROGRAM_FEEDBACK]);
         gl.bindVertexArray(vertexArrays[PROGRAM_TRANSFORM]);
+        gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
 
         gl.beginTransformFeedback(gl.TRIANGLES);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, VERTEX_COUNT, 1);
         gl.endTransformFeedback();
+        gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
 
         gl.disable(gl.RASTERIZER_DISCARD);
-        gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
 
         // Second draw, reuse captured attributes
         gl.useProgram(programs[PROGRAM_FEEDBACK]);
