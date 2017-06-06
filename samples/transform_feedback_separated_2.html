@@ -254,6 +254,7 @@
         function render() {
 
             var time = Date.now() - appStartTime;
+            var destinationIdx = (currentSourceIdx + 1) % 2;
 
             // Set the viewport
             gl.viewport(0, 0, canvas.width, canvas.height - 10);
@@ -264,10 +265,18 @@
 
             // Toggle source and destination VBO
             var sourceVAO = particleVAOs[currentSourceIdx];
-            var destinationTransformFeedback = particleTransformFeedbacks[(currentSourceIdx + 1) % 2];
+            var destinationTransformFeedback = particleTransformFeedbacks[destinationIdx];
 
             gl.bindVertexArray(sourceVAO);
             gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, destinationTransformFeedback);
+
+            // NOTE: The following four lines shouldn't be necessary, but are required to work in ANGLE
+            // due to a bug in its handling of transform feedback objects.
+            // https://bugs.chromium.org/p/angleproject/issues/detail?id=2051
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, particleVBOs[destinationIdx][POSITION_LOCATION]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, particleVBOs[destinationIdx][VELOCITY_LOCATION]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 2, particleVBOs[destinationIdx][SPAWNTIME_LOCATION]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 3, particleVBOs[destinationIdx][LIFETIME_LOCATION]);
 
             // Set uniforms
             gl.uniform1f(drawTimeLocation, time);

@@ -303,17 +303,23 @@
 
         function transform() {
             var programTransform = programs[PROGRAM_TRANSFORM];
+            var destinationIdx = (currentSourceIdx + 1) % 2;
 
             // Toggle source and destination VBO
             var sourceVAO = vertexArrays[currentSourceIdx];
 
-            var destinationTransformFeedback = transformFeedbacks[(currentSourceIdx + 1) % 2];
-
+            var destinationTransformFeedback = transformFeedbacks[destinationIdx];
 
             gl.useProgram(programTransform);
 
             gl.bindVertexArray(sourceVAO);
             gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, destinationTransformFeedback);
+
+            // NOTE: The following two lines shouldn't be necessary, but are required to work in ANGLE
+            // due to a bug in its handling of transform feedback objects.
+            // https://bugs.chromium.org/p/angleproject/issues/detail?id=2051
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, vertexBuffers[destinationIdx][OFFSET_LOCATION]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, vertexBuffers[destinationIdx][ROTATION_LOCATION]);
 
             // Attributes per-vertex when doing transform feedback needs setting to 0 when doing transform feedback
             gl.vertexAttribDivisor(OFFSET_LOCATION, 0);
