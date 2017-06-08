@@ -87,9 +87,9 @@
 
         void main()
         {
-            red = vec4(1.0, 0.0, 0.0, 1.0);
-            green = vec4(0.0, 1.0, 0.0, 1.0);
-            blue = vec4(0.0, 0.0, 1.0, 1.0);
+            red = vec4(0.5, 0.0, 0.0, 1.0);
+            green = vec4(0.0, 0.3, 0.0, 1.0);
+            blue = vec4(0.0, 0.0, 0.8, 1.0);
         }
     </script>
 
@@ -228,11 +228,16 @@
         gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
+        // var w = Math.floor(windowSize.x / 2);
+        // var h = Math.floor(windowSize.y / 2);
+        var w = 16;
+        var h = 16;
+
         gl.texImage3D(gl.TEXTURE_2D_ARRAY,
             0,
             gl.RGB8,
-            windowSize.x / 2, // frame buffer size is half screen
-            windowSize.y / 2,
+            w, // frame buffer size is half screen
+            h,
             3,//depth
             0,
             gl.RGB,
@@ -311,8 +316,20 @@
             gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 1);
         }
 
+        var fb2 = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fb2);
+        gl.framebufferTextureLayer(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, texture, 0, Textures.GREEN);
+
+        console.log(w, h, w * h * 4);
+        var data = new Uint8Array( w * h * 4 * 3 );
+        // gl.bindFramebuffer(gl.READ_FRAMEBUFFER, frameBuffer);
+        gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, data);
+        console.log(data);
+        console.log(data.slice(w*h*4 - 8, w*h*4 + 12));
 
         // Clean up
+        gl.deleteFramebuffer(fb2);
+
         gl.deleteBuffer(vertexPosBuffer);
         gl.deleteBuffer(vertexTexBuffer);
         gl.deleteVertexArray(multipleOutputVertexArray);
