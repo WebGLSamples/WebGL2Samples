@@ -149,11 +149,15 @@
         // -- Init Vertex Arrays and Buffers
         var particleVAOs = [gl.createVertexArray(), gl.createVertexArray()];
 
+        // Transform feedback objects track output buffer state
+        var particleTransformFeedbacks = [gl.createTransformFeedback(), gl.createTransformFeedback()];
+        
         var particleVBOs = new Array(particleVAOs.length);
 
         for (var i = 0; i < particleVAOs.length; ++i) {
             particleVBOs[i] = new Array(NUM_LOCATIONS);
 
+            // Set up input
             gl.bindVertexArray(particleVAOs[i]);
 
             particleVBOs[i][POSITION_LOCATION] = gl.createBuffer();
@@ -185,6 +189,16 @@
             gl.bufferData(gl.ARRAY_BUFFER, particleIDs, gl.STATIC_READ);
             gl.vertexAttribPointer(ID_LOCATION, 1, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(ID_LOCATION);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            
+            // Set up output
+            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, particleTransformFeedbacks[i]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, particleVBOs[i][POSITION_LOCATION]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, particleVBOs[i][VELOCITY_LOCATION]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 2, particleVBOs[i][SPAWNTIME_LOCATION]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 3, particleVBOs[i][LIFETIME_LOCATION]);
+
         }
 
         function initProgram() {
@@ -237,13 +251,10 @@
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 
-        // -- Init TransformFeedback
-        var transformFeedback = gl.createTransformFeedback();
-        gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
-
         function render() {
 
             var time = Date.now() - appStartTime;
+            var destinationIdx = (currentSourceIdx + 1) % 2;
 
             // Set the viewport
             gl.viewport(0, 0, canvas.width, canvas.height - 10);
@@ -254,15 +265,18 @@
 
             // Toggle source and destination VBO
             var sourceVAO = particleVAOs[currentSourceIdx];
-            var destinationVBO = particleVBOs[(currentSourceIdx + 1) % 2];
+            var destinationTransformFeedback = particleTransformFeedbacks[destinationIdx];
 
             gl.bindVertexArray(sourceVAO);
+            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, destinationTransformFeedback);
 
-            // Set transform feedback buffer
-            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, destinationVBO[POSITION_LOCATION]);
-            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, destinationVBO[VELOCITY_LOCATION]);
-            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 2, destinationVBO[SPAWNTIME_LOCATION]);
-            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 3, destinationVBO[LIFETIME_LOCATION]);
+            // NOTE: The following four lines shouldn't be necessary, but are required to work in ANGLE
+            // due to a bug in its handling of transform feedback objects.
+            // https://bugs.chromium.org/p/angleproject/issues/detail?id=2051
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, particleVBOs[destinationIdx][POSITION_LOCATION]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, particleVBOs[destinationIdx][VELOCITY_LOCATION]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 2, particleVBOs[destinationIdx][SPAWNTIME_LOCATION]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 3, particleVBOs[destinationIdx][LIFETIME_LOCATION]);
 
             // Set uniforms
             gl.uniform1f(drawTimeLocation, time);
@@ -282,17 +296,17 @@
 
         // If you have a long-running page, and need to delete WebGL resources, use:
         //
-        // gl.deleteTransformFeedback(transformFeedback);
         // gl.deleteProgram(program);
         // for (var i = 0; i < particleVAOs.length; ++i) {
-        //     gl.deleteVertexArray(i); 
+        //     gl.deleteVertexArray(particleVAOs[i]); 
+        //     gl.deleteTransformFeedback(particleTransformFeedbacks[i]);
         //     for (var j = 0; j < NUM_LOCATIONS; ++j) {
         //         gl.deleteBuffer(particleVBOs[i][j]);
         //     }
         // }
     })();
     </script>
-    <div id="highlightedLines"  style="display: none">#L246-L278</div>
+    <div id="highlightedLines"  style="display: none">#L193-L278</div>
 
 </body>
 

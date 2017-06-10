@@ -213,6 +213,9 @@
 
         var vertexArrays = [gl.createVertexArray(), gl.createVertexArray()];
 
+        // Transform feedback objects track output buffer state
+        var transformFeedbacks = [gl.createTransformFeedback(), gl.createTransformFeedback()];
+
         var vertexBuffers = new Array(vertexArrays.length);
 
         for (var va = 0; va < vertexArrays.length; ++va) {
@@ -245,10 +248,15 @@
             gl.vertexAttribDivisor(COLOR_LOCATION, 1); // attribute used once per instance
 
             gl.bindVertexArray(null);
-        }
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            
+            // Set up output
+            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedbacks[va]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, vertexBuffers[va][OFFSET_LOCATION]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, vertexBuffers[va][ROTATION_LOCATION]);
 
-        // -- Init TransformFeedback
-        var transformFeedback = gl.createTransformFeedback();
+            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
+        }
 
         render();
 
@@ -295,26 +303,27 @@
 
         function transform() {
             var programTransform = programs[PROGRAM_TRANSFORM];
+            var destinationIdx = (currentSourceIdx + 1) % 2;
 
             // Toggle source and destination VBO
-            var sourceVBO = vertexBuffers[currentSourceIdx];
             var sourceVAO = vertexArrays[currentSourceIdx];
 
-            var destinationVBO = vertexBuffers[(currentSourceIdx + 1) % 2];
-
-            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
+            var destinationTransformFeedback = transformFeedbacks[destinationIdx];
 
             gl.useProgram(programTransform);
 
             gl.bindVertexArray(sourceVAO);
+            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, destinationTransformFeedback);
+
+            // NOTE: The following two lines shouldn't be necessary, but are required to work in ANGLE
+            // due to a bug in its handling of transform feedback objects.
+            // https://bugs.chromium.org/p/angleproject/issues/detail?id=2051
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, vertexBuffers[destinationIdx][OFFSET_LOCATION]);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, vertexBuffers[destinationIdx][ROTATION_LOCATION]);
 
             // Attributes per-vertex when doing transform feedback needs setting to 0 when doing transform feedback
             gl.vertexAttribDivisor(OFFSET_LOCATION, 0);
             gl.vertexAttribDivisor(ROTATION_LOCATION, 0);
-
-            // Set transform feedback buffer
-            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, OFFSET_LOCATION, destinationVBO[OFFSET_LOCATION]);
-            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, ROTATION_LOCATION, destinationVBO[ROTATION_LOCATION]);
 
             // Turn off rasterization - we are not drawing
             gl.enable(gl.RASTERIZER_DISCARD);
@@ -328,7 +337,6 @@
             gl.disable(gl.RASTERIZER_DISCARD);
             gl.useProgram(null);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
-            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
             gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
 
             // Ping pong the buffers
@@ -369,7 +377,6 @@
 
         // If you have a long-running page, and need to delete WebGL resources, use:
         //
-        // gl.deleteTransformFeedback(transformFeedback);
         // gl.deleteProgram(programs[PROGRAM_TRANSFORM]);
         // gl.deleteProgram(programs[PROGRAM_DRAW]);
         // for (var i = 0; i < 2; ++i) {
@@ -379,9 +386,11 @@
         // }
         // gl.deleteVertexArray(vertexArrays[PROGRAM_TRANSFORM]);
         // gl.deleteVertexArray(vertexArrays[PROGRAM_DRAW]);
+        // gl.deleteTransformFeedback(transformFeedbacks[0]);
+        // gl.deleteTransformFeedback(transformFeedbacks[1]);
     })();
     </script>
-    <div id="highlightedLines"  style="display: none">#L243-L360</div>
+    <div id="highlightedLines"  style="display: none">#L221-L367</div>
 
 </body>
 
