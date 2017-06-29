@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>WebGL 2 Samples - fbo_rtt_texture_array</title>
+    <title>WebGL 2 Samples - fbo_read_pixels</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="style.css">
@@ -11,9 +11,9 @@
 </head>
 
 <body>
-    <div id="info">WebGL 2 Samples - fbo_rtt_texture_array</div>
+    <div id="info">WebGL 2 Samples - fbo_read_pixels</div>
     <p id="description">
-        This sample demonstrates rendering to texture in a frame buffer using a texture array. 
+        This sample demonstrates rendering to texture in a frame buffer using a texture array. And readpixels from this frame buffer. The data read is printed in the console.
     </p>
 
     <script id="vs-layer" type="x-shader/x-vertex">
@@ -315,6 +315,16 @@
             gl.drawArrays(gl.TRIANGLES, 0, 6);
         }
 
+        var data = new Uint8Array( w * h * 4 * 3 );
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, frameBuffer);
+        gl.readBuffer(gl.COLOR_ATTACHMENT0);
+        gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, data, 0);
+        gl.readBuffer(gl.COLOR_ATTACHMENT1);
+        gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, data, w * h * 4);
+        gl.readBuffer(gl.COLOR_ATTACHMENT2);
+        gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, data, w * h * 4 * 2);
+        console.log(data);
+
         // Clean up
         gl.deleteBuffer(vertexPosBuffer);
         gl.deleteBuffer(vertexTexBuffer);
@@ -327,7 +337,7 @@
 
     })();
     </script>
-    <div id="highlightedLines"  style="display: none">#L223-L290</div>
+    <div id="highlightedLines"  style="display: none">#L391-L327</div>
 
 </body>
 
