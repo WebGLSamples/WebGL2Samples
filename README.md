@@ -63,6 +63,7 @@ Tarek Sherif writes a really helpful [WebGL 2 Examples](https://github.com/tsher
 |[fbo_rtt_draw_buffers](http://webglsamples.org/WebGL2Samples/#fbo_rtt_draw_buffers)|:white_check_mark:|TODO|:white_check_mark:|TODO|
 |[fbo_rtt_texture_array](http://webglsamples.org/WebGL2Samples/#fbo_rtt_texture_array)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[fbo_rtt_depth_texture](http://webglsamples.org/WebGL2Samples/#fbo_rtt_depth_texture)|:white_check_mark:|TODO|:white_check_mark:|TODO|
+|[fbo_read_pixels](http://webglsamples.org/WebGL2Samples/#fbo_read_pixels)|:white_check_mark:|TODO|:white_check_mark:|TODO|
 |[fbo_blit](http://webglsamples.org/WebGL2Samples/#fbo_blit)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[fbo_multisample](http://webglsamples.org/WebGL2Samples/#fbo_multisample)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
 |[fbo_new_blend_equation](http://webglsamples.org/WebGL2Samples/#fbo_new_blend_equation)|:white_check_mark:|:white_check_mark:|:white_check_mark:|:white_check_mark:|
