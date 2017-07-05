@@ -21,11 +21,11 @@
         precision highp float;
         precision highp int;
 
-        layout(location = POSITION_LOCATION) in vec2 pos;
+        layout(location = POSITION_LOCATION) in vec3 pos;
 
         void main()
         {
-            gl_Position = vec4(pos,0.0,1.0);
+            gl_Position = vec4(pos, 1.0);
         }
     </script>
 
@@ -38,7 +38,7 @@
 
         void main()
         {
-            color = vec4(1.0,0.5,0.0,1.0);
+            color = vec4(1.0, 0.5, 0.0, 1.0);
         }
     </script>
 
@@ -64,12 +64,17 @@
         // -- Init Program
         var program = createProgram(gl, getShaderSource('vs'), getShaderSource('fs'));
         gl.useProgram(program);
+        gl.enable(gl.DEPTH_TEST);
 
         // -- Init Buffer
         var vertices = new Float32Array([
-            -0.3, -0.5,
-             0.3, -0.5,
-             0.0,  0.5
+            -0.3, -0.5, 0.0,
+             0.3, -0.5, 0.0,
+             0.0,  0.5, 0.0,
+
+             -0.3, -0.5, 0.5,
+             0.3, -0.5, 0.5,
+             0.0,  0.5, 0.5
         ]);
         var vertexPosBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
@@ -81,7 +86,7 @@
 
         var vertexPosLocation = 0; // set with GLSL layout qualifier
         gl.enableVertexAttribArray(vertexPosLocation);
-        gl.vertexAttribPointer(vertexPosLocation, 2, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(vertexPosLocation, 3, gl.FLOAT, false, 0, 0);
 
         gl.bindVertexArray(null);
 
@@ -90,12 +95,14 @@
 
         // -- Render
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BITS);
 
         gl.bindVertexArray(vertexArray);
 
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+
         gl.beginQuery(gl.ANY_SAMPLES_PASSED, query);
-        gl.drawArraysInstanced(gl.TRIANGLES, 0, 3, 2);
+        gl.drawArrays(gl.TRIANGLES, 3, 3);
         gl.endQuery(gl.ANY_SAMPLES_PASSED);
 
         (function tick() {
@@ -117,6 +124,6 @@
         gl.deleteVertexArray(vertexArray);
     })();
     </script>
-    <div id="highlightedLines"  style="display: none">#L97-L112</div>
+    <div id="highlightedLines"  style="display: none">#L94-L119</div>
 </body>
 </html>
