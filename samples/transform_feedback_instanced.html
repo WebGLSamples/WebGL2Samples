@@ -338,6 +338,7 @@
             gl.useProgram(null);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
             gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
+            gl.bindBuffer(gl.TRANSFORM_FEEDBACK_BUFFER, null);
 
             // Ping pong the buffers
             currentSourceIdx = (currentSourceIdx + 1) % 2;
