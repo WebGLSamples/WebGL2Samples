@@ -230,7 +230,7 @@
 
             vertexBuffers[va][ROTATION_LOCATION] = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers[va][ROTATION_LOCATION]);
-            gl.bufferData(gl.ARRAY_BUFFER, instanceOffsets, gl.STREAM_COPY);
+            gl.bufferData(gl.ARRAY_BUFFER, instanceRotations, gl.STREAM_COPY);
             gl.vertexAttribPointer(ROTATION_LOCATION, 1, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(ROTATION_LOCATION);
 
